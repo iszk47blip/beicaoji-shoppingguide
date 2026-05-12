@@ -53,11 +53,26 @@ class DialogueEngine:
             return self._handle_greeting(state, user_input)
         elif state.get("stage") == Stage.SCREENING:
             return self._handle_screening(state, user_input)
+        elif state.get("stage") == Stage.INFO_COLLECT:
+            return self._handle_info_collect(state, user_input)
         elif state.get("stage") == Stage.CONSTITUTION:
             return self._handle_constitution(state, user_input)
         elif state.get("stage") == Stage.SCENE:
             return self._handle_scene(state, user_input)
         return self.get_bot_message(state)
+
+    def _handle_info_collect(self, state, user_input):
+        idx = 0
+        raw = {}
+        q = CONSTITUTION_QUESTIONS[idx]
+        options_text = "\n".join(f"  · {o}" for o in q["options"])
+        return {
+            "message": f"{q['question']}\n\n{options_text}",
+            "stage": Stage.CONSTITUTION,
+            "constitution_raw": json.dumps({q["field"]: user_input}, ensure_ascii=False),
+            "constitution_index": idx + 1,
+            "customer_name": user_input,
+        }
 
     def _handle_greeting(self, state, user_input):
         return {"message": SCREENING_PROMPT, "stage": Stage.SCREENING}

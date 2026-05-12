@@ -52,3 +52,8 @@ beicaoji/
 
 - 多步骤任务先说明计划，再执行
 - 通过测试验证，不是"让它工作"
+
+### 已知坑
+
+- `process_user_message` 必须覆盖所有 stage，遇到未知 stage 会静默 fallback 到默认回复
+- 阶段推进后立即 commit 到 git，multi-process reload 会读取旧 bytecode
