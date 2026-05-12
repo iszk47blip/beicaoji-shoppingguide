@@ -49,6 +49,7 @@ def send_message(
         "stage": result.get("stage", "greeting"),
         "quick_replies": result.get("quick_replies"),
         "recommendation": recommendation,
+        "screening_result": new_state.get("screening_result"),
     }
 
 
