@@ -33,6 +33,7 @@ def send_message(
         result = engine.process_user_message(state, message)
 
     recommendation = None
+    catalog = None
     if result.get("stage") == "recommend":
         product_svc = ProductService(db)
         rec_engine = RecommendEngine(product_svc)
@@ -40,8 +41,15 @@ def send_message(
             state.get("constitution_raw", "{}"),
             result.get("scene_raw", "")
         )
+    elif result.get("stage") == "catalog":
+        product_svc = ProductService(db)
+        catalog = product_svc.get_constitution_catalog()
 
     new_state = {**state, **result}
+    if recommendation:
+        new_state["recommendation"] = recommendation
+    if catalog:
+        new_state["catalog"] = catalog
     _session_store[state_key] = new_state
 
     return {
@@ -49,6 +57,7 @@ def send_message(
         "stage": result.get("stage", "greeting"),
         "quick_replies": result.get("quick_replies"),
         "recommendation": recommendation,
+        "catalog": catalog,
         "screening_result": new_state.get("screening_result"),
     }
 

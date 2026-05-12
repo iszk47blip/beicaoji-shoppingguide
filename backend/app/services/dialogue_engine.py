@@ -13,6 +13,7 @@ class Stage(str, Enum):
     CONSTITUTION = "constitution"
     SCENE = "scene"
     RECOMMEND = "recommend"
+    CATALOG = "catalog"
     DONE = "done"
 
 
@@ -90,7 +91,10 @@ class DialogueEngine:
         """Generate the bot's message when entering a new stage."""
         stage = state.get("stage", Stage.GREETING)
         if stage == Stage.GREETING:
-            return {"message": WELCOME_MESSAGE, "stage": Stage.GREETING}
+            return {
+                "message": WELCOME_MESSAGE, "stage": Stage.GREETING,
+                "quick_replies": ["帮我看看体质", "你都有什么产品？"]
+            }
         elif stage == Stage.SCREENING:
             return self._screening_ask(state)
         elif stage == Stage.CONSTITUTION:
@@ -131,15 +135,24 @@ class DialogueEngine:
         ctx = self._state_context(state)
         result = self._chat_json(
             f"顾客回应了你的欢迎：「{user_input}」\n\n"
-            "根据顾客的话灵活回应，但无论什么情况都必须带出安全筛查（怀孕/备孕/哺乳/重大疾病/处方药）：\n"
-            "- 顾客愿意继续 → 简短过渡后问筛查\n"
-            "- 顾客问有什么产品 → 简短介绍品类（1句话），然后自然过渡：在帮你挑之前，先简单了解一下你的情况 + 问筛查\n"
-            "- 顾客直接说困扰 → 表达理解，然后说为了更准确地帮你，先简单了解几个安全方面 + 问筛查\n"
-            "- 顾客只是打招呼 → 简短回应后问筛查\n\n"
-            "返回JSON: {\"message\": \"...\"}",
+            "根据顾客的话灵活回应：\n"
+            "- 顾客愿意继续 → 简短过渡后做安全筛查，返回 stage: screening\n"
+            "- 顾客问有什么产品、只想逛逛 → 热情介绍四类产品，告诉顾客想看哪类可以问你。不要再追问筛查。返回 stage: greeting\n"
+            "- 顾客明确表示不想测试/不想回答体质问题、只想看体质对应什么产品、想知道XX体质吃什么 → "
+            "简短回应'好的，我帮你整理一下'，返回 stage: catalog\n"
+            "- 顾客直接说困扰 → 表达理解 + 安全筛查，返回 stage: screening\n"
+            "- 顾客只是打招呼 → 简短回应后问筛查，返回 stage: screening\n\n"
+            "返回JSON: {\"message\": \"...\", \"stage\": \"screening|greeting|catalog\"}",
             ctx
         )
-        result["stage"] = Stage.SCREENING
+        next_stage = result.get("stage", Stage.SCREENING)
+        result["stage"] = next_stage
+        if next_stage == Stage.SCREENING:
+            result["quick_replies"] = ["都没有", "在备孕或怀孕", "在哺乳期", "在吃处方药"]
+        elif next_stage == Stage.GREETING:
+            result["quick_replies"] = ["帮我看看体质", "饼干有哪些？", "有什么茶？"]
+        elif next_stage == Stage.CATALOG:
+            result["quick_replies"] = None
         return result
 
     # ------------------------------------------------------------------
@@ -152,7 +165,10 @@ class DialogueEngine:
             "怀孕或备孕中、正在哺乳期、有确诊的重大疾病、正在服用处方药。"
             "语气温和，说明这关系到产品安全。"
         )
-        return {"message": msg, "stage": Stage.SCREENING}
+        return {
+            "message": msg, "stage": Stage.SCREENING,
+            "quick_replies": ["都没有", "在备孕或怀孕", "在哺乳期", "在吃处方药"]
+        }
 
     def _handle_screening(self, state: dict, user_input: str) -> dict:
         ctx = self._state_context(state)
@@ -182,6 +198,7 @@ class DialogueEngine:
             response["stage"] = Stage.CONSTITUTION
             response["constitution_index"] = 0
             response["constitution_raw"] = "{}"
+            response["quick_replies"] = CONSTITUTION_QUESTIONS[0]["options"]
         else:
             response["stage"] = Stage.INFO_COLLECT
         return response
@@ -214,6 +231,7 @@ class DialogueEngine:
             "constitution_index": 0,
             "constitution_raw": "{}",
             "customer_name": name,
+            "quick_replies": q["options"],
         }
         return response
 
@@ -232,7 +250,10 @@ class DialogueEngine:
             f"选项供顾客参考：{', '.join(q['options'])}",
             ctx
         )
-        return {"message": msg, "stage": Stage.CONSTITUTION, "question_index": idx}
+        return {
+            "message": msg, "stage": Stage.CONSTITUTION, "question_index": idx,
+            "quick_replies": q["options"]
+        }
 
     def _handle_constitution(self, state: dict, user_input: str) -> dict:
         idx = state.get("constitution_index", 0)
@@ -286,6 +307,13 @@ class DialogueEngine:
             "constitution_index": idx,
             "stage": Stage.SCENE if (is_last or next_stage == Stage.SCENE) else Stage.CONSTITUTION,
         }
+        # Include next question options as quick replies
+        if not is_last and next_stage != Stage.SCENE:
+            next_q = CONSTITUTION_QUESTIONS[idx + 1] if idx + 1 < len(CONSTITUTION_QUESTIONS) else None
+            if next_q:
+                response["quick_replies"] = next_q["options"]
+        elif response["stage"] == Stage.SCENE:
+            response["quick_replies"] = ["睡眠不好", "消化不好", "容易疲劳", "皮肤问题", "想调理身体"]
         return response
 
     def _transition_to_scene(self, state: dict) -> dict:
@@ -308,7 +336,10 @@ class DialogueEngine:
             "皮肤状态不好、想调理身体等等。",
             ctx
         )
-        return {"message": msg, "stage": Stage.SCENE}
+        return {
+            "message": msg, "stage": Stage.SCENE,
+            "quick_replies": ["睡眠不好", "消化不好", "容易疲劳", "皮肤问题", "想调理身体"]
+        }
 
     def _handle_scene(self, state: dict, user_input: str) -> dict:
         scene_raw = state.get("scene_raw", "")

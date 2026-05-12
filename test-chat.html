@@ -2,133 +2,511 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>焙草集 AI 健康顾问</title>
 <style>
+  :root {
+    --green: #5B8C5A;
+    --green-light: #e8f5e9;
+    --bg: #f0f2f0;
+    --white: #ffffff;
+    --text: #333333;
+    --text-secondary: #999999;
+    --border: #e8e8e8;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --safe-bottom: env(safe-area-inset-bottom, 12px);
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; height: 100vh; display: flex; flex-direction: column; }
-  header { background: #5B8C5A; color: white; padding: 20rpx; text-align: center; font-size: 18px; }
-  #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-  .msg { max-width: 80%; padding: 14px 18px; border-radius: 16px; font-size: 15px; line-height: 1.6; word-break: break-word; }
-  .msg.bot { align-self: flex-start; background: white; color: #333; }
-  .msg.user { align-self: flex-end; background: #5B8C5A; color: white; }
-  .msg.system { align-self: center; background: #e8f5e9; color: #5B8C5A; font-size: 13px; text-align: center; max-width: 90%; }
-  #input-bar { display: flex; padding: 12px 16px; background: white; border-top: 1px solid #eee; gap: 10px; }
-  #input-bar input { flex: 1; height: 44px; padding: 0 16px; border: 1px solid #ddd; border-radius: 22px; font-size: 15px; outline: none; }
-  #input-bar input:focus { border-color: #5B8C5A; }
-  #send-btn { padding: 0 24px; height: 44px; background: #5B8C5A; color: white; border: none; border-radius: 22px; font-size: 15px; cursor: pointer; }
-  #send-btn:disabled { background: #aaa; }
-  .loading { text-align: center; color: #999; padding: 10px; font-size: 13px; }
-  .rec-section { background: #e8f5e9; border-radius: 12px; padding: 16px; margin-top: 8px; }
-  .rec-section h4 { color: #5B8C5A; margin-bottom: 8px; font-size: 14px; }
-  .rec-item { background: white; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
-  .rec-item .name { font-weight: bold; color: #333; font-size: 14px; }
-  .rec-item .info { font-size: 12px; color: #999; margin-top: 4px; }
-  .rec-item .price { color: #e6a23c; font-size: 14px; margin-top: 4px; }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  /* ---- Header ---- */
+  header {
+    background: var(--green);
+    color: white;
+    padding: 12px 16px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+
+  /* ---- Main layout ---- */
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* ---- Chat area ---- */
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .msg {
+    max-width: 82%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 15px;
+    line-height: 1.55;
+    word-break: break-word;
+    animation: msgIn 0.25s ease-out;
+  }
+  @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .msg.bot {
+    align-self: flex-start;
+    background: var(--white);
+    color: var(--text);
+    border-bottom-left-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .msg.user {
+    align-self: flex-end;
+    background: var(--green);
+    color: white;
+    border-bottom-right-radius: 6px;
+  }
+  .msg.system {
+    align-self: center;
+    background: var(--green-light);
+    color: var(--green);
+    font-size: 12px;
+    text-align: center;
+    max-width: 92%;
+    border-radius: 10px;
+    padding: 8px 14px;
+  }
+
+  /* ---- Typing indicator ---- */
+  .typing { display: flex; gap: 4px; padding: 14px 18px; }
+  .typing span {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--text-secondary);
+    animation: bounce 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+  /* ---- Quick replies ---- */
+  #quick-replies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 6px 14px 0;
+    flex-shrink: 0;
+    min-height: 0;
+  }
+  #quick-replies:empty { display: none; }
+
+  .quick-btn {
+    background: var(--white);
+    border: 1px solid var(--border);
+    color: var(--green);
+    padding: 9px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .quick-btn:active {
+    background: var(--green);
+    color: white;
+    border-color: var(--green);
+  }
+
+  /* ---- Input bar ---- */
+  #input-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--white);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    padding-bottom: max(10px, var(--safe-bottom));
+  }
+
+  #input-bar input {
+    flex: 1;
+    height: 42px;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: 21px;
+    font-size: 15px;
+    outline: none;
+    background: var(--bg);
+    color: var(--text);
+    min-width: 0;
+  }
+  #input-bar input:focus { border-color: var(--green); }
+
+  .icon-btn {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    border: none;
+    background: var(--green);
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .icon-btn:active { opacity: 0.8; transform: scale(0.95); }
+  .icon-btn.listening {
+    background: #e74c3c;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.4); } 50% { box-shadow: 0 0 0 12px rgba(231,76,60,0); } }
+
+  #mic-btn {
+    background: var(--bg); color: var(--text-secondary); font-size: 18px;
+    user-select: none; -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  #mic-btn.listening {
+    background: #e74c3c; color: white;
+    transform: scale(1.15);
+    box-shadow: 0 0 0 8px rgba(231,76,60,0.15);
+  }
+
+  /* Voice overlay */
+  #voice-overlay {
+    display: none;
+    position: fixed;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    color: white;
+    padding: 16px 28px;
+    border-radius: 24px;
+    font-size: 15px;
+    text-align: center;
+    z-index: 100;
+    pointer-events: none;
+    animation: fadeIn 0.2s;
+  }
+  #voice-overlay.show { display: block; }
+  #voice-overlay .wave {
+    display: flex; gap: 3px; justify-content: center; align-items: flex-end;
+    height: 28px; margin-bottom: 8px;
+  }
+  #voice-overlay .wave span {
+    width: 4px; border-radius: 2px; background: #7CB342;
+    animation: wave 1.2s ease-in-out infinite;
+  }
+  #voice-overlay .wave span:nth-child(1) { height:12px; animation-delay:0s; }
+  #voice-overlay .wave span:nth-child(2) { height:22px; animation-delay:0.2s; }
+  #voice-overlay .wave span:nth-child(3) { height:16px; animation-delay:0.4s; }
+  #voice-overlay .wave span:nth-child(4) { height:26px; animation-delay:0.6s; }
+  #voice-overlay .wave span:nth-child(5) { height:14px; animation-delay:0.8s; }
+  @keyframes wave { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(1.8); } }
+  @keyframes fadeIn { from { opacity:0; transform:translateX(-50%) translateY(10px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+
+  /* ---- Report button ---- */
+  .report-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #5B8C5A, #7CB342);
+    color: white;
+    border: none;
+    border-radius: 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(91,140,90,0.25);
+    margin-top: 8px;
+  }
+  .report-btn:active { opacity: 0.9; transform: scale(0.98); }
+
+  /* ---- Responsive: larger screens ---- */
+  @media (min-width: 481px) {
+    .app { box-shadow: var(--shadow); }
+    #chat { padding: 16px 18px; }
+    #input-bar { padding: 12px 16px; }
+  }
 </style>
 </head>
 <body>
-<header>🌿 焙草集 AI 健康顾问</header>
-<div id="chat"></div>
-<div id="input-bar">
-  <input id="msg-input" placeholder="输入你的情况..." />
-  <button id="send-btn">发送</button>
+
+<div class="app">
+  <header>焙草集 AI 健康顾问</header>
+
+  <div id="chat"></div>
+
+  <div id="quick-replies"></div>
+
+  <div id="voice-overlay">
+    <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
+    <div id="voice-hint">正在聆听...</div>
+  </div>
+
+  <div id="input-bar">
+    <button id="mic-btn" class="icon-btn" title="长按说话">🎤</button>
+    <input id="msg-input" placeholder="输入你想说的话..." autocomplete="off" />
+    <button id="send-btn" class="icon-btn" onclick="send()">↑</button>
+  </div>
 </div>
 
 <script>
 const BASE = 'http://localhost:8005/api';
-const sessionId = 'html-test-' + Date.now();
+const sessionId = 'mobile-' + Date.now();
 
+// ---- Voice input (push-to-talk, WeChat-style) ----
+let recognition = null;
+let voiceActive = false;
+let voiceText = '';
+
+function initVoice() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    document.getElementById('mic-btn').style.display = 'none';
+    return;
+  }
+  recognition = new SR();
+  recognition.lang = 'zh-CN';
+  recognition.interimResults = true;
+  recognition.continuous = false;
+
+  recognition.onresult = (e) => {
+    voiceText = '';
+    for (let i = 0; i < e.results.length; i++) {
+      voiceText += e.results[i][0].transcript;
+    }
+    document.getElementById('msg-input').value = voiceText;
+    document.getElementById('voice-hint').textContent =
+      e.results[0]?.isFinal ? '说完松手发送' : '正在聆听...';
+  };
+
+  recognition.onerror = (e) => {
+    if (e.error === 'no-speech') {
+      document.getElementById('voice-hint').textContent = '未检测到声音，再试试';
+      return;
+    }
+    if (e.error === 'aborted') return;
+    stopVoice();
+  };
+
+  recognition.onend = () => {
+    if (voiceActive) {
+      document.getElementById('voice-hint').textContent = voiceText ? '说完松手发送' : '正在聆听...';
+    }
+  };
+
+  // Bind press-and-hold
+  const mic = document.getElementById('mic-btn');
+  mic.addEventListener('pointerdown', (e) => { e.preventDefault(); startVoice(); });
+  mic.addEventListener('pointerup', () => { if (voiceActive) stopVoiceAndSend(); });
+  mic.addEventListener('pointerleave', () => { if (voiceActive) stopVoice(); });
+  mic.addEventListener('pointercancel', () => { if (voiceActive) stopVoice(); });
+}
+
+function startVoice() {
+  if (!recognition) return;
+  voiceActive = true;
+  voiceText = '';
+  const input = document.getElementById('msg-input');
+  input.value = '';
+  input.placeholder = '正在聆听...';
+  document.getElementById('mic-btn').classList.add('listening');
+  document.getElementById('voice-overlay').classList.add('show');
+  document.getElementById('voice-hint').textContent = '正在聆听...';
+  try { recognition.start(); } catch(ex) {}
+}
+
+function stopVoice() {
+  voiceActive = false;
+  document.getElementById('mic-btn').classList.remove('listening');
+  document.getElementById('voice-overlay').classList.remove('show');
+  document.getElementById('msg-input').placeholder = '输入你想说的话...';
+  try { recognition.stop(); } catch(ex) {}
+}
+
+function stopVoiceAndSend() {
+  stopVoice();
+  setTimeout(() => {
+    const txt = document.getElementById('msg-input').value.trim() || voiceText;
+    if (txt) {
+      document.getElementById('msg-input').value = txt;
+      send();
+    }
+  }, 300);
+}
+
+// ---- Quick replies ----
+function setQuickReplies(replies) {
+  const container = document.getElementById('quick-replies');
+  container.innerHTML = '';
+  if (!replies || !replies.length) return;
+  replies.forEach(text => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn';
+    btn.textContent = text;
+    btn.addEventListener('click', () => {
+      addMsg('user', text);
+      document.getElementById('msg-input').value = '';
+      sendMessage(text);
+      container.innerHTML = '';
+    });
+    container.appendChild(btn);
+  });
+}
+
+// ---- Chat ----
 function addMsg(role, text) {
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
   div.className = 'msg ' + role;
-  if (role === 'system') {
-    div.textContent = text;
-  } else {
-    div.textContent = text;
-  }
+  div.textContent = text;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
+}
+
+function showLoading() {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'msg bot typing';
+  div.id = 'loading-msg';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function hideLoading() {
+  const el = document.getElementById('loading-msg');
+  if (el) el.remove();
 }
 
 function showRecommendation(rec) {
   if (!rec) return;
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
-  div.className = 'msg bot rec-section';
-  let html = '<h4>🌿 推荐套餐</h4>';
-  html += '<p><strong>体质：</strong>' + rec.constitution.constitution_type + '</p>';
-  html += '<p style="font-size:13px;color:#666;margin-top:4px">' + rec.constitution.description + '</p>';
-  if (rec.bundle && rec.bundle.length > 0) {
-    html += '<div style="margin-top:10px">';
-    rec.bundle.forEach(p => {
-      html += '<div class="rec-item">';
-      html += '<div class="name">' + p.name + '</div>';
-      html += '<div class="info">成分：' + p.ingredients + '</div>';
-      html += '<div class="price">¥' + (p.price || 0) + '</div>';
+  div.className = 'msg bot';
+  div.style.maxWidth = '88%';
+  div.innerHTML =
+    '<p style="margin-bottom:8px">已经帮你分析好了～</p>' +
+    '<button class="report-btn" onclick="window.open(\'' + BASE.replace('/api','') +
+    '/api/report/' + sessionId + '\', \'_blank\')">' +
+    '查看我的调理报告</button>';
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function showCatalog(catalog) {
+  if (!catalog || !catalog.length) return;
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.style.maxWidth = '92%';
+
+  let html = '';
+  catalog.forEach(c => {
+    html += '<div style="margin-bottom:14px">';
+    html += '<p style="font-weight:700;color:#5B8C5A;font-size:15px;margin-bottom:4px">'
+      + c.constitution + '</p>';
+    html += '<p style="font-size:12px;color:#999;margin-bottom:6px">'
+      + c.description + '</p>';
+    c.products.forEach(p => {
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0f0">';
+      html += '<span style="font-size:14px;font-weight:600;flex:1;min-width:0">' + p.name + '</span>';
+      html += '<span style="font-size:11px;color:#999;flex-shrink:0">[' + p.category + ']</span>';
       html += '</div>';
     });
     html += '</div>';
-  }
-  html += '<p style="font-size:11px;color:#999;margin-top:8px">' + rec.constitution.disclaimer + '</p>';
+  });
+
   div.innerHTML = html;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
 
-async function send() {
-  const input = document.getElementById('msg-input');
-  const btn = document.getElementById('send-btn');
-  const text = input.value.trim();
-  if (!text) return;
-
-  input.value = '';
-  addMsg('user', text);
-  btn.disabled = true;
-
-  const loading = document.createElement('div');
-  loading.className = 'loading';
-  loading.textContent = '思考中...';
-  document.getElementById('chat').appendChild(loading);
-  document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
-
+async function sendMessage(message) {
+  showLoading();
+  document.getElementById('send-btn').disabled = true;
   try {
     const resp = await fetch(BASE + '/chat/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_id: sessionId, message: text })
+      body: JSON.stringify({ session_id: sessionId, message })
     });
     const data = await resp.json();
-    loading.remove();
+    hideLoading();
     addMsg('bot', data.message);
-    if (data.recommendation) {
-      showRecommendation(data.recommendation);
-    }
-  } catch (e) {
-    loading.remove();
+    if (data.recommendation) showRecommendation(data.recommendation);
+    if (data.catalog) showCatalog(data.catalog);
+    setQuickReplies(data.quick_replies);
+  } catch(e) {
+    hideLoading();
     addMsg('system', '请求失败: ' + e.message);
   }
-
-  btn.disabled = false;
-  input.focus();
+  document.getElementById('send-btn').disabled = false;
 }
 
+function send() {
+  const input = document.getElementById('msg-input');
+  const text = input.value.trim();
+  if (!text) return;
+  addMsg('user', text);
+  input.value = '';
+  document.getElementById('quick-replies').innerHTML = '';
+  sendMessage(text);
+}
+
+// ---- Init ----
 document.getElementById('send-btn').addEventListener('click', send);
 document.getElementById('msg-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') send();
 });
+initVoice();
 
 // Start conversation
-addMsg('bot', '🌿 正在连接焙草集 AI 健康顾问...');
+addMsg('bot', '正在连接...');
 fetch(BASE + '/chat/send', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ session_id: sessionId, message: '' })
 }).then(r => r.json()).then(data => {
-  const chat = document.getElementById('chat');
-  chat.innerHTML = '';
+  document.getElementById('chat').innerHTML = '';
   addMsg('bot', data.message);
+  setQuickReplies(data.quick_replies);
 });
 </script>
 </body>

@@ -30,10 +30,10 @@ def generate_report(constitution_raw: str, scene_input: str, recommendation: dic
         "scene_concern": scene_input,
         "bundle": [
             {
-                "name": p.name,
-                "ingredients": p.ingredients,
-                "reason": f"此产品含有{p.ingredients}，适合偏{ctype}且关注{scene_input}的你。",
-                "price": p.price or 0,
+                "name": p if isinstance(p, str) else (p.get("name", "") if isinstance(p, dict) else getattr(p, "name", "")),
+                "ingredients": "" if isinstance(p, str) else (p.get("ingredients", "") if isinstance(p, dict) else getattr(p, "ingredients", "")),
+                "reason": f"此产品适合偏{ctype}且关注{scene_input}的你。",
+                "price": 0 if isinstance(p, str) else (p.get("price", 0) if isinstance(p, dict) else getattr(p, "price", 0) or 0),
             }
             for p in recommendation.get("bundle", [])
         ],
