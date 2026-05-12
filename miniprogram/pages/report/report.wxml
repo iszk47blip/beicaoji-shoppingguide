@@ -1,0 +1,33 @@
+<view class="report-page">
+  <view class="report-header">
+    <text class="title">你的调理建议报告</text>
+    <text class="subtitle">基于传统食养理念 · 仅供参考</text>
+  </view>
+
+  <view class="section">
+    <text class="section-title">体质倾向</text>
+    <text class="section-body">{{report.constitution.constitution_type}}</text>
+  </view>
+
+  <view class="section">
+    <text class="section-title">食养方向</text>
+    <text class="section-body">{{report.constitution.description}}</text>
+  </view>
+
+  <view class="section">
+    <text class="section-title">推荐商品</text>
+    <view wx:for="{{report.bundle}}" wx:key="name" class="product-card">
+      <text class="product-name">{{item.name}}</text>
+      <text class="product-ingredients">成分：{{item.ingredients}}</text>
+      <text class="product-price">¥{{item.price}}</text>
+    </view>
+  </view>
+
+  <view class="actions">
+    <button class="btn-primary" bindtap="onBuyOffline">到店出示此页购买</button>
+  </view>
+
+  <view class="disclaimer">
+    <text>{{report.disclaimer}}</text>
+  </view>
+</view>

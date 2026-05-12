@@ -1,0 +1,11 @@
+{
+  "pages": [
+    "pages/chat/chat",
+    "pages/report/report"
+  ],
+  "window": {
+    "navigationBarTitleText": "焙草集",
+    "navigationBarBackgroundColor": "#5B8C5A",
+    "navigationBarTextStyle": "white"
+  }
+}

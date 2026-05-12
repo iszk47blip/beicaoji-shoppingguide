@@ -1,0 +1,18 @@
+<view class="chat-container">
+  <scroll-view class="message-list" scroll-y scroll-into-view="msg-{{messages.length - 1}}">
+    <view wx:for="{{messages}}" wx:key="index" id="msg-{{index}}"
+          class="message {{item.role}}">
+      <view class="bubble">{{item.content}}</view>
+    </view>
+    <view wx:if="{{loading}}" class="message bot">
+      <view class="bubble typing">...</view>
+    </view>
+  </scroll-view>
+
+  <view class="input-bar">
+    <input class="input" placeholder="输入你的情况..."
+           value="{{inputText}}" bindinput="onInput" confirm-type="send"
+           bindconfirm="onSend"/>
+    <button class="send-btn" bindtap="onSend">发送</button>
+  </view>
+</view>
