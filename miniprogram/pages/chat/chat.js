@@ -39,7 +39,8 @@ Page({
     api.sendMessage('', sid).then(res => {
       this.setData({ loading: false });
       this._handleResponse(res);
-    }).catch(() => {
+    }).catch(err => {
+      console.error('Init failed:', err);
       this.setData({ loading: false });
       this.addMessage('text', 'bot', '你好！我是焙草集的健康顾问，有什么可以帮你的？');
     });
@@ -99,9 +100,10 @@ Page({
     api.sendMessage(message, this.data.sessionId).then(res => {
       this.setData({ loading: false });
       this._handleResponse(res);
-    }).catch(() => {
+    }).catch(err => {
       this.setData({ loading: false });
-      this.addMessage('text', 'system', '抱歉出了点问题，请稍后再试。');
+      console.error('Send failed:', err);
+      this.addMessage('text', 'system', '网络连接失败，请确认后端已启动。');
     });
   },
 
