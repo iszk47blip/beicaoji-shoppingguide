@@ -37,7 +37,7 @@ Page({
 
   _loadReport(sid) {
     wx.request({
-      url: api.BASE + '/report/' + sid,
+      url: api.BASE + '/report/' + sid + '/data',
       success: (res) => {
         if (res.data && res.data.recommendation) {
           const rec = res.data.recommendation;

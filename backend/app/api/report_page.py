@@ -317,6 +317,18 @@ body {
 CATEGORY_EMOJI = {"biscuit": "🍪", "bread": "🍞", "tea": "🍵", "toy": "🎐"}
 
 
+@router.get("/{session_id}/data")
+def report_data(session_id: str):
+    state_key = f"chat:{session_id}"
+    state_raw = _session_store.get(state_key)
+    if not state_raw:
+        return {"error": "session not found"}
+    rec = state_raw.get("recommendation")
+    if not rec:
+        return {"error": "no recommendation data"}
+    return {"recommendation": rec}
+
+
 @router.get("/{session_id}", response_class=HTMLResponse)
 def view_report(session_id: str, db=Depends(get_db)):
     state_key = f"chat:{session_id}"
