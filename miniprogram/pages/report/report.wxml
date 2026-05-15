@@ -125,4 +125,6 @@
   </view>
 </view>
 
-<cart-bar count="{{cartCount}}" total="{{cartTotal}}" bindtap="onCartBarTap"/>
+<view class="report-cart-bar">
+  <cart-bar count="{{cartCount}}" total="{{cartTotal}}" bindtap="onCartBarTap"/>
+</view>

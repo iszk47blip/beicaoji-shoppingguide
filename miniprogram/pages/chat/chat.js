@@ -10,7 +10,6 @@ Page({
     loading: false,
     loadingHint: '',
     sessionId: '',
-    scrollTop: 0,
     cartCount: 0,
     cartTotal: 0,
     cartItems: [],
@@ -51,31 +50,32 @@ Page({
   addMessage(type, role, content) {
     const msg = { type, role, content };
     const messages = [...this.data.messages, msg];
-    this.setData({ messages }, () => {
-      wx.nextTick(() => {
-        setTimeout(() => this.setData({ scrollTop: 999999 }), 300);
-      });
-    });
+    this.setData({ messages }, () => this._scrollToBottom());
   },
 
   addRecommendation(rec, content) {
     const msg = { type: 'recommendation', role: 'bot', content, constitution: rec.constitution, bundle: rec.bundle };
     const messages = [...this.data.messages, msg];
-    this.setData({ messages }, () => {
-      wx.nextTick(() => {
-        setTimeout(() => this.setData({ scrollTop: 999999 }), 300);
-      });
-    });
+    this.setData({ messages }, () => this._scrollToBottom());
   },
 
   addCatalog(catalog, content) {
     const msg = { type: 'catalog', role: 'bot', content: content || '', categories: catalog };
     const messages = [...this.data.messages, msg];
-    this.setData({ messages }, () => {
-      wx.nextTick(() => {
-        setTimeout(() => this.setData({ scrollTop: 999999 }), 300);
-      });
-    });
+    this.setData({ messages }, () => this._scrollToBottom());
+  },
+
+  _scrollToBottom() {
+    setTimeout(() => {
+      wx.createSelectorQuery()
+        .select('#msg-scroll')
+        .node()
+        .exec((res) => {
+          if (res[0] && res[0].node) {
+            res[0].node.scrollTo({ top: 99999, animated: true });
+          }
+        });
+    }, 150);
   },
 
   _handleResponse(res) {

@@ -4,7 +4,7 @@
     <text class="header-orders {{hasOrders ? 'visible' : ''}}" bindtap="onShowOrders">我的订单</text>
   </view>
 
-  <scroll-view class="message-list" scroll-y scroll-top="{{scrollTop}}" scroll-with-animation>
+  <scroll-view class="message-list" scroll-y enhanced scroll-with-animation id="msg-scroll">
     <block wx:for="{{messages}}" wx:key="index">
       <view class="msg-row {{item.role}}">
         <view class="msg-block" wx:if="{{item.type === 'text'}}">
