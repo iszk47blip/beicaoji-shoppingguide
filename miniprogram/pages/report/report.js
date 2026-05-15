@@ -59,8 +59,12 @@ Page({
   },
 
   onProductQuantityChange(e) {
-    const { product } = e.detail;
-    cart.add(product);
+    const { product, skuId, quantity } = e.detail;
+    if (cart.getQuantity(skuId) === 0) {
+      cart.add(product);
+    } else {
+      cart.setQuantity(skuId, quantity);
+    }
   },
 
   onCartBarTap() {
