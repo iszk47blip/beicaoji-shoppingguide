@@ -43,26 +43,74 @@ def _describe_recommendation(engine: DialogueEngine, state: dict, rec: dict) -> 
     return msg
 
 
+# Layer 1: everyday language → category filter
+CATEGORY_ALIAS = {
+    "零食": ["biscuit", "bread"], "点心": ["biscuit", "bread"], "吃的": ["biscuit", "bread"],
+    "小食": ["biscuit", "bread"], "饼干": ["biscuit"], "面包": ["bread"],
+    "喝的": ["tea"], "饮品": ["tea"], "饮料": ["tea"], "茶": ["tea"], "泡的": ["tea"],
+    "香囊": ["toy"], "挂件": ["toy"], "装饰": ["toy"], "摆设": ["toy"], "玩偶": ["toy"],
+}
+
+# Layer 2: semantic keyword expansion for search
+SEARCH_SYNONYMS = {
+    "零食": ["零食", "点心", "小食", "休闲"],
+    "点心": ["点心", "零食", "糕点", "小食"],
+    "吃的": ["零食", "点心", "小食", "糕点"],
+    "喝的": ["茶", "饮品", "饮料", "泡的"],
+    "上火": ["上火", "清热", "降火", "燥热"],
+    "睡不好": ["睡眠", "安神", "助眠", "失眠"],
+    "累": ["疲劳", "乏力", "补气", "精力"],
+    "消化不好": ["消食", "健脾", "肠胃", "消化不良"],
+}
+
+# Layer 3: category consumption attributes — non-edible categories
+NON_EDIBLE = {"toy"}
+
+
 def _search_products(db, query: str, state: dict = None, limit: int = 4) -> dict:
-    """Free-text search across product names, ingredients, and scene tags."""
+    """Semantic product search with category filtering and synonym expansion."""
     from app.models.product import Product
     products = db.query(Product).filter(Product.is_active == True).all()
     keywords = query.strip()
+
+    # ---- Layer 1: filter by category if everyday language detected ----
+    allowed_cats = None
+    for alias, cats in CATEGORY_ALIAS.items():
+        if alias in keywords:
+            allowed_cats = cats
+            break
+
+    # ---- Layer 2: expand keywords with synonyms ----
+    search_words = SEARCH_SYNONYMS.get(keywords, [keywords])
+
+    # ---- Layer 3: detect consumption intent and filter non-edible ----
+    edible_only = any(w in keywords for w in ["零食", "点心", "吃的", "小食", "喝的", "饮品", "饮料"])
+
     scored = []
     for p in products:
+        if allowed_cats and p.category not in allowed_cats:
+            continue
+        if edible_only and p.category in NON_EDIBLE:
+            continue
+
         score = 0
         name = p.name or ""
         ingredients = p.ingredients or ""
         scene_tags = p.scene_tags or ""
-        if keywords in name: score += 10
-        if keywords in ingredients: score += 5
-        if keywords in scene_tags: score += 5
-        for kw in keywords:
-            if kw in name: score += 2
-            if kw in ingredients: score += 1
-            if kw in scene_tags: score += 1
+
+        for kw in search_words:
+            if kw in name: score += 10
+            if kw in ingredients: score += 5
+            if kw in scene_tags: score += 5
+        # Also match individual characters for Chinese
+        for ch in keywords:
+            if ch in name: score += 2
+            if ch in ingredients: score += 1
+            if ch in scene_tags: score += 1
+
         if score > 0:
             scored.append((score, p))
+
     scored.sort(key=lambda x: x[0], reverse=True)
     bundle = [{"name": p.name, "sku_id": p.sku_id, "category": p.category,
                "ingredients": p.ingredients or "", "price": p.price or 0}
@@ -95,16 +143,28 @@ def _describe_fallback(engine: DialogueEngine, state: dict, rec: dict) -> str:
 
 
 def _describe_search_result(engine: DialogueEngine, state: dict, rec: dict, query: str) -> str:
-    """Use LLM to naturally describe search results."""
+    """Use LLM to naturally describe search results, respecting category intent."""
     products = rec.get("bundle", [])
     CAT_CN = {"biscuit": "饼干", "bread": "面包", "tea": "茶", "toy": "香囊"}
     product_list = "\n".join(
         f"- {CAT_CN.get(p.get('category', ''), '')}「{p.get('name', '')}」成分：{p.get('ingredients', '')}"
         for p in products
     )
+
+    # Detect category intent for better LLM guidance
+    cats_in_results = set(p.get("category", "") for p in products)
+    is_food_only = "toy" not in cats_in_results
+
     ctx = engine._state_context(state)
+    cat_hint = ""
+    if is_food_only and any(w in query for w in ["零食", "吃的", "点心", "喝的", "饮品"]):
+        cat_hint = f"顾客问{query}——这是食品类的需求。只介绍找到的食品即可，不要提香囊或其他品类。"
+    elif not products:
+        cat_hint = f"顾客问{query}——店里目前没有完全匹配的产品。请温和告知，建议先了解体质再做推荐。"
+
     instruction = (
         f"顾客搜索「{query}」，找到：\n\n{product_list}\n\n"
+        f"{cat_hint}"
         "逐款简短介绍，结尾问'有感兴趣的吗？'。不用markdown。"
     )
     return engine._chat(instruction, ctx)
