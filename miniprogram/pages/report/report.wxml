@@ -1,33 +1,48 @@
 <view class="report-page">
-  <view class="report-header">
-    <text class="title">你的调理建议报告</text>
-    <text class="subtitle">基于传统食养理念 · 仅供参考</text>
+  <view wx:if="{{loading}}" class="report-loading">
+    <text>加载中...</text>
   </view>
 
-  <view class="section">
-    <text class="section-title">体质倾向</text>
-    <text class="section-body">{{report.constitution.constitution_type}}</text>
-  </view>
-
-  <view class="section">
-    <text class="section-title">食养方向</text>
-    <text class="section-body">{{report.constitution.description}}</text>
-  </view>
-
-  <view class="section">
-    <text class="section-title">推荐商品</text>
-    <view wx:for="{{report.bundle}}" wx:key="name" class="product-card">
-      <text class="product-name">{{item.name}}</text>
-      <text class="product-ingredients">成分：{{item.ingredients}}</text>
-      <text class="product-price">¥{{item.price}}</text>
+  <block wx:elif="{{report}}">
+    <view class="report-header">
+      <text class="title">你的调理建议报告</text>
+      <text class="subtitle">基于传统食养理念 · 仅供参考</text>
     </view>
-  </view>
 
-  <view class="actions">
-    <button class="btn-primary" bindtap="onBuyOffline">到店出示此页购买</button>
-  </view>
+    <view class="section">
+      <text class="section-title">体质倾向</text>
+      <view class="constitution-badge">{{report.constitution.constitution_type || report.constitution_type}}</view>
+      <text class="section-body">{{report.constitution.description || report.description}}</text>
+    </view>
 
-  <view class="disclaimer">
-    <text>{{report.disclaimer}}</text>
+    <view class="section" wx:if="{{report.bundle && report.bundle.length > 0}}">
+      <text class="section-title">推荐商品</text>
+      <product-card wx:for="{{report.bundle}}" wx:key="sku_id"
+        product="{{item}}" quantity="{{item.quantity || 0}}"
+        bind:quantitychange="onProductQuantityChange"/>
+    </view>
+
+    <view class="section" wx:elif="{{report.products && report.products.length > 0}}">
+      <text class="section-title">推荐商品</text>
+      <product-card wx:for="{{report.products}}" wx:key="sku_id"
+        product="{{item}}" quantity="{{item.quantity || 0}}"
+        bind:quantitychange="onProductQuantityChange"/>
+    </view>
+
+    <view class="actions">
+      <button class="btn-primary" bindtap="onBuyOffline">到店出示此页购买</button>
+      <button class="btn-back" bindtap="onBackToChat">返回对话</button>
+    </view>
+
+    <view class="disclaimer" wx:if="{{report.disclaimer}}">
+      <text>{{report.disclaimer}}</text>
+    </view>
+  </block>
+
+  <view class="report-empty" wx:else>
+    <text>暂无报告数据</text>
+    <button class="btn-back" bindtap="onBackToChat">返回对话</button>
   </view>
 </view>
+
+<cart-bar count="{{cartCount}}" total="{{cartTotal}}" bind:tap="onCartBarTap"/>

@@ -1,5 +1,14 @@
-/** app.wxss **/
 page {
-  background-color: #f9f9f9;
+  --green: #5B8C5A;
+  --green-light: #e8f5e9;
+  --bg: #f0f2f0;
+  --text: #333333;
+  --text-secondary: #999999;
+  --border: #e8e8e8;
+  --ink: #3d3226;
+  --red: #c0392b;
+  background-color: var(--bg);
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 28rpx;
+  color: var(--text);
 }
