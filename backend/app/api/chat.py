@@ -14,6 +14,11 @@ engine = DialogueEngine()
 _session_store: dict[str, dict] = {}
 
 
+class SendRequest(BaseModel):
+    session_id: str
+    message: str = ""
+
+
 class ResetRequest(BaseModel):
     session_id: str
 
@@ -90,11 +95,9 @@ def _describe_search_result(engine: DialogueEngine, state: dict, rec: dict, quer
 
 
 @router.post("/send")
-def send_message(
-    session_id: str = Body(...),
-    message: str = Body(""),
-    db=Depends(get_db)
-):
+def send_message(req: SendRequest, db=Depends(get_db)):
+    session_id = req.session_id
+    message = req.message
     state_key = f"chat:{session_id}"
     state = _session_store.get(state_key) or {"stage": "greeting"}
 
