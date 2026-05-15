@@ -145,6 +145,7 @@ def generate_report(constitution_raw: str, scene_input: str, recommendation: dic
         "bundle": [
             {
                 "name": p if isinstance(p, str) else (p.get("name", "") if isinstance(p, dict) else getattr(p, "name", "")),
+                "sku_id": "" if isinstance(p, str) else (p.get("sku_id", "") if isinstance(p, dict) else getattr(p, "sku_id", "")),
                 "category": "" if isinstance(p, str) else (p.get("category", "") if isinstance(p, dict) else getattr(p, "category", "")),
                 "ingredients": "" if isinstance(p, str) else (p.get("ingredients", "") if isinstance(p, dict) else getattr(p, "ingredients", "")),
                 "reason": _ingredient_reason(

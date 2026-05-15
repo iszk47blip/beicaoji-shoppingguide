@@ -46,10 +46,13 @@
     </block>
 
     <view wx:if="{{loading}}" class="msg-row bot" id="loading-msg">
-      <view class="bubble typing">
-        <view class="dot"></view>
-        <view class="dot"></view>
-        <view class="dot"></view>
+      <view class="loading-block">
+        <view class="bubble typing">
+          <view class="dot"></view>
+          <view class="dot"></view>
+          <view class="dot"></view>
+        </view>
+        <text class="loading-hint" wx:if="{{loadingHint}}">{{loadingHint}}</text>
       </view>
     </view>
     <view id="bottom-anchor" class="scroll-spacer" style="height: {{cartCount > 0 ? '360rpx' : '260rpx'}}"></view>

@@ -8,6 +8,7 @@ Page({
     quickReplies: [],
     inputText: '',
     loading: false,
+    loadingHint: '',
     sessionId: '',
     scrollTop: 0,
     cartCount: 0,
@@ -51,7 +52,9 @@ Page({
     const msg = { type, role, content };
     const messages = [...this.data.messages, msg];
     this.setData({ messages }, () => {
-      setTimeout(() => this.setData({ scrollTop: 999999 }), 100);
+      wx.nextTick(() => {
+        setTimeout(() => this.setData({ scrollTop: 999999 }), 300);
+      });
     });
   },
 
@@ -59,7 +62,9 @@ Page({
     const msg = { type: 'recommendation', role: 'bot', content, constitution: rec.constitution, bundle: rec.bundle };
     const messages = [...this.data.messages, msg];
     this.setData({ messages }, () => {
-      setTimeout(() => this.setData({ scrollTop: 999999 }), 100);
+      wx.nextTick(() => {
+        setTimeout(() => this.setData({ scrollTop: 999999 }), 300);
+      });
     });
   },
 
@@ -67,7 +72,9 @@ Page({
     const msg = { type: 'catalog', role: 'bot', content: content || '', categories: catalog };
     const messages = [...this.data.messages, msg];
     this.setData({ messages }, () => {
-      setTimeout(() => this.setData({ scrollTop: 999999 }), 100);
+      wx.nextTick(() => {
+        setTimeout(() => this.setData({ scrollTop: 999999 }), 300);
+      });
     });
   },
 
@@ -91,7 +98,7 @@ Page({
   onQuickReply(e) {
     const text = e.currentTarget.dataset.text;
     this.addMessage('text', 'user', text);
-    this.setData({ quickReplies: [], loading: true });
+    this.setData({ quickReplies: [], loading: true, loadingHint: '小焙正在思考...' });
     this._send(text);
   },
 
@@ -99,16 +106,16 @@ Page({
     const text = this.data.inputText.trim();
     if (!text) return;
     this.addMessage('text', 'user', text);
-    this.setData({ inputText: '', quickReplies: [], loading: true });
+    this.setData({ inputText: '', quickReplies: [], loading: true, loadingHint: '小焙正在思考...' });
     this._send(text);
   },
 
   _send(message) {
     api.sendMessage(message, this.data.sessionId).then(res => {
-      this.setData({ loading: false });
+      this.setData({ loading: false, loadingHint: '' });
       this._handleResponse(res);
     }).catch(err => {
-      this.setData({ loading: false });
+      this.setData({ loading: false, loadingHint: '' });
       console.error('Send failed:', err);
       this.addMessage('text', 'system', '网络连接失败，请确认后端已启动。');
     });
