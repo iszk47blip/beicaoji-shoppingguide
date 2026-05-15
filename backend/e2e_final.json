@@ -1,0 +1,91 @@
+[
+  [
+    "1_WELCOME",
+    {
+      "message": "你好呀，欢迎来到焙草集～我是小焙，专门帮大家了解自己的体质，然后推荐适合的食养小零食和茶饮。\n\n今天想放松聊聊吗？我可以先帮你看看你现在比较关注的身体状态是什么样的，这样就能帮你挑到更合适的啦～",
+      "stage": "greeting",
+      "quick_replies": [
+        "帮我看看体质",
+        "你都有什么产品？"
+      ],
+      "recommendation": null,
+      "catalog": null,
+      "screening_result": null
+    }
+  ],
+  [
+    "2_GREETING",
+    {
+      "message": "好的，先了解一下你的基本情况。我们先做个简单筛查，这样推荐的食养方案会更安全。请问你目前有没有怀孕、哺乳，或者有慢性病、重症在身？",
+      "stage": "screening",
+      "quick_replies": [
+        "都没有",
+        "在备孕或怀孕",
+        "在哺乳期",
+        "在吃处方药"
+      ],
+      "recommendation": null,
+      "catalog": null,
+      "screening_result": null
+    }
+  ],
+  [
+    "3_SCREENING",
+    {
+      "message": "好的，那我心里就踏实了😊 我该怎么称呼你呢？",
+      "stage": "info_collect",
+      "quick_replies": null,
+      "recommendation": null,
+      "catalog": null,
+      "screening_result": "cleared"
+    }
+  ],
+  [
+    "4_INFO_COLLECT",
+    {
+      "message": "小王，好的呀！欢迎你来～我是小焙，那今天想跟你随便聊聊，你最近身体感觉怎么样呀？",
+      "stage": "constitution",
+      "quick_replies": [
+        "好的，开始吧",
+        "先看看产品"
+      ],
+      "recommendation": null,
+      "catalog": null,
+      "screening_result": "cleared"
+    }
+  ],
+  [
+    "5_EXTRACT",
+    {
+      "message": "好的小王，那我已经大致了解你的情况了。简单来说，你平时身体底子还不错，就是……（根据之前的体质了解环节，补充一个具体特点，比如\"有点气血不够用\"或\"容易上点火\"之类）。\n\n接下来我想问问，你最近有没有什么让你比较困扰的地方？比如睡眠不太好、容易疲劳、消化不太好、或者皮肤、情绪方面的问题？不一定要说大问题，就是日常生活中让你觉得想改善一下的地方。",
+      "stage": "scene",
+      "quick_replies": [
+        "睡眠不好",
+        "消化不好",
+        "容易疲劳",
+        "皮肤问题",
+        "想调理身体"
+      ],
+      "recommendation": null,
+      "catalog": null,
+      "screening_result": "cleared"
+    }
+  ],
+  [
+    "6_NEXT",
+    {
+      "message": "小王，明白了。你平时容易累、冬天手脚凉，这个我记下了。\n\n想再问一下，你最近有没有什么让你特别困扰的身体情况？比如睡不太好、消化不太顺、皮肤状态不太好、或者想调理一下亚健康之类的？跟我说说看～",
+      "stage": "scene",
+      "quick_replies": [
+        "睡眠不好",
+        "消化不好",
+        "容易疲劳",
+        "皮肤问题",
+        "想调理身体"
+      ],
+      "recommendation": null,
+      "catalog": null,
+      "screening_result": "cleared"
+    }
+  ]
+]
