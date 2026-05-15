@@ -1,46 +1,126 @@
 <view class="report-page">
   <view wx:if="{{loading}}" class="report-loading">
-    <text>加载中...</text>
+    <text class="loading-icon">🌿</text>
+    <text>正在为你生成调理报告...</text>
   </view>
 
   <block wx:elif="{{report}}">
-    <view class="report-header">
-      <text class="title">你的调理建议报告</text>
-      <text class="subtitle">基于传统食养理念 · 仅供参考</text>
+    <!-- Hero header -->
+    <view class="report-hero">
+      <view class="hero-seal">🌿</view>
+      <text class="hero-title">个人调理报告</text>
+      <text class="hero-brand">焙 草 集</text>
     </view>
 
-    <view class="section">
-      <text class="section-title">体质倾向</text>
-      <view class="constitution-badge">{{report.constitution.constitution_type || report.constitution_type}}</view>
-      <text class="section-body">{{report.constitution.description || report.description}}</text>
+    <!-- Constitution section -->
+    <view class="report-card">
+      <view class="card-head">
+        <view class="card-icon icon-const">🌡</view>
+        <text class="card-title">体质辨识</text>
+      </view>
+      <view class="constitution-badge">{{report.constitution_type}}</view>
+      <text class="card-desc">{{report.constitution_desc}}</text>
     </view>
 
-    <view class="section" wx:if="{{report.bundle && report.bundle.length > 0}}">
-      <text class="section-title">推荐商品</text>
-      <product-card wx:for="{{report.bundle}}" wx:key="sku_id"
-        product="{{item}}"
-        bindquantitychange="onProductQuantityChange"/>
+    <!-- Food advice section -->
+    <view class="report-card" wx:if="{{report.food_advice}}">
+      <view class="card-head">
+        <view class="card-icon icon-food">🍽</view>
+        <text class="card-title">食养建议</text>
+      </view>
+      <view class="advice-block">
+        <text class="advice-label">✓ 推荐食材</text>
+        <text class="advice-text">{{report.food_advice.recommend}}</text>
+      </view>
+      <view class="advice-block">
+        <text class="advice-label">✗ 建议少吃</text>
+        <text class="advice-text">{{report.food_advice.avoid}}</text>
+      </view>
+      <view class="advice-block">
+        <text class="advice-label">🍳 烹饪方式</text>
+        <text class="advice-text">{{report.food_advice.cooking}}</text>
+      </view>
+      <view class="advice-block">
+        <text class="advice-label">🍵 推荐茶饮</text>
+        <text class="advice-text">{{report.food_advice.tea}}</text>
+      </view>
     </view>
 
-    <view class="section" wx:elif="{{report.products && report.products.length > 0}}">
-      <text class="section-title">推荐商品</text>
+    <!-- Lifestyle section -->
+    <view class="report-card" wx:if="{{report.lifestyle_advice}}">
+      <view class="card-head">
+        <view class="card-icon icon-life">🧘</view>
+        <text class="card-title">生活调养</text>
+      </view>
+      <view class="advice-block">
+        <text class="advice-label">🚶 运动建议</text>
+        <text class="advice-text">{{report.lifestyle_advice.exercise}}</text>
+      </view>
+      <view class="advice-block">
+        <text class="advice-label">😴 作息建议</text>
+        <text class="advice-text">{{report.lifestyle_advice.rest}}</text>
+      </view>
+      <view class="advice-block">
+        <text class="advice-label">💆 情绪调节</text>
+        <text class="advice-text">{{report.lifestyle_advice.emotion}}</text>
+      </view>
+      <view class="advice-block">
+        <text class="advice-label">🌅 日常小习惯</text>
+        <text class="advice-text">{{report.lifestyle_advice.daily}}</text>
+      </view>
+    </view>
+
+    <!-- Seasonal section -->
+    <view class="report-card" wx:if="{{report.seasonal_advice}}">
+      <view class="card-head">
+        <view class="card-icon icon-season">🍂</view>
+        <text class="card-title">四季调养</text>
+      </view>
+      <text class="card-desc">{{report.seasonal_advice}}</text>
+    </view>
+
+    <!-- Product recommendations -->
+    <view class="divider-row">
+      <text class="divider-text">· 为 你 推 荐 ·</text>
+    </view>
+
+    <view class="report-card" wx:if="{{report.bundle && report.bundle.length > 0}}">
+      <view class="card-head">
+        <view class="card-icon icon-prod">✨</view>
+        <text class="card-title">推荐食单</text>
+      </view>
+      <block wx:for="{{report.bundle}}" wx:key="sku_id">
+        <product-card product="{{item}}" bindquantitychange="onProductQuantityChange"/>
+        <view wx:if="{{item.reason}}" class="product-reason">{{item.reason}}</view>
+      </block>
+    </view>
+
+    <view class="report-card" wx:elif="{{report.products && report.products.length > 0}}">
+      <view class="card-head">
+        <view class="card-icon icon-prod">✨</view>
+        <text class="card-title">推荐食单</text>
+      </view>
       <product-card wx:for="{{report.products}}" wx:key="sku_id"
         product="{{item}}"
         bindquantitychange="onProductQuantityChange"/>
     </view>
 
-    <view class="actions">
-      <button class="btn-primary" bindtap="onBuyOffline">到店出示此页购买</button>
-      <button class="btn-back" bindtap="onBackToChat">返回对话</button>
+    <!-- Disclaimer -->
+    <view class="disclaimer-box" wx:if="{{report.disclaimer}}">
+      <text>{{report.disclaimer}}</text>
     </view>
 
-    <view class="disclaimer" wx:if="{{report.disclaimer}}">
-      <text>{{report.disclaimer}}</text>
+    <view class="report-footer">
+      <button class="btn-primary" bindtap="onBuyOffline">到店出示此页购买</button>
+      <button class="btn-back" bindtap="onBackToChat">返回对话</button>
+      <text class="footer-brand">焙草集 · 药食同源 · 食养人生</text>
     </view>
   </block>
 
   <view class="report-empty" wx:else>
+    <text class="empty-icon">📋</text>
     <text>暂无报告数据</text>
+    <text class="empty-hint">完成体质评估后，报告会出现在这里</text>
     <button class="btn-back" bindtap="onBackToChat">返回对话</button>
   </view>
 </view>

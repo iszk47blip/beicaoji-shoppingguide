@@ -326,7 +326,13 @@ def report_data(session_id: str):
     rec = state_raw.get("recommendation")
     if not rec:
         return {"error": "no recommendation data"}
-    return {"recommendation": rec}
+    report = generate_report(
+        state_raw.get("constitution_raw", "{}"),
+        state_raw.get("scene_raw", ""),
+        rec or {},
+        state_raw.get("customer_name", ""),
+    )
+    return {"report": report}
 
 
 @router.get("/{session_id}", response_class=HTMLResponse)

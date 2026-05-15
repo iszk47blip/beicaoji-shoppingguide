@@ -11,15 +11,7 @@ Page({
 
   onLoad(options) {
     this._cartSub = (state) => {
-      const count = state.count;
-      const total = state.total;
-      this.setData({ cartCount: count, cartTotal: total });
-      if (this.data.report && this.data.report.bundle) {
-        const bundle = this.data.report.bundle.map(p => ({
-          ...p, quantity: cart.getQuantity(p.sku_id)
-        }));
-        this.setData({ 'report.bundle': bundle });
-      }
+      this.setData({ cartCount: state.count, cartTotal: state.total });
     };
     cart.subscribe(this._cartSub);
 
@@ -39,15 +31,10 @@ Page({
     wx.request({
       url: api.BASE + '/report/' + sid + '/data',
       success: (res) => {
-        if (res.data && res.data.recommendation) {
-          const rec = res.data.recommendation;
-          const bundle = (rec.bundle || []).map(p => ({
-            ...p, quantity: cart.getQuantity(p.sku_id)
-          }));
-          this.setData({
-            report: { ...rec, bundle },
-            loading: false
-          });
+        const data = res.data;
+        const report = data && data.report ? data.report : data;
+        if (report && report.constitution_type) {
+          this.setData({ report, loading: false });
         } else {
           this.setData({ loading: false });
         }

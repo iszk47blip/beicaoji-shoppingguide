@@ -1,105 +1,225 @@
 .report-page {
-  padding: 32rpx;
   background: #f0f2f0;
   min-height: 100vh;
+  padding-bottom: 120rpx;
 }
 
 .report-loading, .report-empty {
   text-align: center;
-  padding: 120rpx 0;
+  padding: 120rpx 40rpx;
   color: #999;
   font-size: 28rpx;
 }
 
-.report-header {
-  text-align: center;
-  padding: 40rpx 0 32rpx;
+.loading-icon, .empty-icon {
+  display: block;
+  font-size: 72rpx;
+  margin-bottom: 24rpx;
 }
 
-.title {
+.empty-hint {
+  display: block;
+  font-size: 24rpx;
+  color: #bbb;
+  margin-top: 12rpx;
+  margin-bottom: 32rpx;
+}
+
+/* Hero */
+.report-hero {
+  background: linear-gradient(165deg, #5a4a3a 0%, #3d3226 40%, #2c2418 100%);
+  text-align: center;
+  padding: 56rpx 28rpx 44rpx;
+  position: relative;
+}
+
+.hero-seal {
+  width: 96rpx;
+  height: 96rpx;
+  border: 3rpx solid rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20rpx;
+  font-size: 44rpx;
+}
+
+.hero-title {
   display: block;
   font-size: 40rpx;
-  font-weight: bold;
-  color: #333;
+  font-weight: 700;
+  color: #f5efe5;
+  letter-spacing: 6rpx;
+  margin-bottom: 8rpx;
 }
 
-.subtitle {
+.hero-brand {
   display: block;
-  margin-top: 12rpx;
   font-size: 24rpx;
-  color: #999;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 8rpx;
 }
 
-.section {
+/* Cards */
+.report-card {
   background: #fff;
   border-radius: 16rpx;
-  padding: 32rpx;
-  margin-bottom: 24rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+  padding: 32rpx 28rpx;
+  margin: 20rpx 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 
-.section-title {
-  display: block;
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  margin-bottom: 20rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid #f0ebe0;
+}
+
+.card-icon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 28rpx;
-  font-weight: bold;
-  color: #5B8C5A;
+  flex-shrink: 0;
+}
+
+.icon-const { background: #f5ebe0; }
+.icon-food  { background: #e8efe9; }
+.icon-life  { background: #e8edf5; }
+.icon-season{ background: #f5f0e8; }
+.icon-prod  { background: #fdf2f0; }
+
+.card-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #3d3226;
+  letter-spacing: 2rpx;
+}
+
+.card-desc {
+  font-size: 26rpx;
+  color: #6b5f52;
+  line-height: 1.8;
+}
+
+/* Constitution badge */
+.constitution-badge {
+  display: inline-block;
+  padding: 14rpx 36rpx;
+  background: linear-gradient(135deg, #8B2500, #6B1a00);
+  color: #f5e6d0;
+  font-size: 28rpx;
+  font-weight: 700;
+  letter-spacing: 4rpx;
+  border: 2rpx double #c4956a;
   margin-bottom: 16rpx;
 }
 
-.section-body {
+/* Advice blocks */
+.advice-block {
+  margin-bottom: 20rpx;
+}
+
+.advice-block:last-child {
+  margin-bottom: 0;
+}
+
+.advice-label {
   display: block;
-  font-size: 28rpx;
-  color: #666;
-  line-height: 1.6;
-  margin-top: 12rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #5a4a3a;
+  margin-bottom: 6rpx;
 }
 
-.constitution-badge {
-  display: inline-block;
-  padding: 10rpx 28rpx;
-  background: linear-gradient(135deg, #8B6914, #6B4914);
-  color: #fff;
-  border-radius: 32rpx;
+.advice-text {
+  display: block;
   font-size: 24rpx;
+  color: #6b5f52;
+  line-height: 1.8;
 }
 
-.actions {
-  margin-top: 32rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
+/* Divider */
+.divider-row {
+  text-align: center;
+  margin: 32rpx 0 8rpx;
+}
+
+.divider-text {
+  font-size: 24rpx;
+  color: #b5a080;
+  letter-spacing: 8rpx;
+}
+
+/* Product reason */
+.product-reason {
+  font-size: 22rpx;
+  color: #8b7355;
+  line-height: 1.6;
+  padding: 8rpx 12rpx;
+  margin-top: 4rpx;
+  background: #fdf8f0;
+  border-radius: 8rpx;
+}
+
+/* Disclaimer */
+.disclaimer-box {
+  margin: 24rpx 20rpx;
+  padding: 24rpx;
+  background: transparent;
+  border: 1rpx solid #e0d8cc;
+  border-radius: 12rpx;
+  text-align: center;
+}
+
+.disclaimer-box text {
+  font-size: 22rpx;
+  color: #b5a898;
+  line-height: 1.7;
+}
+
+/* Footer */
+.report-footer {
+  padding: 24rpx 20rpx 48rpx;
+  text-align: center;
 }
 
 .btn-primary {
   width: 100%;
   height: 88rpx;
   line-height: 88rpx;
-  background: linear-gradient(90deg, #5B8C5A, #7CB342);
+  background: linear-gradient(135deg, #5B8C5A, #7CB342);
   color: #fff;
   border-radius: 44rpx;
-  font-size: 32rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  letter-spacing: 2rpx;
   border: none;
+  margin-bottom: 16rpx;
 }
 
 .btn-back {
   width: 100%;
-  height: 80rpx;
-  line-height: 80rpx;
+  height: 76rpx;
+  line-height: 76rpx;
   background: #f5f5f5;
-  color: #666;
-  border-radius: 40rpx;
-  font-size: 28rpx;
+  color: #8b7355;
+  border-radius: 38rpx;
+  font-size: 26rpx;
   border: none;
+  margin-bottom: 24rpx;
 }
 
-.disclaimer {
-  margin-top: 32rpx;
-  padding: 24rpx;
-  background: #f5f5f5;
-  border-radius: 8rpx;
-}
-
-.disclaimer text {
+.footer-brand {
+  display: block;
   font-size: 22rpx;
-  color: #999;
+  color: #c5b8a8;
+  letter-spacing: 4rpx;
 }
