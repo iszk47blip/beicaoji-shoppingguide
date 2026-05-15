@@ -9,6 +9,7 @@ Page({
     inputText: '',
     loading: false,
     sessionId: '',
+    scrollTop: 0,
     cartCount: 0,
     cartTotal: 0,
     cartItems: [],
@@ -49,19 +50,23 @@ Page({
   addMessage(type, role, content) {
     const msg = { type, role, content };
     const messages = [...this.data.messages, msg];
-    this.setData({ messages });
+    this.setData({ messages, scrollTop: 999999 });
   },
 
   addRecommendation(rec, content) {
     const msg = { type: 'recommendation', role: 'bot', content, constitution: rec.constitution, bundle: rec.bundle };
     const messages = [...this.data.messages, msg];
-    this.setData({ messages });
+    this.setData({ messages, scrollTop: 999999 });
   },
 
   addCatalog(catalog, content) {
     const msg = { type: 'catalog', role: 'bot', content: content || '', categories: catalog };
     const messages = [...this.data.messages, msg];
-    this.setData({ messages });
+    this.setData({ messages, scrollTop: 999999 });
+  },
+
+  _scrollToBottom() {
+    this.setData({ scrollTop: 999999 });
   },
 
   _handleResponse(res) {
