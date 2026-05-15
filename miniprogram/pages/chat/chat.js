@@ -12,7 +12,6 @@ Page({
     cartCount: 0,
     cartTotal: 0,
     cartItems: [],
-    cartQty: {},
     cartPanelShow: false,
     orderShow: false,
     orderNo: '',
@@ -22,12 +21,25 @@ Page({
 
   onLoad() {
     this._cartSub = (state) => {
-      const qty = {};
-      state.items.forEach(i => { qty[i.sku_id] = i.quantity; });
+      const items = state.items;
+      const messages = this.data.messages.map(m => {
+        if (m.type === 'recommendation' && m.bundle) {
+          return { ...m, bundle: m.bundle.map(p => ({
+            ...p, quantity: (items.find(i => i.sku_id === p.sku_id) || {}).quantity || 0
+          })) };
+        }
+        if (m.type === 'catalog' && m.categories) {
+          return { ...m, categories: m.categories.map(cat => ({
+            ...cat, products: cat.products.map(p => ({
+              ...p, quantity: (items.find(i => i.sku_id === p.sku_id) || {}).quantity || 0
+            }))
+          })) };
+        }
+        return m;
+      });
       this.setData({
-        messages: this.data.messages.slice(),
-        cartCount: state.count, cartTotal: state.total, cartItems: state.items,
-        cartQty: qty
+        messages,
+        cartCount: state.count, cartTotal: state.total, cartItems: items
       });
     };
     cart.subscribe(this._cartSub);

@@ -22,7 +22,7 @@
               <view class="rx-desc" wx:if="{{item.constitution.description}}">{{item.constitution.description}}</view>
               <view class="rx-ornament">࿄</view>
               <view class="rx-products-title">推 荐 食 单</view>
-              <product-card wx:for="{{item.bundle}}" wx:key="sku_id" product="{{item}}" quantity="{{cartQty[item.sku_id] || 0}}" bindquantitychange="onProductQuantityChange"/>
+              <product-card wx:for="{{item.bundle}}" wx:key="sku_id" product="{{item}}" quantity="{{item.quantity || 0}}" bindquantitychange="onProductQuantityChange"/>
               <button class="rx-report-btn" bindtap="onViewReport">查阅完整调理报告</button>
             </view>
           </view>
