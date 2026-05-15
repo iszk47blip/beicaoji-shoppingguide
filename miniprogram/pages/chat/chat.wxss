@@ -31,11 +31,12 @@
 
 .message-list {
   flex: 1;
-  padding: 20rpx 24rpx 200rpx;
+  padding: 20rpx 24rpx 0;
 }
 
-.message-list.has-cart {
-  padding-bottom: 300rpx;
+.scroll-spacer {
+  height: 280rpx;
+  flex-shrink: 0;
 }
 
 /* Fixed bottom bar */

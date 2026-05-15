@@ -52,6 +52,7 @@
         <view class="dot"></view>
       </view>
     </view>
+    <view class="scroll-spacer" style="height: {{cartCount > 0 ? '360rpx' : '260rpx'}}"></view>
   </scroll-view>
 
   <!-- Fixed bottom bar -->
