@@ -188,14 +188,18 @@
   justify-content: center;
 }
 
+/* Spacing below LLM text before prescription card */
+.rx-text {
+  margin-bottom: 8rpx;
+}
+
 /* Prescription card — Chinese medicine aesthetic */
 .prescription-card {
-  margin-top: 16rpx;
+  margin-top: 24rpx;
   background: linear-gradient(175deg, #fdf8f0 0%, #faf3e6 40%, #f7edd8 100%);
   border: 2rpx solid #d4c5a0;
   border-radius: 12rpx;
   box-shadow: 0 4rpx 20rpx rgba(139, 105, 20, 0.12), inset 0 0 0 8rpx #fefbf6;
-  overflow: hidden;
 }
 
 .rx-inner {

@@ -12,7 +12,7 @@
         </view>
 
         <view class="msg-block" wx:if="{{item.type === 'recommendation'}}">
-          <view class="bubble">{{item.content}}</view>
+          <view class="bubble rx-text">{{item.content}}</view>
           <view class="prescription-card">
             <view class="rx-inner">
               <view class="rx-seal-row">
