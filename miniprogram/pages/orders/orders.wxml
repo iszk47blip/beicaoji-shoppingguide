@@ -1,0 +1,27 @@
+<view class="orders-page">
+  <view class="orders-header">
+    <text class="orders-title">我的订单</text>
+  </view>
+
+  <block wx:if="{{orders.length > 0}}">
+    <view class="order-card" wx:for="{{orders}}" wx:key="orderNo">
+      <view class="order-card-hd">
+        <text class="order-card-no">{{item.orderNo}}</text>
+        <text class="order-card-time">{{item.time}}</text>
+      </view>
+      <view class="order-card-items">
+        <text class="order-card-item" wx:for="{{item.items}}" wx:for-item="oi" wx:key="sku_id">{{oi.name}} x{{oi.quantity}}</text>
+      </view>
+      <view class="order-card-ft">
+        <text>共{{item.count}}件</text>
+        <text class="order-card-total">¥{{item.total.toFixed(1)}}</text>
+      </view>
+    </view>
+  </block>
+
+  <view class="orders-empty" wx:else>
+    <text class="empty-icon">📋</text>
+    <text>暂无订单记录</text>
+    <text class="empty-hint">选购商品并结算后，订单会显示在这里</text>
+  </view>
+</view>

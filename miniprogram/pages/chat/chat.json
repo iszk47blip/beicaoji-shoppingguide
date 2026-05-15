@@ -2,6 +2,7 @@
   "usingComponents": {
     "product-card": "/components/product-card/product-card",
     "cart-bar": "/components/cart-bar/cart-bar",
-    "cart-panel": "/components/cart-panel/cart-panel"
+    "cart-panel": "/components/cart-panel/cart-panel",
+    "order-modal": "/components/order-modal/order-modal"
   }
 }

@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const cart = require('../../utils/stores/cart');
+const orderStore = require('../../utils/stores/order');
 
 Page({
   data: {
@@ -11,7 +12,11 @@ Page({
     cartCount: 0,
     cartTotal: 0,
     cartItems: [],
-    cartPanelShow: false
+    cartPanelShow: false,
+    orderShow: false,
+    orderNo: '',
+    orderTime: '',
+    hasOrders: false
   },
 
   onLoad() {
@@ -169,8 +174,33 @@ Page({
 
   onCartCheckout() {
     this.setData({ cartPanelShow: false });
-    // Phase 4 will implement order modal
-    wx.showToast({ title: '结算功能即将上线', icon: 'none' });
+    const now = new Date();
+    const orderNo = 'BCJ' + Date.now().toString(36).toUpperCase();
+    const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    this.setData({ orderShow: true, orderNo, orderTime: timeStr });
+  },
+
+  onOrderClose() {
+    this.setData({ orderShow: false });
+  },
+
+  onOrderConfirm(e) {
+    const items = cart.getItems();
+    orderStore.add({
+      orderNo: e.detail.orderNo || this.data.orderNo,
+      time: this.data.orderTime,
+      items: items.map(i => ({ sku_id: i.sku_id, name: i.name, price: i.price, quantity: i.quantity })),
+      total: cart.total(),
+      count: cart.count()
+    });
+    cart.clear();
+    this.setData({ orderShow: false, hasOrders: true });
+    this.addMessage('text', 'system', `下单成功！订单号：${this.data.orderNo}\n到店出示订单号取货。`);
+    this.showToast('下单成功');
+  },
+
+  onShowOrders() {
+    wx.navigateTo({ url: '/pages/orders/orders' });
   },
 
   onViewReport() {

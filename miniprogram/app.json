@@ -1,7 +1,8 @@
 {
   "pages": [
     "pages/chat/chat",
-    "pages/report/report"
+    "pages/report/report",
+    "pages/orders/orders"
   ],
   "window": {
     "navigationBarTitleText": "焙草集",

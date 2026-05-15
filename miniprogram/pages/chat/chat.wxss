@@ -5,6 +5,30 @@
   background: #f0f2f0;
 }
 
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 28rpx;
+  background: #5B8C5A;
+  color: #fff;
+}
+
+.header-title {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.header-orders {
+  font-size: 24rpx;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.header-orders.visible {
+  opacity: 1;
+}
+
 .message-list {
   flex: 1;
   padding: 20rpx 24rpx;

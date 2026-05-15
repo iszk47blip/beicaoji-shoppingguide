@@ -1,4 +1,8 @@
 <view class="chat-container">
+  <view class="chat-header">
+    <text class="header-title">焙草集 AI 健康顾问</text>
+    <text class="header-orders {{hasOrders ? 'visible' : ''}}" bindtap="onShowOrders">我的订单</text>
+  </view>
   <scroll-view class="message-list {{cartCount > 0 ? 'has-cart' : ''}}" scroll-y scroll-into-view="msg-{{messages.length - 1}}" scroll-with-animation>
     <block wx:for="{{messages}}" wx:key="index">
       <view id="msg-{{index}}" class="msg-row {{item.role}}">
@@ -57,3 +61,7 @@
   bind:close="onCartPanelClose" bind:qtychange="onCartQtyChange"
   bind:remove="onCartRemove" bind:clear="onCartClear"
   bind:copy="onCartCopy" bind:checkout="onCartCheckout"/>
+
+<order-modal show="{{orderShow}}" items="{{cartItems}}" total="{{cartTotal}}" count="{{cartCount}}"
+  orderNo="{{orderNo}}" orderTime="{{orderTime}}"
+  bind:close="onOrderClose" bind:confirm="onOrderConfirm"/>
