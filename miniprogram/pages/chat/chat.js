@@ -24,7 +24,11 @@ Page({
     this._cartSub = (state) => {
       const qty = {};
       state.items.forEach(i => { qty[i.sku_id] = i.quantity; });
-      this.setData({ cartCount: state.count, cartTotal: state.total, cartItems: state.items, cartQty: qty });
+      this.setData({
+        messages: this.data.messages.slice(),
+        cartCount: state.count, cartTotal: state.total, cartItems: state.items,
+        cartQty: qty
+      });
     };
     cart.subscribe(this._cartSub);
     this._initChat();
