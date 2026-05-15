@@ -3,6 +3,7 @@
     <text class="header-title">焙草集 AI 健康顾问</text>
     <text class="header-orders {{hasOrders ? 'visible' : ''}}" bindtap="onShowOrders">我的订单</text>
   </view>
+
   <scroll-view class="message-list {{cartCount > 0 ? 'has-cart' : ''}}" scroll-y scroll-into-view="msg-{{messages.length - 1}}" scroll-with-animation>
     <block wx:for="{{messages}}" wx:key="index">
       <view id="msg-{{index}}" class="msg-row {{item.role}}">
@@ -53,25 +54,29 @@
     </view>
   </scroll-view>
 
+  <!-- Quick replies row -->
   <view class="quick-replies" wx:if="{{quickReplies.length > 0}}">
     <view class="quick-btn" wx:for="{{quickReplies}}" wx:key="index" bindtap="onQuickReply" data-text="{{item}}">{{item}}</view>
   </view>
 
+  <!-- Cart bar above input -->
   <cart-bar count="{{cartCount}}" total="{{cartTotal}}" bind:tap="onCartBarTap"/>
 
+  <!-- Fixed input bar -->
   <view class="input-bar">
     <input class="input" placeholder="输入你的情况..."
            value="{{inputText}}" bindinput="onInput" confirm-type="send"
            bindconfirm="onSend"/>
     <button class="send-btn" bindtap="onSend">发送</button>
   </view>
+
+  <!-- Overlays inside container so WeChat analyzer finds them -->
+  <cart-panel show="{{cartPanelShow}}" items="{{cartItems}}" total="{{cartTotal}}"
+    bind:close="onCartPanelClose" bind:qtychange="onCartQtyChange"
+    bind:remove="onCartRemove" bind:clear="onCartClear"
+    bind:copy="onCartCopy" bind:checkout="onCartCheckout"/>
+
+  <order-modal show="{{orderShow}}" items="{{cartItems}}" total="{{cartTotal}}" count="{{cartCount}}"
+    orderNo="{{orderNo}}" orderTime="{{orderTime}}"
+    bind:close="onOrderClose" bind:confirm="onOrderConfirm"/>
 </view>
-
-<cart-panel show="{{cartPanelShow}}" items="{{cartItems}}" total="{{cartTotal}}"
-  bind:close="onCartPanelClose" bind:qtychange="onCartQtyChange"
-  bind:remove="onCartRemove" bind:clear="onCartClear"
-  bind:copy="onCartCopy" bind:checkout="onCartCheckout"/>
-
-<order-modal show="{{orderShow}}" items="{{cartItems}}" total="{{cartTotal}}" count="{{cartCount}}"
-  orderNo="{{orderNo}}" orderTime="{{orderTime}}"
-  bind:close="onOrderClose" bind:confirm="onOrderConfirm"/>
