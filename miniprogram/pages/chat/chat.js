@@ -21,25 +21,8 @@ Page({
 
   onLoad() {
     this._cartSub = (state) => {
-      const items = state.items;
-      const messages = this.data.messages.map(m => {
-        if (m.type === 'recommendation' && m.bundle) {
-          return { ...m, bundle: m.bundle.map(p => ({
-            ...p, quantity: (items.find(i => i.sku_id === p.sku_id) || {}).quantity || 0
-          })) };
-        }
-        if (m.type === 'catalog' && m.categories) {
-          return { ...m, categories: m.categories.map(cat => ({
-            ...cat, products: cat.products.map(p => ({
-              ...p, quantity: (items.find(i => i.sku_id === p.sku_id) || {}).quantity || 0
-            }))
-          })) };
-        }
-        return m;
-      });
       this.setData({
-        messages,
-        cartCount: state.count, cartTotal: state.total, cartItems: items
+        cartCount: state.count, cartTotal: state.total, cartItems: state.items
       });
     };
     cart.subscribe(this._cartSub);

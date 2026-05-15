@@ -8,6 +8,6 @@
     <view class="card-price">¥{{product.price}}</view>
   </view>
   <view class="card-actions">
-    <stepper skuId="{{product.sku_id}}" quantity="{{quantity}}" bindchange="onStepperChange"/>
+    <stepper skuId="{{product.sku_id}}" quantity="{{_qty}}" bindchange="onStepperChange"/>
   </view>
 </view>
