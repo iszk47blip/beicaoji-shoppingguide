@@ -12,6 +12,7 @@ Page({
     cartCount: 0,
     cartTotal: 0,
     cartItems: [],
+    cartQty: {},
     cartPanelShow: false,
     orderShow: false,
     orderNo: '',
@@ -21,8 +22,9 @@ Page({
 
   onLoad() {
     this._cartSub = (state) => {
-      this.setData({ cartCount: state.count, cartTotal: state.total, cartItems: state.items });
-      this._syncCartToMessages();
+      const qty = {};
+      state.items.forEach(i => { qty[i.sku_id] = i.quantity; });
+      this.setData({ cartCount: state.count, cartTotal: state.total, cartItems: state.items, cartQty: qty });
     };
     cart.subscribe(this._cartSub);
     this._initChat();
@@ -51,36 +53,15 @@ Page({
   },
 
   addRecommendation(rec, content) {
-    const bundle = rec.bundle.map(p => ({ ...p, quantity: cart.getQuantity(p.sku_id) }));
-    const msg = { type: 'recommendation', role: 'bot', content, constitution: rec.constitution, bundle };
+    const msg = { type: 'recommendation', role: 'bot', content, constitution: rec.constitution, bundle: rec.bundle };
     const messages = [...this.data.messages, msg];
     this.setData({ messages });
   },
 
   addCatalog(catalog, content) {
-    const categories = catalog.map(cat => ({
-      ...cat,
-      products: cat.products.map(p => ({ ...p, quantity: cart.getQuantity(p.sku_id || '') }))
-    }));
-    const msg = { type: 'catalog', role: 'bot', content: content || '', categories };
+    const msg = { type: 'catalog', role: 'bot', content: content || '', categories: catalog };
     const messages = [...this.data.messages, msg];
     this.setData({ messages });
-  },
-
-  _syncCartToMessages() {
-    const updated = this.data.messages.map(msg => {
-      if (msg.type === 'recommendation' && msg.bundle) {
-        return { ...msg, bundle: msg.bundle.map(p => ({ ...p, quantity: cart.getQuantity(p.sku_id) })) };
-      }
-      if (msg.type === 'catalog' && msg.categories) {
-        return { ...msg, categories: msg.categories.map(cat => ({
-          ...cat,
-          products: cat.products.map(p => ({ ...p, quantity: cart.getQuantity(p.sku_id || '') }))
-        })) };
-      }
-      return msg;
-    });
-    this.setData({ messages: updated });
   },
 
   _handleResponse(res) {

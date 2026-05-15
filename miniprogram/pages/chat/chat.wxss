@@ -31,11 +31,21 @@
 
 .message-list {
   flex: 1;
-  padding: 20rpx 24rpx 160rpx;
+  padding: 20rpx 24rpx 140rpx;
 }
 
 .message-list.has-cart {
-  padding-bottom: 220rpx;
+  padding-bottom: 210rpx;
+}
+
+/* Fixed bottom bar */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: #f0f2f0;
 }
 
 .msg-row {
@@ -128,9 +138,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 16rpx;
-  padding: 12rpx 24rpx;
-  background: #f0f2f0;
-  flex-shrink: 0;
+  padding: 8rpx 24rpx;
 }
 
 .quick-btn {
@@ -147,14 +155,13 @@
   color: #fff;
 }
 
-/* Input bar — fixed at bottom */
+/* Input bar */
 .input-bar {
   display: flex;
   align-items: center;
   padding: 16rpx 20rpx;
   background: #fff;
   border-top: 1rpx solid #eee;
-  flex-shrink: 0;
 }
 
 .input {

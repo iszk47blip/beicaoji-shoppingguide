@@ -22,7 +22,7 @@
               <view class="rx-desc" wx:if="{{item.constitution.description}}">{{item.constitution.description}}</view>
               <view class="rx-ornament">࿄</view>
               <view class="rx-products-title">推 荐 食 单</view>
-              <product-card wx:for="{{item.bundle}}" wx:key="sku_id" product="{{item}}" quantity="{{item.quantity || 0}}" bindquantitychange="onProductQuantityChange"/>
+              <product-card wx:for="{{item.bundle}}" wx:key="sku_id" product="{{item}}" quantity="{{cartQty[item.sku_id] || 0}}" bindquantitychange="onProductQuantityChange"/>
               <button class="rx-report-btn" bindtap="onViewReport">查阅完整调理报告</button>
             </view>
           </view>
@@ -37,7 +37,7 @@
                   <text class="catalog-ctype">{{cat.constitution}}</text>
                   <text class="catalog-desc">{{cat.description}}</text>
                 </view>
-                <product-card wx:for="{{cat.products}}" wx:for-item="prod" wx:key="sku_id" product="{{prod}}" quantity="{{prod.quantity || 0}}" bindquantitychange="onProductQuantityChange"/>
+                <product-card wx:for="{{cat.products}}" wx:for-item="prod" wx:key="sku_id" product="{{prod}}" quantity="{{cartQty[prod.sku_id] || 0}}" bindquantitychange="onProductQuantityChange"/>
               </view>
             </block>
           </view>
@@ -54,23 +54,20 @@
     </view>
   </scroll-view>
 
-  <!-- Quick replies row -->
-  <view class="quick-replies" wx:if="{{quickReplies.length > 0}}">
-    <view class="quick-btn" wx:for="{{quickReplies}}" wx:key="index" bindtap="onQuickReply" data-text="{{item}}">{{item}}</view>
+  <!-- Fixed bottom bar -->
+  <view class="bottom-bar">
+    <view class="quick-replies" wx:if="{{quickReplies.length > 0}}">
+      <view class="quick-btn" wx:for="{{quickReplies}}" wx:key="index" bindtap="onQuickReply" data-text="{{item}}">{{item}}</view>
+    </view>
+    <cart-bar count="{{cartCount}}" total="{{cartTotal}}" bindtap="onCartBarTap"/>
+    <view class="input-bar">
+      <input class="input" placeholder="输入你的情况..."
+             value="{{inputText}}" bindinput="onInput" confirm-type="send"
+             bindconfirm="onSend"/>
+      <button class="send-btn" bindtap="onSend">发送</button>
+    </view>
   </view>
 
-  <!-- Cart bar above input -->
-  <cart-bar count="{{cartCount}}" total="{{cartTotal}}" bindtap="onCartBarTap"/>
-
-  <!-- Fixed input bar -->
-  <view class="input-bar">
-    <input class="input" placeholder="输入你的情况..."
-           value="{{inputText}}" bindinput="onInput" confirm-type="send"
-           bindconfirm="onSend"/>
-    <button class="send-btn" bindtap="onSend">发送</button>
-  </view>
-
-  <!-- Overlays inside container so WeChat analyzer finds them -->
   <cart-panel show="{{cartPanelShow}}" items="{{cartItems}}" total="{{cartTotal}}"
     bindclose="onCartPanelClose" bindqtychange="onCartQtyChange"
     bindremove="onCartRemove" bindclear="onCartClear"
