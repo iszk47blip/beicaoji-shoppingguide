@@ -195,11 +195,11 @@ class DialogueEngine:
         ctx = self._state_context(state)
         result = self._chat_json(
             f"顾客说：「{user_input}」。请自然回应，引导回到主流程。\n\n"
-            "判断顾客意图：\n"
-            "- 顾客想找具体产品、想让你推荐 → intent: search_product\n"
-            "- 顾客想看所有产品目录 → intent: show_catalog\n"
+            "判断顾客意图（重要——仔细区分）：\n"
+            "- 顾客问具体品类/类型的产品（如'有零食吗''有什么茶''饼干有哪些'）→ intent: search_product\n"
+            "- 顾客想浏览所有产品/看全部目录（如'你都有什么''所有产品'）→ intent: show_catalog\n"
             "- 其他 → intent: continue_flow\n\n"
-            "返回JSON: {\"message\": \"...\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
+            "JSON: {\"message\": \"...\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
             ctx
         )
         return {"message": result.get("message", msg), "stage": stage,
@@ -222,11 +222,11 @@ class DialogueEngine:
         result = self._chat_json(
             f"顾客说：「{user_input}」\n\n"
             "你是门店店员，根据顾客的话灵活回应：\n"
-            "- 问产品/找推荐 → 介绍产品后引导回体质了解，stage: greeting\n"
-            "- 不想做体质/想看所有产品 → 介绍四大品类，stage: catalog\n"
+            "- 问具体品类/类型（如'有零食吗''有什么茶'）→ 介绍对应产品后引导回体质，stage: greeting\n"
+            "- 想浏览所有产品（如'你都有什么''全看看'）→ 介绍四大品类，stage: catalog\n"
             "- 说了身体困扰 → 表达理解后做安全筛查，stage: screening\n"
             "- 愿意了解体质/打招呼 → 自然过渡到筛查，stage: screening\n\n"
-            "意图：找具体产品→search_product；看所有产品→show_catalog；其他→continue_flow\n"
+            "意图：问具体品类/产品→search_product；看所有产品→show_catalog；其他→continue_flow\n"
             "JSON: {\"message\":\"...\",\"stage\":\"screening|greeting|catalog\",\"intent\":\"search_product|show_catalog|continue_flow\"}",
             ctx
         )
