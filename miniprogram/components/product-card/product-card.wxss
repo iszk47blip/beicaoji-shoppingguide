@@ -2,28 +2,28 @@
   display: flex;
   align-items: center;
   gap: 20rpx;
-  padding: 24rpx;
-  margin: 12rpx 0;
-  background: #fff;
-  border-radius: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+  padding: 20rpx 16rpx;
+  margin: 8rpx 0;
+  background: rgba(255,255,255,0.7);
+  border-radius: 12rpx;
+  border: 1rpx solid #e8dcc8;
 }
 
 .card-emoji {
-  width: 88rpx;
-  height: 88rpx;
-  border-radius: 16rpx;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40rpx;
+  font-size: 36rpx;
   flex-shrink: 0;
 }
 
-.bg-biscuit { background: #fdf2e9; }
-.bg-bread   { background: #fdedec; }
-.bg-tea     { background: #e8f8f5; }
-.bg-toy     { background: #f4ecf7; }
+.bg-biscuit { background: #faf0e0; }
+.bg-bread   { background: #fdf0ed; }
+.bg-tea     { background: #eaf5ed; }
+.bg-toy     { background: #f5eff8; }
 
 .card-body {
   flex: 1;
@@ -33,14 +33,14 @@
 .card-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
-  margin-bottom: 6rpx;
+  color: #4a3728;
+  margin-bottom: 4rpx;
 }
 
 .card-ingredients {
   font-size: 22rpx;
   color: #999;
-  margin-bottom: 6rpx;
+  margin-bottom: 4rpx;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -49,23 +49,10 @@
 .card-price {
   font-size: 28rpx;
   font-weight: 700;
-  color: #e6a23c;
+  color: #b87333;
 }
 
 .card-actions {
   flex-shrink: 0;
   margin-left: auto;
-}
-
-.btn-buy-now {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 50%;
-  background: #5B8C5A;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26rpx;
-  font-weight: 600;
 }

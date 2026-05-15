@@ -179,30 +179,89 @@
   justify-content: center;
 }
 
-/* Recommendation */
-.rec-container {
-  margin-top: 8rpx;
+/* Prescription card — Chinese medicine aesthetic */
+.prescription-card {
+  margin-top: 16rpx;
+  background: linear-gradient(175deg, #fdf8f0 0%, #faf3e6 40%, #f7edd8 100%);
+  border: 2rpx solid #d4c5a0;
+  border-radius: 12rpx;
+  box-shadow: 0 4rpx 20rpx rgba(139, 105, 20, 0.12), inset 0 0 0 8rpx #fefbf6;
+  overflow: hidden;
 }
 
-.constitution-badge {
+.rx-inner {
+  padding: 32rpx 28rpx 24rpx;
+  border: 1rpx solid #e8dcc8;
+  border-radius: 4rpx;
+  margin: 12rpx;
+}
+
+.rx-seal-row {
+  text-align: center;
+  margin-bottom: 8rpx;
+}
+
+.rx-seal {
   display: inline-block;
-  padding: 10rpx 28rpx;
-  background: linear-gradient(135deg, #8B6914, #6B4914);
-  color: #fff;
-  border-radius: 32rpx;
+  padding: 16rpx 40rpx;
+  background: #8B2500;
+  color: #f5e6d0;
+  font-size: 32rpx;
+  font-weight: 700;
+  letter-spacing: 4rpx;
+  border: 3rpx double #c4956a;
+  box-shadow: 0 2rpx 8rpx rgba(139, 37, 0, 0.25);
+  position: relative;
+}
+
+.rx-subtitle {
+  display: block;
+  text-align: center;
+  font-size: 22rpx;
+  color: #b5a080;
+  letter-spacing: 6rpx;
+  margin-top: 6rpx;
+}
+
+.rx-desc {
+  display: block;
   font-size: 24rpx;
+  color: #8b7355;
+  line-height: 1.8;
+  text-align: center;
+  margin-top: 16rpx;
+  padding: 0 12rpx;
+}
+
+.rx-ornament {
+  text-align: center;
+  font-size: 36rpx;
+  color: #c4a882;
+  margin: 20rpx 0 4rpx;
+  letter-spacing: 12rpx;
+}
+
+.rx-products-title {
+  text-align: center;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #6b4f30;
+  letter-spacing: 6rpx;
   margin-bottom: 12rpx;
 }
 
-.report-btn {
+.rx-report-btn {
   width: 100%;
-  height: 80rpx;
-  line-height: 80rpx;
-  background: linear-gradient(90deg, #5B8C5A, #7CB342);
-  color: #fff;
-  border-radius: 16rpx;
-  font-size: 28rpx;
-  margin-top: 16rpx;
+  height: 76rpx;
+  line-height: 76rpx;
+  background: linear-gradient(135deg, #8B4513, #6B3410);
+  color: #faf3e6;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  letter-spacing: 2rpx;
+  margin-top: 20rpx;
+  border: none;
 }
 
 /* Catalog */

@@ -12,10 +12,18 @@
 
         <view class="msg-block" wx:if="{{item.type === 'recommendation'}}">
           <view class="bubble">{{item.content}}</view>
-          <view class="rec-container">
-            <view class="constitution-badge">{{item.constitution.constitution_type}}</view>
-            <product-card wx:for="{{item.bundle}}" wx:key="sku_id" product="{{item}}" quantity="{{item.quantity || 0}}" bind:quantitychange="onProductQuantityChange"/>
-            <button class="report-btn" bindtap="onViewReport">查看完整调理报告</button>
+          <view class="prescription-card">
+            <view class="rx-inner">
+              <view class="rx-seal-row">
+                <view class="rx-seal">{{item.constitution.constitution_type}}</view>
+              </view>
+              <text class="rx-subtitle">体质食养方</text>
+              <view class="rx-desc" wx:if="{{item.constitution.description}}">{{item.constitution.description}}</view>
+              <view class="rx-ornament">࿄</view>
+              <view class="rx-products-title">推 荐 食 单</view>
+              <product-card wx:for="{{item.bundle}}" wx:key="sku_id" product="{{item}}" quantity="{{item.quantity || 0}}" bind:quantitychange="onProductQuantityChange"/>
+              <button class="rx-report-btn" bindtap="onViewReport">查阅完整调理报告</button>
+            </view>
           </view>
         </view>
 

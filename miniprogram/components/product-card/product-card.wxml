@@ -8,7 +8,6 @@
     <view class="card-price">¥{{product.price}}</view>
   </view>
   <view class="card-actions">
-    <stepper wx:if="{{quantity > 0}}" skuId="{{product.sku_id}}" quantity="{{quantity}}" bind:change="onStepperChange"/>
-    <view wx:else class="btn-buy-now" bindtap="onQuickBuy">选</view>
+    <stepper skuId="{{product.sku_id}}" quantity="{{quantity}}" bind:change="onStepperChange"/>
   </view>
 </view>
