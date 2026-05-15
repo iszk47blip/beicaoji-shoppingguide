@@ -303,17 +303,18 @@ class DialogueEngine:
         )
 
         name = result.get("customer_name", "").strip() or user_input.strip()
-        response = {
-            "message": result.get("message", "好的，那跟我说说你最近身体感觉怎么样吧？"),
-            "stage": Stage.CONSTITUTION,
-            "constitution_extract_done": False,
-            "constitution_questions_asked": 0,
-            "constitution_raw": "{}",
-            "customer_name": name,
-            "quick_replies": list(CONSTITUTION_ENTRY_REPLIES),
-            "intent": result.get("intent", "continue_flow"),
-        }
-        return response
+        # Build the LLM greeting message with the name
+        greeting_msg = result.get("message", "")
+        if name and name not in greeting_msg:
+            greeting_msg = f"{name}你好～" if not greeting_msg else greeting_msg
+
+        # Jump directly to first adaptive constitution question
+        raw = {}
+        return self._ask_adaptive_question(
+            raw, {}, 0, ctx,
+            greeting_msg or "好的～先问你一个小问题：",
+            customer_name=name
+        )
 
     # ------------------------------------------------------------------
     # Stage: Constitution (B+C hybrid: free-text extraction + adaptive QA)
@@ -452,7 +453,7 @@ class DialogueEngine:
 
     def _ask_adaptive_question(self, raw: dict, known_signals: dict,
                                 questions_asked: int, ctx: str,
-                                prefix: str) -> dict:
+                                prefix: str, customer_name: str = "") -> dict:
         """Ask the next adaptive question for the most discriminating missing field."""
         # Find first missing field in priority order
         missing_field = None
@@ -482,7 +483,7 @@ class DialogueEngine:
 
         message = f"{prefix}\n\n{question}" if prefix else question
 
-        return {
+        result = {
             "message": message,
             "stage": Stage.CONSTITUTION,
             "constitution_raw": json.dumps(raw, ensure_ascii=False),
@@ -490,6 +491,9 @@ class DialogueEngine:
             "constitution_questions_asked": questions_asked,
             "quick_replies": info["options"] + ["跳过"],
         }
+        if customer_name:
+            result["customer_name"] = customer_name
+        return result
 
     def _transition_to_scene_from_extract(self, state: dict, response: dict, ctx: str) -> dict:
         """Transition to SCENE stage, merging extraction results."""
