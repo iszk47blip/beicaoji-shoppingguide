@@ -6,19 +6,21 @@
   <scroll-view class="message-list {{cartCount > 0 ? 'has-cart' : ''}}" scroll-y scroll-into-view="msg-{{messages.length - 1}}" scroll-with-animation>
     <block wx:for="{{messages}}" wx:key="index">
       <view id="msg-{{index}}" class="msg-row {{item.role}}">
-        <view class="bubble" wx:if="{{item.type === 'text'}}">{{item.content}}</view>
+        <view class="msg-block" wx:if="{{item.type === 'text'}}">
+          <view class="bubble">{{item.content}}</view>
+        </view>
 
-        <block wx:if="{{item.type === 'recommendation'}}">
-          <view class="bubble bot">{{item.content}}</view>
+        <view class="msg-block" wx:if="{{item.type === 'recommendation'}}">
+          <view class="bubble">{{item.content}}</view>
           <view class="rec-container">
             <view class="constitution-badge">{{item.constitution.constitution_type}}</view>
             <product-card wx:for="{{item.bundle}}" wx:key="sku_id" product="{{item}}" quantity="{{item.quantity || 0}}" bind:quantitychange="onProductQuantityChange"/>
             <button class="report-btn" bindtap="onViewReport">查看完整调理报告</button>
           </view>
-        </block>
+        </view>
 
-        <block wx:if="{{item.type === 'catalog'}}">
-          <view class="bubble bot" wx:if="{{item.content}}">{{item.content}}</view>
+        <view class="msg-block" wx:if="{{item.type === 'catalog'}}">
+          <view class="bubble" wx:if="{{item.content}}">{{item.content}}</view>
           <view class="catalog-container">
             <block wx:for="{{item.categories}}" wx:for-item="cat" wx:key="constitution">
               <view class="catalog-group">
@@ -30,7 +32,7 @@
               </view>
             </block>
           </view>
-        </block>
+        </view>
       </view>
     </block>
 

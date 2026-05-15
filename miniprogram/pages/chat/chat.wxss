@@ -56,8 +56,17 @@
   justify-content: center;
 }
 
-.bubble {
+.msg-block {
+  max-width: 82%;
+  display: flex;
+  flex-direction: column;
+}
+
+.msg-row.user .msg-block {
   max-width: 75%;
+}
+
+.bubble {
   padding: 20rpx 28rpx;
   border-radius: 18rpx;
   font-size: 28rpx;
@@ -82,7 +91,6 @@
   background-color: #e8f5e9;
   color: #5B8C5A;
   font-size: 24rpx;
-  max-width: 85%;
   text-align: center;
 }
 
@@ -173,7 +181,6 @@
 
 /* Recommendation */
 .rec-container {
-  max-width: 92%;
   margin-top: 8rpx;
 }
 
@@ -200,7 +207,6 @@
 
 /* Catalog */
 .catalog-container {
-  max-width: 92%;
   margin-top: 8rpx;
 }
 
