@@ -1,21 +1,18 @@
 <view class="chat-container">
-  <scroll-view class="message-list" scroll-y scroll-into-view="msg-{{messages.length - 1}}" scroll-with-animation>
+  <scroll-view class="message-list {{cartCount > 0 ? 'has-cart' : ''}}" scroll-y scroll-into-view="msg-{{messages.length - 1}}" scroll-with-animation>
     <block wx:for="{{messages}}" wx:key="index">
       <view id="msg-{{index}}" class="msg-row {{item.role}}">
-        <!-- Text bubble -->
         <view class="bubble" wx:if="{{item.type === 'text'}}">{{item.content}}</view>
 
-        <!-- Recommendation block -->
         <block wx:if="{{item.type === 'recommendation'}}">
           <view class="bubble bot">{{item.content}}</view>
           <view class="rec-container">
             <view class="constitution-badge">{{item.constitution.constitution_type}}</view>
-            <product-card wx:for="{{item.bundle}}" wx:key="sku_id" product="{{item}}" quantity="{{item.quantity || 0}}"/>
+            <product-card wx:for="{{item.bundle}}" wx:key="sku_id" product="{{item}}" quantity="{{item.quantity || 0}}" bind:quantitychange="onProductQuantityChange"/>
             <button class="report-btn" bindtap="onViewReport">查看完整调理报告</button>
           </view>
         </block>
 
-        <!-- Catalog block -->
         <block wx:if="{{item.type === 'catalog'}}">
           <view class="bubble bot" wx:if="{{item.content}}">{{item.content}}</view>
           <view class="catalog-container">
@@ -25,7 +22,7 @@
                   <text class="catalog-ctype">{{cat.constitution}}</text>
                   <text class="catalog-desc">{{cat.description}}</text>
                 </view>
-                <product-card wx:for="{{cat.products}}" wx:for-item="prod" wx:key="sku_id" product="{{prod}}" quantity="{{prod.quantity || 0}}"/>
+                <product-card wx:for="{{cat.products}}" wx:for-item="prod" wx:key="sku_id" product="{{prod}}" quantity="{{prod.quantity || 0}}" bind:quantitychange="onProductQuantityChange"/>
               </view>
             </block>
           </view>
@@ -46,6 +43,8 @@
     <view class="quick-btn" wx:for="{{quickReplies}}" wx:key="index" bindtap="onQuickReply" data-text="{{item}}">{{item}}</view>
   </view>
 
+  <cart-bar count="{{cartCount}}" total="{{cartTotal}}" bind:tap="onCartBarTap"/>
+
   <view class="input-bar">
     <input class="input" placeholder="输入你的情况..."
            value="{{inputText}}" bindinput="onInput" confirm-type="send"
@@ -53,3 +52,8 @@
     <button class="send-btn" bindtap="onSend">发送</button>
   </view>
 </view>
+
+<cart-panel show="{{cartPanelShow}}" items="{{cartItems}}" total="{{cartTotal}}"
+  bind:close="onCartPanelClose" bind:qtychange="onCartQtyChange"
+  bind:remove="onCartRemove" bind:clear="onCartClear"
+  bind:copy="onCartCopy" bind:checkout="onCartCheckout"/>

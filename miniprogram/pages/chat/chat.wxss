@@ -10,6 +10,10 @@
   padding: 20rpx 24rpx;
 }
 
+.message-list.has-cart {
+  padding-bottom: 100rpx;
+}
+
 .msg-row {
   display: flex;
   margin-bottom: 20rpx;

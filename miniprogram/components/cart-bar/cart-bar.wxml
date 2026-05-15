@@ -1,0 +1,8 @@
+<view class="cart-bar {{count > 0 ? 'show' : ''}}" bindtap="onTap" wx:if="{{count > 0}}">
+  <view class="cart-icon">
+    🛒
+    <view class="cart-badge" wx:if="{{count > 0}}">{{count}}</view>
+  </view>
+  <text class="cart-total">¥{{total}}</text>
+  <text class="cart-arrow">›</text>
+</view>

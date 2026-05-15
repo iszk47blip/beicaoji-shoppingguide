@@ -1,0 +1,5 @@
+<view class="stepper">
+  <view class="stepper-btn minus {{quantity <= min ? 'disabled' : ''}}" bindtap="onMinus">−</view>
+  <text class="stepper-qty">{{quantity}}</text>
+  <view class="stepper-btn plus {{quantity >= max ? 'disabled' : ''}}" bindtap="onPlus">+</view>
+</view>

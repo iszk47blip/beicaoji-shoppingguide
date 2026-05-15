@@ -1,4 +1,5 @@
 const api = require('../../utils/api');
+const cart = require('../../utils/stores/cart');
 
 Page({
   data: {
@@ -6,11 +7,24 @@ Page({
     quickReplies: [],
     inputText: '',
     loading: false,
-    sessionId: ''
+    sessionId: '',
+    cartCount: 0,
+    cartTotal: 0,
+    cartItems: [],
+    cartPanelShow: false
   },
 
   onLoad() {
+    this._cartSub = (state) => {
+      this.setData({ cartCount: state.count, cartTotal: state.total, cartItems: state.items });
+      this._syncCartToMessages();
+    };
+    cart.subscribe(this._cartSub);
     this._initChat();
+  },
+
+  onUnload() {
+    cart.unsubscribe(this._cartSub);
   },
 
   _initChat() {
@@ -32,15 +46,49 @@ Page({
   },
 
   addRecommendation(rec, content) {
-    const msg = { type: 'recommendation', role: 'bot', content, constitution: rec.constitution, bundle: rec.bundle };
+    const bundle = rec.bundle.map(p => ({ ...p, quantity: cart.getQuantity(p.sku_id) }));
+    const msg = { type: 'recommendation', role: 'bot', content, constitution: rec.constitution, bundle };
     this.data.messages.push(msg);
     this.setData({ messages: this.data.messages });
   },
 
   addCatalog(catalog, content) {
-    const msg = { type: 'catalog', role: 'bot', content: content || '', categories: catalog };
+    const categories = catalog.map(cat => ({
+      ...cat,
+      products: cat.products.map(p => ({ ...p, quantity: cart.getQuantity(p.sku_id || '') }))
+    }));
+    const msg = { type: 'catalog', role: 'bot', content: content || '', categories };
     this.data.messages.push(msg);
     this.setData({ messages: this.data.messages });
+  },
+
+  _syncCartToMessages() {
+    const updated = this.data.messages.map(msg => {
+      if (msg.type === 'recommendation' && msg.bundle) {
+        msg.bundle = msg.bundle.map(p => ({ ...p, quantity: cart.getQuantity(p.sku_id) }));
+      }
+      if (msg.type === 'catalog' && msg.categories) {
+        msg.categories = msg.categories.map(cat => ({
+          ...cat,
+          products: cat.products.map(p => ({ ...p, quantity: cart.getQuantity(p.sku_id || '') }))
+        }));
+      }
+      return msg;
+    });
+    this.setData({ messages: updated });
+  },
+
+  _handleResponse(res) {
+    if (res.recommendation) {
+      this.addRecommendation(res.recommendation, res.message);
+    } else if (res.catalog) {
+      this.addCatalog(res.catalog, res.message);
+    } else if (res.message) {
+      this.addMessage('text', 'bot', res.message);
+    }
+    if (res.quick_replies) {
+      this.setData({ quickReplies: res.quick_replies });
+    }
   },
 
   onInput(e) {
@@ -62,19 +110,6 @@ Page({
     this._send(text);
   },
 
-  _handleResponse(res) {
-    if (res.recommendation) {
-      this.addRecommendation(res.recommendation, res.message);
-    } else if (res.catalog) {
-      this.addCatalog(res.catalog, res.message);
-    } else if (res.message) {
-      this.addMessage('text', 'bot', res.message);
-    }
-    if (res.quick_replies) {
-      this.setData({ quickReplies: res.quick_replies });
-    }
-  },
-
   _send(message) {
     api.sendMessage(message, this.data.sessionId).then(res => {
       this.setData({ loading: false });
@@ -85,6 +120,59 @@ Page({
     });
   },
 
+  // --- Cart events from product-card ---
+
+  onProductQuantityChange(e) {
+    const { product, skuId, delta, quickBuy } = e.detail;
+    cart.add(product);
+    if (quickBuy) {
+      this.setData({ cartPanelShow: true });
+    }
+  },
+
+  // --- Cart bar ---
+
+  onCartBarTap() {
+    this.setData({ cartPanelShow: true });
+  },
+
+  // --- Cart panel ---
+
+  onCartPanelClose() {
+    this.setData({ cartPanelShow: false });
+  },
+
+  onCartQtyChange(e) {
+    const { skuId, quantity } = e.detail;
+    cart.setQuantity(skuId, quantity);
+  },
+
+  onCartRemove(e) {
+    cart.remove(e.detail.skuId);
+  },
+
+  onCartClear() {
+    cart.clear();
+    this.setData({ cartPanelShow: false });
+    this.showToast('购物车已清空');
+  },
+
+  onCartCopy() {
+    const items = cart.getItems();
+    let text = '我的选购清单：\n';
+    items.forEach(i => {
+      text += `${i.name} x${i.quantity} ¥${(i.price * i.quantity).toFixed(1)}\n`;
+    });
+    text += `\n合计：¥${cart.total().toFixed(1)}`;
+    wx.setClipboardData({ data: text, success: () => this.showToast('已复制选购清单') });
+  },
+
+  onCartCheckout() {
+    this.setData({ cartPanelShow: false });
+    // Phase 4 will implement order modal
+    wx.showToast({ title: '结算功能即将上线', icon: 'none' });
+  },
+
   onViewReport() {
     wx.navigateTo({
       url: '/pages/report/report',
@@ -92,5 +180,9 @@ Page({
         page.setData({ sessionId: this.data.sessionId });
       }
     });
+  },
+
+  showToast(msg) {
+    wx.showToast({ title: msg, icon: 'none', duration: 2000 });
   }
 });

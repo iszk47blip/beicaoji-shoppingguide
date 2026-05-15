@@ -1,0 +1,32 @@
+<view class="cart-overlay {{show ? 'show' : ''}}" bindtap="onOverlayTap">
+  <view class="cart-panel {{show ? 'show' : ''}}" catchtap="noop">
+    <view class="panel-header">
+      <text class="panel-title">购物车</text>
+      <view class="panel-close" bindtap="onClose">✕</view>
+    </view>
+
+    <scroll-view class="panel-list" scroll-y wx:if="{{items.length > 0}}">
+      <view class="cart-item" wx:for="{{items}}" wx:key="sku_id">
+        <view class="cart-item-info">
+          <text class="cart-item-name">{{item.name}}</text>
+          <text class="cart-item-price">¥{{item.price}}</text>
+        </view>
+        <view class="cart-item-actions">
+          <stepper skuId="{{item.sku_id}}" quantity="{{item.quantity}}" bind:change="onStepperChange"/>
+          <view class="cart-item-del" data-sku-id="{{item.sku_id}}" bindtap="onRemove">🗑</view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="panel-empty" wx:else>
+      <text>购物车是空的</text>
+      <text class="empty-hint">试试搜索或浏览产品目录吧</text>
+    </view>
+
+    <view class="panel-footer" wx:if="{{items.length > 0}}">
+      <button class="btn-clear" bindtap="onClear">清空</button>
+      <button class="btn-copy" bindtap="onCopy">复制</button>
+      <button class="btn-checkout" bindtap="onCheckout">去结算 ¥{{total}}</button>
+    </view>
+  </view>
+</view>
