@@ -13,3 +13,4 @@ debug_*.json
 # OS
 .DS_Store
 Thumbs.db
+miniprogram/project.private.config.json
