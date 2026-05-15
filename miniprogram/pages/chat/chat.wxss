@@ -2,52 +2,118 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background: #f0f2f0;
 }
 
 .message-list {
   flex: 1;
-  padding: 20rpx;
-  overflow-y: scroll;
+  padding: 20rpx 24rpx;
 }
 
-.message {
+.msg-row {
   display: flex;
   margin-bottom: 20rpx;
+  animation: msgIn 0.25s ease-out;
 }
 
-.message.user {
+.msg-row.user {
   justify-content: flex-end;
 }
 
-.message.bot {
+.msg-row.bot {
   justify-content: flex-start;
+}
+
+.msg-row.system {
+  justify-content: center;
 }
 
 .bubble {
   max-width: 75%;
-  padding: 16rpx 24rpx;
-  border-radius: 16rpx;
+  padding: 20rpx 28rpx;
+  border-radius: 18rpx;
   font-size: 28rpx;
-  line-height: 1.5;
+  line-height: 1.55;
   word-break: break-word;
 }
 
-.message.user .bubble {
+.msg-row.user .bubble {
   background-color: #5B8C5A;
-  color: white;
+  color: #fff;
+  border-bottom-right-radius: 6rpx;
 }
 
-.message.bot .bubble {
-  background-color: #ffffff;
+.msg-row.bot .bubble {
+  background-color: #fff;
   color: #333;
+  border-bottom-left-radius: 6rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
 }
 
+.msg-row.system .bubble {
+  background-color: #e8f5e9;
+  color: #5B8C5A;
+  font-size: 24rpx;
+  max-width: 85%;
+  text-align: center;
+}
+
+/* Typing dots */
 .typing {
-  color: #999;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 28rpx 36rpx;
 }
 
+.dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #999;
+  animation: bounce 1.2s infinite;
+}
+
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-12rpx); }
+}
+
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(8rpx); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Quick replies */
+.quick-replies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  padding: 12rpx 24rpx;
+  background: #f0f2f0;
+}
+
+.quick-btn {
+  padding: 14rpx 28rpx;
+  background: #fff;
+  color: #5B8C5A;
+  border: 1rpx solid #5B8C5A;
+  border-radius: 36rpx;
+  font-size: 26rpx;
+}
+
+.quick-btn:active {
+  background: #5B8C5A;
+  color: #fff;
+}
+
+/* Input bar */
 .input-bar {
   display: flex;
+  align-items: center;
   padding: 16rpx 20rpx;
   background: #fff;
   border-top: 1rpx solid #eee;
@@ -60,15 +126,19 @@
   border: 1rpx solid #ddd;
   border-radius: 36rpx;
   font-size: 28rpx;
+  background: #f5f5f5;
 }
 
 .send-btn {
   margin-left: 16rpx;
-  padding: 0 32rpx;
+  width: 72rpx;
   height: 72rpx;
-  line-height: 72rpx;
+  padding: 0;
   background: #5B8C5A;
-  color: white;
-  border-radius: 36rpx;
+  color: #fff;
+  border-radius: 50%;
   font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

@@ -1,4 +1,4 @@
-const BASE = 'http://localhost:8003/api';
+const BASE = 'http://localhost:8004/api';
 
 function generateSessionId() {
   let sid = wx.getStorageSync('session_id');
@@ -9,12 +9,14 @@ function generateSessionId() {
   return sid;
 }
 
-function sendMessage(message = '') {
+function sendMessage(message = '', sessionId) {
+  const sid = sessionId || generateSessionId();
   return new Promise((resolve, reject) => {
     wx.request({
       url: BASE + '/chat/send',
       method: 'POST',
-      data: { session_id: generateSessionId(), message },
+      timeout: 30000,
+      data: { session_id: sid, message },
       success: res => resolve(res.data),
       fail: reject
     });
@@ -25,4 +27,4 @@ function resetSession() {
   wx.removeStorageSync('session_id');
 }
 
-module.exports = { sendMessage, resetSession, BASE };
+module.exports = { sendMessage, resetSession, generateSessionId, BASE };

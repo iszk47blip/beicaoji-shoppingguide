@@ -3,16 +3,54 @@ const api = require('../../utils/api');
 Page({
   data: {
     messages: [],
+    quickReplies: [],
     inputText: '',
-    loading: false
+    loading: false,
+    sessionId: ''
   },
 
   onLoad() {
-    this.addMessage('bot', '你好！我是焙草集的健康顾问 🌿\n\n我可以帮你了解自己的身体状态，推荐适合你的药食同源调理产品。\n准备好了就告诉我～');
+    this._initChat();
   },
 
-  addMessage(role, content) {
-    this.data.messages.push({ role, content });
+  _initChat() {
+    const sid = api.generateSessionId();
+    this.setData({ sessionId: sid, loading: true });
+    api.sendMessage('', sid).then(res => {
+      this.setData({ loading: false });
+      if (res.message) {
+        this.addMessage('text', 'bot', res.message);
+      }
+      if (res.quick_replies) {
+        this.setData({ quickReplies: res.quick_replies });
+      }
+      if (res.recommendation) {
+        this.addRecommendation(res.recommendation, res.message);
+      }
+      if (res.catalog) {
+        this.addCatalog(res.catalog);
+      }
+    }).catch(() => {
+      this.setData({ loading: false });
+      this.addMessage('text', 'bot', '你好！我是焙草集的健康顾问，有什么可以帮你的？');
+    });
+  },
+
+  addMessage(type, role, content) {
+    const msg = { type, role, content };
+    this.data.messages.push(msg);
+    this.setData({ messages: this.data.messages });
+  },
+
+  addRecommendation(rec, content) {
+    const msg = { type: 'recommendation', role: 'bot', content, constitution: rec.constitution, bundle: rec.bundle };
+    this.data.messages.push(msg);
+    this.setData({ messages: this.data.messages });
+  },
+
+  addCatalog(catalog) {
+    const msg = { type: 'catalog', role: 'bot', categories: catalog };
+    this.data.messages.push(msg);
     this.setData({ messages: this.data.messages });
   },
 
@@ -20,27 +58,39 @@ Page({
     this.setData({ inputText: e.detail.value });
   },
 
-  async onSend() {
+  onQuickReply(e) {
+    const text = e.currentTarget.dataset.text;
+    this.addMessage('text', 'user', text);
+    this.setData({ quickReplies: [], loading: true });
+    this._send(text);
+  },
+
+  onSend() {
     const text = this.data.inputText.trim();
     if (!text) return;
+    this.addMessage('text', 'user', text);
+    this.setData({ inputText: '', quickReplies: [], loading: true });
+    this._send(text);
+  },
 
-    this.addMessage('user', text);
-    this.setData({ inputText: '', loading: true });
-
-    try {
-      const res = await api.sendMessage(text);
+  _send(message) {
+    api.sendMessage(message, this.data.sessionId).then(res => {
       this.setData({ loading: false });
-      this.addMessage('bot', res.message);
-
-      if (res.recommendation) {
-        wx.navigateTo({
-          url: '/pages/report/report',
-          success: page => page.setData({ report: res.recommendation })
-        });
+      if (res.message) {
+        this.addMessage('text', 'bot', res.message);
       }
-    } catch (err) {
+      if (res.recommendation) {
+        this.addRecommendation(res.recommendation, res.message);
+      }
+      if (res.catalog) {
+        this.addCatalog(res.catalog);
+      }
+      if (res.quick_replies) {
+        this.setData({ quickReplies: res.quick_replies });
+      }
+    }).catch(() => {
       this.setData({ loading: false });
-      this.addMessage('bot', '抱歉出了点问题，请稍后再试。');
-    }
+      this.addMessage('text', 'system', '抱歉出了点问题，请稍后再试。');
+    });
   }
 });

@@ -1,13 +1,20 @@
 <view class="chat-container">
-  <scroll-view class="message-list" scroll-y scroll-into-view="msg-{{messages.length - 1}}">
-    <view wx:for="{{messages}}" wx:key="index" id="msg-{{index}}"
-          class="message {{item.role}}">
-      <view class="bubble">{{item.content}}</view>
+  <scroll-view class="message-list" scroll-y scroll-into-view="msg-{{messages.length - 1}}" scroll-with-animation>
+    <view wx:for="{{messages}}" wx:key="index" id="msg-{{index}}" class="msg-row {{item.role}}">
+      <view class="bubble" wx:if="{{item.type === 'text'}}">{{item.content}}</view>
     </view>
-    <view wx:if="{{loading}}" class="message bot">
-      <view class="bubble typing">...</view>
+    <view wx:if="{{loading}}" class="msg-row bot" id="loading-msg">
+      <view class="bubble typing">
+        <view class="dot"></view>
+        <view class="dot"></view>
+        <view class="dot"></view>
+      </view>
     </view>
   </scroll-view>
+
+  <view class="quick-replies" wx:if="{{quickReplies.length > 0}}">
+    <view class="quick-btn" wx:for="{{quickReplies}}" wx:key="index" bindtap="onQuickReply" data-text="{{item}}">{{item}}</view>
+  </view>
 
   <view class="input-bar">
     <input class="input" placeholder="输入你的情况..."
