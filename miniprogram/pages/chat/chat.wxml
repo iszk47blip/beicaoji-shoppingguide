@@ -4,9 +4,9 @@
     <text class="header-orders {{hasOrders ? 'visible' : ''}}" bindtap="onShowOrders">我的订单</text>
   </view>
 
-  <scroll-view class="message-list" scroll-y scroll-top="{{scrollTop}}" scroll-with-animation>
+  <scroll-view class="message-list" scroll-y scroll-into-view="{{scrollTarget}}" scroll-with-animation>
     <block wx:for="{{messages}}" wx:key="index">
-      <view id="msg-{{index}}" class="msg-row {{item.role}}">
+      <view class="msg-row {{item.role}}">
         <view class="msg-block" wx:if="{{item.type === 'text'}}">
           <view class="bubble">{{item.content}}</view>
         </view>
@@ -52,7 +52,7 @@
         <view class="dot"></view>
       </view>
     </view>
-    <view class="scroll-spacer" style="height: {{cartCount > 0 ? '360rpx' : '260rpx'}}"></view>
+    <view id="bottom-anchor" class="scroll-spacer" style="height: {{cartCount > 0 ? '360rpx' : '260rpx'}}"></view>
   </scroll-view>
 
   <!-- Fixed bottom bar -->
