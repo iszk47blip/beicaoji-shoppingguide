@@ -155,8 +155,7 @@ class DialogueEngine:
     def _recommend_reenter(self, state: dict) -> dict:
         ctx = self._state_context(state)
         msg = self._chat(
-            "顾客回到了推荐页面。请自然地问他还有什么想了解的，"
-            "或者可以重新看看体质、换个场景。",
+            "顾客回到推荐页。自然地问他还想了解什么，要不要重新看体质或换个困扰。",
             ctx
         )
         return {"message": msg, "stage": Stage.RECOMMEND,
@@ -165,8 +164,7 @@ class DialogueEngine:
     def _catalog_reenter(self, state: dict) -> dict:
         ctx = self._state_context(state)
         msg = self._chat(
-            "顾客在看产品目录。请热情地告诉他目前有四大品类：饼干、面包、茶、香囊。"
-            "想看哪类可以告诉你。",
+            "顾客看产品目录。介绍四大品类：饼干、面包、茶、香囊。问想看哪类。",
             ctx
         )
         return {"message": msg, "stage": Stage.CATALOG,
@@ -222,20 +220,10 @@ class DialogueEngine:
 
         ctx = self._state_context(state)
         result = self._chat_json(
-            f"顾客回应了你的欢迎：「{user_input}」\n\n"
-            "根据顾客的话灵活回应：\n"
-            "- 顾客明确在问某种具体产品（比如'有没有XX'、'XX多少钱'、'推荐XX'）→ 简短回应后返回 stage: greeting\n"
-            "- 顾客问有什么产品、只想逛逛 → 热情介绍四类产品，告诉顾客想看哪类可以问你。返回 stage: greeting\n"
-            "- 顾客明确表示不想测试/不想回答体质问题、只想看体质对应什么产品 → "
-            "简短回应'好的，我帮你整理一下'，返回 stage: catalog\n"
-            "- 顾客直接说身体困扰 → 表达理解 + 安全筛查，返回 stage: screening\n"
-            "- 顾客愿意继续体质了解 → 简短过渡后做安全筛查，返回 stage: screening\n"
-            "- 顾客只是打招呼 → 简短回应后问筛查，返回 stage: screening\n\n"
-            "同时判断顾客的核心意图：\n"
-            "- 顾客想找具体产品、问价格、要推荐某产品 → intent: search_product\n"
-            "- 顾客想看所有产品、所有体质对应产品 → intent: show_catalog\n"
-            "- 其他 → intent: continue_flow\n\n"
-            "返回JSON: {\"message\": \"...\", \"stage\": \"screening|greeting|catalog\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
+            f"顾客说：「{user_input}」\n"
+            "灵活回应：问产品→介绍并引导回体质；不想做体质→跳到catalog；说身体困扰→screening；愿意了解体质→screening\n"
+            "意图判断：找具体产品/要推荐→search_product；看所有产品→show_catalog；其他→continue_flow\n"
+            "JSON: {\"message\":\"...\",\"stage\":\"screening|greeting|catalog\",\"intent\":\"search_product|show_catalog|continue_flow\"}",
             ctx
         )
         next_stage = result.get("stage", Stage.SCREENING)
@@ -256,9 +244,7 @@ class DialogueEngine:
 
     def _screening_ask(self, state: dict) -> dict:
         msg = self._chat(
-            "你需要对顾客做一个安全筛查。请自然地问他是否属于以下情况："
-            "怀孕或备孕中、正在哺乳期、有确诊的重大疾病、正在服用处方药。"
-            "语气温和，说明这关系到产品安全。"
+            "自然地询问顾客：是否怀孕/备孕、哺乳期、重大疾病、服用处方药。语气温和，说明是为了产品安全。"
         )
         return {
             "message": msg, "stage": Stage.SCREENING,
@@ -268,22 +254,11 @@ class DialogueEngine:
     def _handle_screening(self, state: dict, user_input: str) -> dict:
         ctx = self._state_context(state)
         result = self._chat_json(
-            f"顾客对安全筛查的回应是：「{user_input}」\n\n"
-            "首先判断顾客属于哪种情况：\n"
-            "- 提到怀孕、备孕、哺乳、肿瘤、癌症、严重肝肾疾病 → screening_result = \"blocked\"\n"
-            "- 提到处方药但没有上述情况 → screening_result = \"downgraded\"\n"
-            "- 表示都没有或选E → screening_result = \"cleared\"\n"
-            "- 顾客明确表示不想做筛查、想跳过 → screening_result = \"skipped\"\n\n"
-            "然后生成回复：\n"
-            "- cleared: 简短过渡，问顾客怎么称呼\n"
-            "- blocked/downgraded: 温和建议咨询医生\n"
-            "- skipped: 理解顾客，不再追问筛查，但温和提醒一句安全注意事项，然后直接进入体质了解\n\n"
-            "同时判断顾客是否有产品相关意图：\n"
-            "- 顾客想找具体产品、想让你推荐 → intent: search_product\n"
-            "- 顾客想看所有产品 → intent: show_catalog\n"
-            "- 没有产品需求 → intent: continue_flow\n\n"
-            "返回JSON: {\"message\": \"...\", \"screening_result\": \"...\", "
-            "\"stage\": \"info_collect|constitution|done\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
+            f"顾客筛查回应：「{user_input}」\n"
+            "判定：怀孕/备孕/哺乳/肿瘤/严重肝肾→blocked；处方药无上述→downgraded；都没有→cleared；想跳过→skipped\n"
+            "回复：cleared→过渡到问称呼；blocked/downgraded→温和建议看医生；skipped→提醒安全后进入体质\n"
+            "意图：search_product/show_catalog/continue_flow\n"
+            "JSON: {\"message\":\"...\",\"screening_result\":\"...\",\"stage\":\"info_collect|constitution|done\",\"intent\":\"...\"}",
             ctx
         )
         screening_result = result.get("screening_result", "cleared")
@@ -312,26 +287,12 @@ class DialogueEngine:
         ctx = self._state_context(state)
 
         result = self._chat_json(
-            f"你刚才问了顾客怎么称呼，顾客说：「{user_input}」\n\n"
-            "请判断顾客的意图并灵活回应：\n"
-            "- 如果顾客说了名字/称呼 → 用名字打招呼，然后请他聊聊最近身体感觉怎么样\n"
-            "- 如果顾客不想说名字或想跳过 → 无所谓，直接请他聊聊最近身体感觉怎么样\n"
-            "- 如果顾客问产品、闲聊 → 简短回应后引导到体质了解\n\n"
-            "问称呼要用自然的说法，比如'那我怎么称呼你呀？'"
-            "绝对不能说'那你平时怎么称呼你呀'这种病句。\n\n"
-            "进入体质环节时，你要引导顾客用他自己的话描述身体感受。\n"
-            "铁律——绝对不能做的事：\n"
-            "- 不要提任何具体的体质问题（比如不要问手脚凉不凉、上不上火、累不累）\n"
-            "- 不要列出任何选项\n"
-            "- 不要用'第一个问题''第1题'这种字眼\n"
-            "- 不要说'帮你找到适合自己体质的产品'这种目的性太强的话\n"
-            "你应该做的：\n"
-            "- 像朋友聊天一样，请他随便说说最近身体的感觉\n"
-            "- 用开放式的邀请，比如'跟我说说你最近身体感觉怎么样吧'\n"
-            "- 保持轻松自然的语气\n\n"
-            "同时判断顾客意图：search_product / show_catalog / continue_flow\n\n"
-            "返回JSON: {\"message\": \"...\", \"customer_name\": \"名字或空\", "
-            "\"stage\": \"constitution|greeting\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
+            f"顾客回应：「{user_input}」\n"
+            "说了名字→用名字打招呼后过渡到体质；不想说→直接过渡\n"
+            "引导顾客用自己的话描述最近身体感受。不要提具体问题，不要列选项，像朋友聊天一样开放式邀请。\n"
+            "绝不要说'那你平时怎么称呼你呀'。不要说'帮你找到适合体质的产品'。\n"
+            "意图：search_product/show_catalog/continue_flow\n"
+            "JSON: {\"message\":\"...\",\"customer_name\":\"名字或空\",\"stage\":\"constitution|greeting\",\"intent\":\"...\"}",
             ctx
         )
 
@@ -356,10 +317,7 @@ class DialogueEngine:
         """Ask the free-text opening question for constitution extraction."""
         ctx = self._state_context(state)
         msg = self._chat(
-            "请自然地请顾客聊聊他最近的身体感觉。比如问他最近身体感觉怎么样、"
-            "有什么不舒服或者在意的地方。"
-            "不要列出选项，不要像在做问卷——这是聊天。"
-            "让他用自己的话先说。",
+            "请顾客聊聊最近身体感觉怎么样，有什么不舒服或在意的地方。不要列选项，让他用自己的话说。",
             ctx
         )
         return {
@@ -530,10 +488,7 @@ class DialogueEngine:
     def _transition_to_scene_from_extract(self, state: dict, response: dict, ctx: str) -> dict:
         """Transition to SCENE stage, merging extraction results."""
         msg = self._chat(
-            "体质了解环节结束了。请自然地过渡到询问生活困扰。"
-            f"基于已收集的体质信息，用一两句话总结你了解到的（比如'你偏寒性体质，冬天容易手脚凉'），"
-            "然后自然地问他最近有什么困扰。"
-            "不要用括号、占位符、模板语言。用自然的语气。",
+            "体质了解结束。用一两句话总结了解到的体质信息，自然过渡到询问最近生活困扰。不要用括号或模板语言。",
             ctx
         )
         response["message"] = msg
@@ -548,8 +503,7 @@ class DialogueEngine:
     def _scene_ask(self, state: dict) -> dict:
         ctx = self._state_context(state)
         msg = self._chat(
-            "请询问顾客最近有没有什么特别困扰他的，比如睡不好、消化差、容易疲劳、"
-            "皮肤状态不好、想调理身体等等。",
+            "询问顾客最近有什么困扰：睡眠、消化、疲劳、皮肤、调理身体等。",
             ctx
         )
         return {
@@ -572,13 +526,10 @@ class DialogueEngine:
 
         if not scene_raw:
             result = self._chat_json(
-                f"顾客描述了最近的生活困扰：「{user_input}」\n\n"
-                "请灵活处理：\n"
-                "- 如果顾客说了具体困扰 → 表示理解共情，追问一个更具体的细节\n"
-                "- 如果顾客说没有特别困扰 → 没关系，直接进入推荐环节\n"
-                "- 如果顾客跳过或闲聊 → 简短回应后进入推荐\n\n"
-                "判断顾客意图：search_product / show_catalog / continue_flow\n\n"
-            "返回JSON: {\"message\": \"...\", \"stage\": \"scene|recommend\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
+                f"顾客描述困扰：「{user_input}」\n"
+                "具体困扰→共情并追问细节；没有困扰→进入推荐；跳过→进入推荐\n"
+                "意图：search_product/show_catalog/continue_flow\n"
+                "JSON: {\"message\":\"...\",\"stage\":\"scene|recommend\",\"intent\":\"...\"}",
                 ctx
             )
             next_stage = result.get("stage", Stage.SCENE)
@@ -594,11 +545,9 @@ class DialogueEngine:
         elif not followup_done:
             combined_scene = f"{scene_raw}；{user_input}"
             result = self._chat_json(
-                f"顾客补充了更多细节：「{user_input}」（之前说的是「{scene_raw}」）\n\n"
-                "简短地表示理解和共情（1-2句话），然后告诉顾客你马上帮他分析推荐。\n"
-                "不要问顾客任何新问题，不要问品类偏好，不要罗列产品名。\n"
-                "判断顾客意图：search_product / show_catalog / continue_flow\n\n"
-                "返回JSON: {\"message\": \"...\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
+                f"顾客补充：「{user_input}」（之前：「{scene_raw}」）\n"
+                "简短共情后告诉顾客马上分析推荐。不要问新问题。意图同上。\n"
+                "JSON: {\"message\":\"...\",\"intent\":\"...\"}",
                 ctx
             )
             result["stage"] = Stage.RECOMMEND
@@ -608,9 +557,7 @@ class DialogueEngine:
 
         else:
             result = self._chat_json(
-                "简短告诉顾客马上帮他分析推荐，不超过两句话。"
-                "不要问任何问题，不要提品类。\n"
-                "返回JSON: {\"message\": \"...\"}",
+                "告诉顾客马上分析推荐，不超过两句话。JSON: {\"message\":\"...\"}",
                 ctx
             )
             result["stage"] = Stage.RECOMMEND
@@ -619,16 +566,10 @@ class DialogueEngine:
     def _handle_recommend(self, state: dict, user_input: str) -> dict:
         ctx = self._state_context(state)
         result = self._chat_json(
-            f"你已经给顾客做了推荐。现在顾客说：「{user_input}」\n\n"
-            "请灵活回应：\n"
-            "- 顾客问更多产品、想继续看 → 告诉顾客可以继续了解，返回 stage: recommend\n"
-            "- 顾客想重新了解体质 → 返回 stage: constitution, constitution_extract_done: false, constitution_questions_asked: 0, constitution_raw: \"{}\"\n"
-            "- 顾客想重新描述困扰 → 返回 stage: scene\n"
-            "- 顾客说谢谢、要走了 → 温暖地道别，返回 stage: done\n"
-            "- 顾客问别的 → 自然回答，返回 stage: recommend\n"
-            "不要问顾客'从哪个品类开始了解'——你已经做过推荐了。\n"
-            "判断顾客意图：search_product / show_catalog / continue_flow\n\n"
-            "返回JSON: {\"message\": \"...\", \"stage\": \"recommend|scene|constitution|done\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
+            f"推荐后顾客说：「{user_input}」\n"
+            "想看更多→recommend；重测体质→constitution；改困扰→scene；道别→done；其他→recommend\n"
+            "意图: search_product/show_catalog/continue_flow\n"
+            "JSON: {\"message\":\"...\",\"stage\":\"recommend|scene|constitution|done\",\"intent\":\"...\"}",
             ctx
         )
         response = {"message": result.get("message", "好的，还有什么可以帮你的？")}
@@ -650,15 +591,10 @@ class DialogueEngine:
     def _handle_catalog(self, state: dict, user_input: str) -> dict:
         ctx = self._state_context(state)
         result = self._chat_json(
-            f"顾客在看产品目录。现在顾客说：「{user_input}」\n\n"
-            "请灵活回应：\n"
-            "- 顾客想看某个品类（饼干/面包/茶/香囊）→ 告诉顾客这个品类有些什么类型的产品，返回 stage: catalog\n"
-            "- 顾客想了解体质 → 返回 stage: constitution, constitution_extract_done: false, constitution_questions_asked: 0, constitution_raw: \"{}\"\n"
-            "- 顾客想问具体产品功效 → 根据常识自然回答，返回 stage: catalog\n"
-            "- 顾客想做体质测试 → 返回 stage: screening\n"
-            "- 顾客要走了 → 温暖道别，返回 stage: done\n"
-            "判断顾客意图：search_product / show_catalog / continue_flow\n\n"
-            "返回JSON: {\"message\": \"...\", \"stage\": \"catalog|constitution|screening|done\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
+            f"看目录时顾客说：「{user_input}」\n"
+            "看品类→介绍产品(stage:catalog)；想了解体质→constitution；想测体质→screening；道别→done\n"
+            "意图：search_product/show_catalog/continue_flow\n"
+            "JSON: {\"message\":\"...\",\"stage\":\"catalog|constitution|screening|done\",\"intent\":\"...\"}",
             ctx
         )
         response = {"message": result.get("message", "好的，还有什么可以帮你的？"),

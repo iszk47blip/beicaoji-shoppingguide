@@ -35,15 +35,9 @@ def _describe_recommendation(engine: DialogueEngine, state: dict, rec: dict) -> 
     )
     ctx = engine._state_context(state)
     instruction = (
-        f"你已经了解了顾客的体质（偏{ctype}）和困扰。"
-        f"现在推荐引擎选出了以下产品：\n\n{product_list}\n\n"
-        "请用温暖自然的语气告诉顾客，根据他的体质和困扰，你帮他挑了这几款产品。\n"
-        "逐款简短解释为什么适合他，结合成分和体质的关系。\n"
-        "直接说产品名即可，不要在产品名前面加品类标签。\n"
-        "不要问顾客'想从哪个品类开始了解'或'你想看哪个品类'这类问题。\n"
-        "不要建议顾客'进店体验'或'到店看看'——现在就是帮他做推荐。\n"
-        "结尾自然地问一句'你觉得这几个怎么样？'即可。\n"
-        "不要用markdown格式。"
+        f"顾客偏{ctype}体质。推荐产品：\n\n{product_list}\n\n"
+        "逐款解释为什么适合他（结合成分与体质），不要加品类标签，不要问品类偏好，不要建议到店。"
+        "结尾问'你觉得这几个怎么样？'。不用markdown。"
     )
     msg = engine._chat(instruction, ctx)
     return msg
@@ -97,9 +91,8 @@ def _describe_search_result(engine: DialogueEngine, state: dict, rec: dict, quer
     )
     ctx = engine._state_context(state)
     instruction = (
-        f"顾客搜索了「{query}」，系统找到以下产品：\n\n{product_list}\n\n"
-        "请用温暖自然的语气告诉顾客找到了这些，逐款简短介绍。不要问品类偏好。"
-        "结尾自然地问一句'有感兴趣的吗？'。不要用markdown格式。"
+        f"顾客搜索「{query}」，找到：\n\n{product_list}\n\n"
+        "逐款简短介绍，结尾问'有感兴趣的吗？'。不用markdown。"
     )
     return engine._chat(instruction, ctx)
 

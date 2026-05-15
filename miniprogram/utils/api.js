@@ -15,7 +15,7 @@ function sendMessage(message = '', sessionId) {
     wx.request({
       url: BASE + '/chat/send',
       method: 'POST',
-      timeout: 30000,
+      timeout: 60000,
       data: { session_id: sid, message },
       success: res => resolve(res.data),
       fail: reject
