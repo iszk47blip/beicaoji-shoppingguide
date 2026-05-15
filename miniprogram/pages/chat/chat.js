@@ -70,13 +70,13 @@ Page({
   _syncCartToMessages() {
     const updated = this.data.messages.map(msg => {
       if (msg.type === 'recommendation' && msg.bundle) {
-        msg.bundle = msg.bundle.map(p => ({ ...p, quantity: cart.getQuantity(p.sku_id) }));
+        return { ...msg, bundle: msg.bundle.map(p => ({ ...p, quantity: cart.getQuantity(p.sku_id) })) };
       }
       if (msg.type === 'catalog' && msg.categories) {
-        msg.categories = msg.categories.map(cat => ({
+        return { ...msg, categories: msg.categories.map(cat => ({
           ...cat,
           products: cat.products.map(p => ({ ...p, quantity: cart.getQuantity(p.sku_id || '') }))
-        }));
+        })) };
       }
       return msg;
     });
@@ -128,8 +128,12 @@ Page({
   // --- Cart events from product-card ---
 
   onProductQuantityChange(e) {
-    const { product, skuId, delta, quickBuy } = e.detail;
-    cart.add(product);
+    const { product, skuId, quantity, quickBuy } = e.detail;
+    if (cart.getQuantity(skuId) === 0) {
+      cart.add(product);
+    } else {
+      cart.setQuantity(skuId, quantity);
+    }
     if (quickBuy) {
       this.setData({ cartPanelShow: true });
     }
