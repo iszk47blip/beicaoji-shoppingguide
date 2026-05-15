@@ -81,6 +81,19 @@ def _search_products(db, query: str, state: dict = None, limit: int = 4) -> dict
     return {"bundle": bundle, "products": bundle,
             "constitution": {"constitution_type": ctype, "description": cdesc}}
 
+def _describe_fallback(engine: DialogueEngine, state: dict, rec: dict) -> str:
+    """When no products perfectly match the constitution+scene, explain and offer the report."""
+    ctype = rec.get("constitution", {}).get("constitution_type", "平和质")
+    ctx = engine._state_context(state)
+    instruction = (
+        f"顾客偏{ctype}体质，但店里的产品没有完美匹配他当前的情况。"
+        "请温和地告诉他：店里虽然没有专门针对他情况的产品，但已为他生成了一份调理报告，"
+        "里面有详细的食养建议和生活调养指导。"
+        "建议他点击'查看完整调理报告'查看。语气温暖真诚，不要用markdown。"
+    )
+    return engine._chat(instruction, ctx)
+
+
 def _describe_search_result(engine: DialogueEngine, state: dict, rec: dict, query: str) -> str:
     """Use LLM to naturally describe search results."""
     products = rec.get("bundle", [])
@@ -151,9 +164,12 @@ def send_message(req: SendRequest, db=Depends(get_db)):
         )
         if recommendation.get("bundle"):
             try:
-                result["message"] = _describe_recommendation(engine, state, recommendation)
+                if recommendation.get("no_match"):
+                    result["message"] = _describe_fallback(engine, state, recommendation)
+                else:
+                    result["message"] = _describe_recommendation(engine, state, recommendation)
             except Exception:
-                pass  # Keep original message if LLM call fails
+                pass
     elif result.get("stage") == "catalog" and not catalog:
         product_svc = ProductService(db)
         catalog = product_svc.get_constitution_catalog()

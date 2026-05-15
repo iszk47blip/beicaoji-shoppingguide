@@ -27,13 +27,24 @@ class RecommendEngine:
         safe_matches = [p for p in scene_matches
                         if not any(t in (p.contraindication_tags or "")
                                    for t in avoid_tags)]
+        def _to_dict(p):
+            if isinstance(p, dict):
+                return p
+            return {"name": p.name, "sku_id": p.sku_id, "category": p.category,
+                    "ingredients": p.ingredients, "price": p.price}
+
         bundle = self._build_bundle(safe_matches)
+        no_match = len(bundle) == 0
+
+        if no_match:
+            bundle = self._fallback_bundle()
+
         return {
             "constitution": constitution,
             "scene_tags": scene_tags,
-            "products": safe_matches[:6],
-            "bundle": [{"name": p.name, "sku_id": p.sku_id, "category": p.category,
-                         "ingredients": p.ingredients, "price": p.price} for p in bundle],
+            "products": [_to_dict(p) for p in safe_matches[:6]],
+            "bundle": [_to_dict(p) for p in bundle],
+            "no_match": no_match,
         }
 
     def _extract_scene_tags(self, scene_input):
@@ -54,3 +65,18 @@ class RecommendEngine:
             if len(bundle) < size:
                 bundle.append(cat_products[0])
         return bundle[:size]
+
+    def _fallback_bundle(self, size=3):
+        """When no products match, return a cross-category selection of all active products."""
+        all_products = self.product_service.get_all_active()
+        if not all_products:
+            return []
+        cats = {}
+        for p in all_products:
+            cats.setdefault(p.category, []).append(p)
+        bundle = []
+        for cat_products in cats.values():
+            if len(bundle) < size:
+                bundle.append(cat_products[0])
+        return [{"name": p.name, "sku_id": p.sku_id, "category": p.category,
+                 "ingredients": p.ingredients, "price": p.price} for p in bundle[:size]]
