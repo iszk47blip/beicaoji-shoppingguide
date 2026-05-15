@@ -1,0 +1,15 @@
+# Debug artifacts
+*_result.json
+debug_*.json
+*_output.txt
+
+# GStack
+.gstack/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

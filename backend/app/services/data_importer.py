@@ -4,6 +4,8 @@ from app.models.product import Product
 
 PRODUCT_DIR = Path("E:/VIBE/beicaoji/beicaoji-产品目录")
 FILE_MAP = {"biscuit": "biscuit.xlsx", "bread": "bread.xlsx", "tea": "tea.xlsx", "toy": "toy.xlsx"}
+# Default prices by category (can be overridden when Excel includes price column)
+CATEGORY_DEFAULT_PRICE = {"biscuit": 29, "bread": 25, "tea": 39, "toy": 19}
 
 
 def import_all(session):
@@ -30,6 +32,7 @@ def import_sheet(session, filepath, category):
             scene_tags=str(row[4] or "").strip(),
             sales_script=str(row[5] or "").strip(),
             contraindication_tags=str(row[6] or "").strip(),
+            price=CATEGORY_DEFAULT_PRICE.get(category, 25),
         )
         session.add(product)
         count += 1

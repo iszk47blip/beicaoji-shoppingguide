@@ -5,7 +5,7 @@
 """
 import requests, json, os, sys
 
-BASE = os.environ.get("BASE_URL", "http://localhost:8005")
+BASE = os.environ.get("BASE_URL", "http://localhost:8000")
 SESSION_ID = "test-" + os.urandom(2).hex()
 OUTPUT = os.path.join(os.path.dirname(__file__), "test_conversation_output.txt")
 
@@ -49,7 +49,7 @@ test_persona = {
         "偶尔上火，不算频繁",
         "还好吧，不算太累",
         "偶尔会腹胀",
-        "比较怕冷，比别人穿得多",
+        "几乎不出汗，比别人汗少",
         "睡眠时好时坏吧",
     ],
     "scene": [
@@ -108,19 +108,26 @@ r = send(f"我叫{test_persona['name']}")
 log(f"  小焙: {r['message']}")
 log(f"  阶段: {r['stage']}")
 
-# Step 5-10: 体质问答
+# Step 5: 体质了解（新B+C混合流程——一句自由描述）
 log(f"\n[体质了解]")
-for i, answer in enumerate(test_persona["constitution"]):
-    log(f"  顾客: {answer}")
-    r = send(answer)
-    # 只显示第一句（太长的回复截断）
+log(f"  顾客: 我冬天手脚冰凉，平时容易累，精神不太好，睡觉也一般")
+r = send("我冬天手脚冰凉，平时容易累，精神不太好，睡觉也一般")
+msg = r["message"]
+if len(msg) > 150:
+    msg = msg[:150] + "..."
+log(f"  小焙: {msg}")
+log(f"  阶段: {r['stage']}")
+
+# May get adaptive follow-up if signals < 2
+if r["stage"] == "constitution":
+    log(f"\n[自适应追问]")
+    log(f"  顾客: 偶尔会上火吧")
+    r = send("偶尔会上火吧")
     msg = r["message"]
-    if len(msg) > 120:
-        msg = msg[:120] + "..."
+    if len(msg) > 150:
+        msg = msg[:150] + "..."
     log(f"  小焙: {msg}")
     log(f"  阶段: {r['stage']}")
-    if r["stage"] != "constitution":
-        break
 
 # Step 11-12: 场景描述
 log(f"\n[生活困扰]")

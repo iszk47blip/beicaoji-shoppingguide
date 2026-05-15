@@ -1,9 +1,0 @@
-pyproject.toml
-app/__init__.py
-app/config.py
-app/main.py
-beicaoji.egg-info/PKG-INFO
-beicaoji.egg-info/SOURCES.txt
-beicaoji.egg-info/dependency_links.txt
-beicaoji.egg-info/requires.txt
-beicaoji.egg-info/top_level.txt

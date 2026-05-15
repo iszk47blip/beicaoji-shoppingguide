@@ -1,9 +1,15 @@
 # backend/app/services/dialogue_engine.py
 import json
+import re
 from enum import Enum
 from anthropic import Anthropic
 from app.config import settings
-from app.services.prompts import SYSTEM_PROMPT, WELCOME_MESSAGE, CONSTITUTION_QUESTIONS
+from app.services.prompts import (
+    SYSTEM_PROMPT, WELCOME_MESSAGE,
+    CONSTITUTION_FIELDS, ADAPTIVE_FIELD_ORDER,
+    CONSTITUTION_EXTRACTION_SYSTEM, CONSTITUTION_EXTRACTION_USER,
+    CONSTITUTION_ENTRY_REPLIES,
+)
 
 
 class Stage(str, Enum):
@@ -35,7 +41,7 @@ class DialogueEngine:
         messages.append({"role": "user", "content": instruction})
         resp = self.client.messages.create(
             model=settings.llm_model,
-            max_tokens=512,
+            max_tokens=1024,
             system=SYSTEM_PROMPT,
             messages=messages,
         )
@@ -58,7 +64,43 @@ class DialogueEngine:
         try:
             return json.loads(text)
         except json.JSONDecodeError:
-            return {"message": text or "好的，请继续说。"}
+            pass
+        # Try to extract message field from truncated JSON
+        m = re.search(r'"message"\s*:\s*"([^"]+)', text)
+        if m:
+            return {"message": m.group(1)}
+        # If text looks like JSON but couldn't parse, use it as plain message
+        if text.startswith("{") or text.startswith('"'):
+            text = text.strip('{}"').strip()
+        return {"message": text or "好的，请继续说。"}
+
+    def _extract_signals(self, user_input: str) -> dict:
+        """Extract 5 constitution signal fields from free-text user input."""
+        prompt = CONSTITUTION_EXTRACTION_USER.replace("{user_input}", user_input)
+        resp = self.client.messages.create(
+            model=settings.llm_model,
+            max_tokens=512,
+            system=CONSTITUTION_EXTRACTION_SYSTEM,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = ""
+        for block in resp.content:
+            if hasattr(block, "text"):
+                text = block.text.strip()
+                break
+        if not text:
+            return {}
+        text = text.strip()
+        if text.startswith("```"):
+            parts = text.split("```")
+            text = parts[1] if len(parts) > 1 else text
+            if text.startswith("json"):
+                text = text[4:]
+            text = text.strip()
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            return {}
 
     # ------------------------------------------------------------------
     # State helpers
@@ -74,9 +116,9 @@ class DialogueEngine:
         answers = json.loads(raw) if isinstance(raw, str) else raw
         if answers:
             answered = []
-            for q in CONSTITUTION_QUESTIONS:
-                if q["field"] in answers:
-                    answered.append(f"{q['topic']}: {answers[q['field']]}")
+            for field, info in CONSTITUTION_FIELDS.items():
+                if field in answers and answers[field]:
+                    answered.append(f"{info['topic']}: {answers[field]}")
             if answered:
                 parts.append("已收集的体质信息:\n" + "\n".join(f"  - {a}" for a in answered))
         if state.get("scene_raw"):
@@ -101,7 +143,34 @@ class DialogueEngine:
             return self._constitution_ask(state)
         elif stage == Stage.SCENE:
             return self._scene_ask(state)
+        elif stage == Stage.RECOMMEND:
+            return self._recommend_reenter(state)
+        elif stage == Stage.CATALOG:
+            return self._catalog_reenter(state)
+        elif stage == Stage.DONE:
+            return {"message": "欢迎随时回来。有什么可以帮你的？", "stage": Stage.GREETING,
+                    "quick_replies": ["帮我看看体质", "你都有什么产品？"]}
         return {"message": "有什么我可以帮你的？", "stage": stage}
+
+    def _recommend_reenter(self, state: dict) -> dict:
+        ctx = self._state_context(state)
+        msg = self._chat(
+            "顾客回到了推荐页面。请自然地问他还有什么想了解的，"
+            "或者可以重新看看体质、换个场景。",
+            ctx
+        )
+        return {"message": msg, "stage": Stage.RECOMMEND,
+                "quick_replies": ["推荐更多产品", "重新了解体质", "看看产品目录"]}
+
+    def _catalog_reenter(self, state: dict) -> dict:
+        ctx = self._state_context(state)
+        msg = self._chat(
+            "顾客在看产品目录。请热情地告诉他目前有四大品类：饼干、面包、茶、香囊。"
+            "想看哪类可以告诉你。",
+            ctx
+        )
+        return {"message": msg, "stage": Stage.CATALOG,
+                "quick_replies": ["饼干", "面包", "茶", "香囊", "帮我看看体质"]}
 
     def process_user_message(self, state: dict, user_input: str) -> dict:
         """Process user input and advance the conversation."""
@@ -118,35 +187,61 @@ class DialogueEngine:
             return self._handle_constitution(state, user_input)
         elif stage == Stage.SCENE:
             return self._handle_scene(state, user_input)
+        elif stage == Stage.RECOMMEND:
+            return self._handle_recommend(state, user_input)
+        elif stage == Stage.CATALOG:
+            return self._handle_catalog(state, user_input)
+        elif stage == Stage.DONE:
+            return self._handle_done(state, user_input)
 
-        # Fallback
         ctx = self._state_context(state)
-        msg = self._chat(
-            f"顾客说：「{user_input}」。请自然回应，引导回到主流程。",
+        result = self._chat_json(
+            f"顾客说：「{user_input}」。请自然回应，引导回到主流程。\n\n"
+            "判断顾客意图：\n"
+            "- 顾客想找具体产品、想让你推荐 → intent: search_product\n"
+            "- 顾客想看所有产品目录 → intent: show_catalog\n"
+            "- 其他 → intent: continue_flow\n\n"
+            "返回JSON: {\"message\": \"...\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
             ctx
         )
-        return {"message": msg, "stage": stage}
+        return {"message": result.get("message", msg), "stage": stage,
+                "intent": result.get("intent", "continue_flow")}
 
     # ------------------------------------------------------------------
     # Stage: Greeting
     # ------------------------------------------------------------------
 
     def _handle_greeting(self, state: dict, user_input: str) -> dict:
+        # Quick product intent pre-check — only for clearly product-specific phrases
+        product_phrases = ["有没有", "多少钱", "给我推", "我要买", "来一", "买一",
+                           "推荐几个", "推荐一款", "推荐一下", "推几个"]
+        if any(kw in user_input for kw in product_phrases):
+            intent = self._detect_product_intent(state, user_input)
+            if intent == "search_product" or intent == "show_catalog":
+                return {"message": "", "stage": Stage.GREETING, "intent": intent}
+
         ctx = self._state_context(state)
         result = self._chat_json(
             f"顾客回应了你的欢迎：「{user_input}」\n\n"
             "根据顾客的话灵活回应：\n"
-            "- 顾客愿意继续 → 简短过渡后做安全筛查，返回 stage: screening\n"
-            "- 顾客问有什么产品、只想逛逛 → 热情介绍四类产品，告诉顾客想看哪类可以问你。不要再追问筛查。返回 stage: greeting\n"
-            "- 顾客明确表示不想测试/不想回答体质问题、只想看体质对应什么产品、想知道XX体质吃什么 → "
+            "- 顾客明确在问某种具体产品（比如'有没有XX'、'XX多少钱'、'推荐XX'）→ 简短回应后返回 stage: greeting\n"
+            "- 顾客问有什么产品、只想逛逛 → 热情介绍四类产品，告诉顾客想看哪类可以问你。返回 stage: greeting\n"
+            "- 顾客明确表示不想测试/不想回答体质问题、只想看体质对应什么产品 → "
             "简短回应'好的，我帮你整理一下'，返回 stage: catalog\n"
-            "- 顾客直接说困扰 → 表达理解 + 安全筛查，返回 stage: screening\n"
+            "- 顾客直接说身体困扰 → 表达理解 + 安全筛查，返回 stage: screening\n"
+            "- 顾客愿意继续体质了解 → 简短过渡后做安全筛查，返回 stage: screening\n"
             "- 顾客只是打招呼 → 简短回应后问筛查，返回 stage: screening\n\n"
-            "返回JSON: {\"message\": \"...\", \"stage\": \"screening|greeting|catalog\"}",
+            "同时判断顾客的核心意图：\n"
+            "- 顾客想找具体产品、问价格、要推荐某产品 → intent: search_product\n"
+            "- 顾客想看所有产品、所有体质对应产品 → intent: show_catalog\n"
+            "- 其他 → intent: continue_flow\n\n"
+            "返回JSON: {\"message\": \"...\", \"stage\": \"screening|greeting|catalog\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
             ctx
         )
         next_stage = result.get("stage", Stage.SCREENING)
+        intent = result.get("intent", "continue_flow")
         result["stage"] = next_stage
+        result["intent"] = intent
         if next_stage == Stage.SCREENING:
             result["quick_replies"] = ["都没有", "在备孕或怀孕", "在哺乳期", "在吃处方药"]
         elif next_stage == Stage.GREETING:
@@ -183,12 +278,17 @@ class DialogueEngine:
             "- cleared: 简短过渡，问顾客怎么称呼\n"
             "- blocked/downgraded: 温和建议咨询医生\n"
             "- skipped: 理解顾客，不再追问筛查，但温和提醒一句安全注意事项，然后直接进入体质了解\n\n"
+            "同时判断顾客是否有产品相关意图：\n"
+            "- 顾客想找具体产品、想让你推荐 → intent: search_product\n"
+            "- 顾客想看所有产品 → intent: show_catalog\n"
+            "- 没有产品需求 → intent: continue_flow\n\n"
             "返回JSON: {\"message\": \"...\", \"screening_result\": \"...\", "
-            "\"stage\": \"info_collect|constitution|done\"}",
+            "\"stage\": \"info_collect|constitution|done\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
             ctx
         )
         screening_result = result.get("screening_result", "cleared")
-        response = {"message": result.get("message", ""), "screening_result": screening_result}
+        response = {"message": result.get("message", ""), "screening_result": screening_result,
+                    "intent": result.get("intent", "continue_flow")}
 
         if screening_result == "blocked":
             response["stage"] = Stage.DONE
@@ -196,9 +296,10 @@ class DialogueEngine:
             response["stage"] = Stage.DONE
         elif screening_result == "skipped":
             response["stage"] = Stage.CONSTITUTION
-            response["constitution_index"] = 0
+            response["constitution_extract_done"] = False
+            response["constitution_questions_asked"] = 0
             response["constitution_raw"] = "{}"
-            response["quick_replies"] = CONSTITUTION_QUESTIONS[0]["options"]
+            response["quick_replies"] = CONSTITUTION_ENTRY_REPLIES
         else:
             response["stage"] = Stage.INFO_COLLECT
         return response
@@ -209,121 +310,236 @@ class DialogueEngine:
 
     def _handle_info_collect(self, state: dict, user_input: str) -> dict:
         ctx = self._state_context(state)
-        q = CONSTITUTION_QUESTIONS[0]
 
         result = self._chat_json(
             f"你刚才问了顾客怎么称呼，顾客说：「{user_input}」\n\n"
             "请判断顾客的意图并灵活回应：\n"
-            "- 如果顾客说了名字/称呼 → 用名字打招呼，然后自然过渡到第一个体质问题\n"
-            "- 如果顾客不想说名字或想跳过 → 无所谓，直接进入体质了解\n"
+            "- 如果顾客说了名字/称呼 → 用名字打招呼，然后请他聊聊最近身体感觉怎么样\n"
+            "- 如果顾客不想说名字或想跳过 → 无所谓，直接请他聊聊最近身体感觉怎么样\n"
             "- 如果顾客问产品、闲聊 → 简短回应后引导到体质了解\n\n"
-            f"如果要进入体质环节，请自然地提出第一个问题：「{q['question']}」"
-            f"（选项: {', '.join(q['options'])}）\n\n"
+            "问称呼要用自然的说法，比如'那我怎么称呼你呀？'"
+            "绝对不能说'那你平时怎么称呼你呀'这种病句。\n\n"
+            "进入体质环节时，你要引导顾客用他自己的话描述身体感受。\n"
+            "铁律——绝对不能做的事：\n"
+            "- 不要提任何具体的体质问题（比如不要问手脚凉不凉、上不上火、累不累）\n"
+            "- 不要列出任何选项\n"
+            "- 不要用'第一个问题''第1题'这种字眼\n"
+            "- 不要说'帮你找到适合自己体质的产品'这种目的性太强的话\n"
+            "你应该做的：\n"
+            "- 像朋友聊天一样，请他随便说说最近身体的感觉\n"
+            "- 用开放式的邀请，比如'跟我说说你最近身体感觉怎么样吧'\n"
+            "- 保持轻松自然的语气\n\n"
+            "同时判断顾客意图：search_product / show_catalog / continue_flow\n\n"
             "返回JSON: {\"message\": \"...\", \"customer_name\": \"名字或空\", "
-            "\"stage\": \"constitution|greeting\"}",
+            "\"stage\": \"constitution|greeting\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
             ctx
         )
 
         name = result.get("customer_name", "").strip() or user_input.strip()
         response = {
-            "message": result.get("message", f"好的，那我们开始了解一下你的身体状态。{q['question']}"),
+            "message": result.get("message", "好的，那跟我说说你最近身体感觉怎么样吧？"),
             "stage": Stage.CONSTITUTION,
-            "constitution_index": 0,
+            "constitution_extract_done": False,
+            "constitution_questions_asked": 0,
             "constitution_raw": "{}",
             "customer_name": name,
-            "quick_replies": q["options"],
+            "quick_replies": list(CONSTITUTION_ENTRY_REPLIES),
+            "intent": result.get("intent", "continue_flow"),
         }
         return response
 
     # ------------------------------------------------------------------
-    # Stage: Constitution
+    # Stage: Constitution (B+C hybrid: free-text extraction + adaptive QA)
     # ------------------------------------------------------------------
 
     def _constitution_ask(self, state: dict) -> dict:
-        idx = state.get("constitution_index", 0)
-        if idx >= len(CONSTITUTION_QUESTIONS):
-            return self._transition_to_scene(state)
-        q = CONSTITUTION_QUESTIONS[idx]
+        """Ask the free-text opening question for constitution extraction."""
         ctx = self._state_context(state)
         msg = self._chat(
-            f"请自然地提出这个问题：「{q['question']}」\n"
-            f"选项供顾客参考：{', '.join(q['options'])}",
+            "请自然地请顾客聊聊他最近的身体感觉。比如问他最近身体感觉怎么样、"
+            "有什么不舒服或者在意的地方。"
+            "不要列出选项，不要像在做问卷——这是聊天。"
+            "让他用自己的话先说。",
             ctx
         )
         return {
-            "message": msg, "stage": Stage.CONSTITUTION, "question_index": idx,
-            "quick_replies": q["options"]
+            "message": msg,
+            "stage": Stage.CONSTITUTION,
+            "quick_replies": CONSTITUTION_ENTRY_REPLIES,
         }
 
     def _handle_constitution(self, state: dict, user_input: str) -> dict:
-        idx = state.get("constitution_index", 0)
-        raw = json.loads(state.get("constitution_raw", "{}"))
-        q = CONSTITUTION_QUESTIONS[idx] if idx < len(CONSTITUTION_QUESTIONS) else None
+        # In constitution, users saying these words are likely trying to escape
+        product_keywords = ["有没有", "多少钱", "给我", "推给", "推荐", "我要",
+                            "买", "不用", "算了", "直接", "就要", "只要", "来个"]
+        looks_like_product = any(kw in user_input for kw in product_keywords)
 
-        if q is None:
-            return self._transition_to_scene(state)
+        if looks_like_product:
+            intent = self._detect_product_intent(state, user_input)
+            if intent == "search_product" or intent == "show_catalog":
+                return {"message": "", "stage": state.get("stage", Stage.CONSTITUTION),
+                        "intent": intent}
 
-        is_last = idx + 1 >= len(CONSTITUTION_QUESTIONS)
+        extract_done = state.get("constitution_extract_done", False)
+        questions_asked = state.get("constitution_questions_asked", 0)
+        ctx = self._state_context(state)
 
-        if is_last:
-            instruction = (
-                f"顾客被问到：「{q['question']}」选项：{json.dumps(q['options'], ensure_ascii=False)}\n"
-                f"顾客回答：「{user_input}」\n\n"
-                "请做两件事：\n"
-                "1. 判断顾客的选择最接近哪个选项原文（如果顾客跳过，填'未回答'）\n"
-                "2. 简短温暖地回应，然后过渡到询问生活困扰的环节\n\n"
-                "如果顾客说想跳过或不想回答 → 直接进入生活困扰环节\n\n"
-                "返回JSON: {\"message\": \"...\", \"value\": \"最接近的选项原文或未回答\"}"
-            )
+        if not extract_done:
+            return self._handle_constitution_extract(state, user_input, ctx)
         else:
-            next_q = CONSTITUTION_QUESTIONS[idx + 1]
-            instruction = (
-                f"顾客被问到：「{q['question']}」选项：{json.dumps(q['options'], ensure_ascii=False)}\n"
-                f"顾客回答：「{user_input}」\n\n"
-                "请灵活处理：\n"
-                "1. 判断顾客的选择最接近哪个选项原文（如果跳过或无关，填'未回答'）\n"
-                "2. 简短温暖地回应\n"
-                "3. 如果顾客想跳过当前问题 → 尊重，进下一个\n"
-                "4. 如果顾客想跳过所有体质问题 → 直接进入生活困扰环节\n\n"
-                f"下一个问题：「{next_q['question']}」（选项: {', '.join(next_q['options'])}）\n\n"
-                "返回JSON: {\"message\": \"...\", \"value\": \"...\", "
-                "\"stage\": \"constitution|scene\"}"
-            )
+            return self._handle_constitution_adaptive(state, user_input, questions_asked, ctx)
 
+    def _detect_product_intent(self, state: dict, user_input: str) -> str:
+        """Quick LLM check: is the user asking for products instead of answering constitution?"""
         ctx = self._state_context(state)
-        result = self._chat_json(instruction, ctx)
-
-        extracted_value = result.get("value", user_input)
-        if extracted_value and extracted_value != "未回答":
-            raw[q["field"]] = extracted_value
-        idx += 1
-
-        # Allow LLM to skip to scene
-        next_stage = result.get("stage", Stage.SCENE if is_last else Stage.CONSTITUTION)
-
-        response = {
-            "message": result.get("message", "好的，了解了。"),
-            "constitution_raw": json.dumps(raw, ensure_ascii=False),
-            "constitution_index": idx,
-            "stage": Stage.SCENE if (is_last or next_stage == Stage.SCENE) else Stage.CONSTITUTION,
-        }
-        # Include next question options as quick replies
-        if not is_last and next_stage != Stage.SCENE:
-            next_q = CONSTITUTION_QUESTIONS[idx + 1] if idx + 1 < len(CONSTITUTION_QUESTIONS) else None
-            if next_q:
-                response["quick_replies"] = next_q["options"]
-        elif response["stage"] == Stage.SCENE:
-            response["quick_replies"] = ["睡眠不好", "消化不好", "容易疲劳", "皮肤问题", "想调理身体"]
-        return response
-
-    def _transition_to_scene(self, state: dict) -> dict:
-        ctx = self._state_context(state)
-        msg = self._chat(
-            "体质了解环节结束了。请自然地告诉顾客你已经了解了大致情况，"
-            "接下来想了解他最近的生活困扰，比如睡眠、消化、疲劳、皮肤等。",
+        result = self._chat_json(
+            f"顾客说：「{user_input}」\n\n"
+            "只判断一件事：顾客是想找产品、要推荐、想看目录吗？\n"
+            "- 明确要某种产品（比如'给我推荐XX'、'有没有XX'、'我就想喝XX'、'算了别问了直接推XX'）→ search_product\n"
+            "- 想看所有产品目录 → show_catalog\n"
+            "- 在回答体质问题、描述身体感觉、闲聊 → continue_flow\n\n"
+            "返回JSON: {\"intent\": \"search_product|show_catalog|continue_flow\"}",
             ctx
         )
-        return {"message": msg, "stage": Stage.SCENE}
+        return result.get("intent", "continue_flow")
+
+    def _handle_constitution_extract(self, state: dict, user_input: str, ctx: str) -> dict:
+        """Phase 1: extract signals from free-text, decide next step."""
+        raw = json.loads(state.get("constitution_raw", "{}"))
+        signals = self._extract_signals(user_input)
+
+        if not signals:
+            # Extraction failed — fall back to adaptive QA
+            return self._ask_adaptive_question(raw, {}, 0, ctx, "好的，让我再了解一下～")
+
+        # Count non-empty signals
+        filled = {f: v for f, v in signals.items() if v}
+        clear_count = len(filled)
+
+        if clear_count >= 2:
+            # Enough signals — confirm and transition to SCENE
+            for f, v in filled.items():
+                raw[f] = v
+            response = {
+                "constitution_raw": json.dumps(raw, ensure_ascii=False),
+                "constitution_extract_done": True,
+            }
+            return self._transition_to_scene_from_extract(state, response, ctx)
+
+        elif clear_count == 1:
+            # One signal — ask one adaptive question
+            for f, v in filled.items():
+                raw[f] = v
+            return self._ask_adaptive_question(
+                raw, filled, 0, ctx,
+                "了解了～再问你一个小问题"
+            )
+
+        else:
+            # Zero signals — ask first adaptive question
+            return self._ask_adaptive_question(
+                raw, {}, 0, ctx,
+                "好的～让我帮你看看。先问你一个小问题："
+            )
+
+    def _handle_constitution_adaptive(self, state: dict, user_input: str,
+                                      questions_asked: int, ctx: str) -> dict:
+        """Phase 2: process adaptive QA answer, decide whether to ask more or proceed."""
+        raw = json.loads(state.get("constitution_raw", "{}"))
+        known_signals = {f: v for f, v in raw.items() if v}
+
+        # Ask LLM to map user answer to a specific field and value
+        result = self._chat_json(
+            f"顾客回答了一个体质相关问题：「{user_input}」\n\n"
+            "请判断顾客的选择最接近哪个选项原文：\n"
+            + "\n".join(
+                f"- {info['topic']}({field}): {', '.join(info['options'])}"
+                for field, info in CONSTITUTION_FIELDS.items()
+                if field not in known_signals
+            ) +
+            "\n\n如果顾客跳过或含糊，填'未回答'。\n"
+            "返回JSON: {\"field\": \"字段名或空\", \"value\": \"选项原文或未回答\"}",
+            ctx
+        )
+
+        field = result.get("field", "")
+        value = result.get("value", "")
+        if field and value and value != "未回答":
+            raw[field] = value
+            known_signals[field] = value
+
+        questions_asked += 1
+        clear_count = len(known_signals)
+
+        if clear_count >= 2 or questions_asked >= 2:
+            # Enough signals or hit question limit — proceed to SCENE
+            response = {
+                "constitution_raw": json.dumps(raw, ensure_ascii=False),
+                "constitution_extract_done": True,
+                "constitution_questions_asked": questions_asked,
+            }
+            return self._transition_to_scene_from_extract(state, response, ctx)
+
+        # Need one more question
+        return self._ask_adaptive_question(
+            raw, known_signals, questions_asked, ctx,
+            "好的，最后一个问题～"
+        )
+
+    def _ask_adaptive_question(self, raw: dict, known_signals: dict,
+                                questions_asked: int, ctx: str,
+                                prefix: str) -> dict:
+        """Ask the next adaptive question for the most discriminating missing field."""
+        # Find first missing field in priority order
+        missing_field = None
+        for f in ADAPTIVE_FIELD_ORDER:
+            if f not in known_signals:
+                missing_field = f
+                break
+
+        if missing_field is None:
+            # All fields filled — proceed
+            response_state = {
+                "constitution_raw": json.dumps(raw, ensure_ascii=False),
+                "constitution_extract_done": True,
+                "constitution_questions_asked": questions_asked,
+            }
+            return self._transition_to_scene_from_extract({}, response_state, ctx)
+
+        info = CONSTITUTION_FIELDS[missing_field]
+        # Let LLM generate a natural question for this field
+        result = self._chat_json(
+            f"你需要了解顾客的{info['topic']}。请自然地提问。\n"
+            f"选项供参考: {', '.join(info['options'])}\n\n"
+            "返回JSON: {\"question\": \"自然的问题文本\"}",
+            ctx
+        )
+        question = result.get("question", f"想了解一下，{info['topic']}方面你感觉怎么样？")
+
+        message = f"{prefix}\n\n{question}" if prefix else question
+
+        return {
+            "message": message,
+            "stage": Stage.CONSTITUTION,
+            "constitution_raw": json.dumps(raw, ensure_ascii=False),
+            "constitution_extract_done": True,
+            "constitution_questions_asked": questions_asked,
+            "quick_replies": info["options"] + ["跳过"],
+        }
+
+    def _transition_to_scene_from_extract(self, state: dict, response: dict, ctx: str) -> dict:
+        """Transition to SCENE stage, merging extraction results."""
+        msg = self._chat(
+            "体质了解环节结束了。请自然地过渡到询问生活困扰。"
+            f"基于已收集的体质信息，用一两句话总结你了解到的（比如'你偏寒性体质，冬天容易手脚凉'），"
+            "然后自然地问他最近有什么困扰。"
+            "不要用括号、占位符、模板语言。用自然的语气。",
+            ctx
+        )
+        response["message"] = msg
+        response["stage"] = Stage.SCENE
+        response["quick_replies"] = ["睡眠不好", "消化不好", "容易疲劳", "皮肤问题", "想调理身体"]
+        return response
 
     # ------------------------------------------------------------------
     # Stage: Scene
@@ -342,6 +558,14 @@ class DialogueEngine:
         }
 
     def _handle_scene(self, state: dict, user_input: str) -> dict:
+        # Product intent pre-check — allow escape from scene
+        keywords = ["有没有", "多少钱", "给我", "推给", "推荐", "我要",
+                     "买", "不用", "算了", "直接", "就要", "只要", "来个", "还是"]
+        if any(kw in user_input for kw in keywords):
+            intent = self._detect_product_intent(state, user_input)
+            if intent == "search_product" or intent == "show_catalog":
+                return {"message": "", "stage": Stage.SCENE, "intent": intent}
+
         scene_raw = state.get("scene_raw", "")
         followup_done = state.get("scene_followup_done", False)
         ctx = self._state_context(state)
@@ -353,11 +577,13 @@ class DialogueEngine:
                 "- 如果顾客说了具体困扰 → 表示理解共情，追问一个更具体的细节\n"
                 "- 如果顾客说没有特别困扰 → 没关系，直接进入推荐环节\n"
                 "- 如果顾客跳过或闲聊 → 简短回应后进入推荐\n\n"
-                "返回JSON: {\"message\": \"...\", \"stage\": \"scene|recommend\"}",
+                "判断顾客意图：search_product / show_catalog / continue_flow\n\n"
+            "返回JSON: {\"message\": \"...\", \"stage\": \"scene|recommend\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
                 ctx
             )
             next_stage = result.get("stage", Stage.SCENE)
-            response = {"message": result.get("message", ""), "scene_raw": user_input}
+            response = {"message": result.get("message", ""), "scene_raw": user_input,
+                        "intent": result.get("intent", "continue_flow")}
             if next_stage == Stage.RECOMMEND:
                 response["stage"] = Stage.RECOMMEND
                 response["scene_followup_done"] = True
@@ -369,9 +595,10 @@ class DialogueEngine:
             combined_scene = f"{scene_raw}；{user_input}"
             result = self._chat_json(
                 f"顾客补充了更多细节：「{user_input}」（之前说的是「{scene_raw}」）\n\n"
-                "表示理解，然后告诉顾客已经收集了足够的信息，"
-                "现在帮他做综合分析和推荐。\n\n"
-                "返回JSON: {\"message\": \"...\"}",
+                "简短地表示理解和共情（1-2句话），然后告诉顾客你马上帮他分析推荐。\n"
+                "不要问顾客任何新问题，不要问品类偏好，不要罗列产品名。\n"
+                "判断顾客意图：search_product / show_catalog / continue_flow\n\n"
+                "返回JSON: {\"message\": \"...\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
                 ctx
             )
             result["stage"] = Stage.RECOMMEND
@@ -381,9 +608,88 @@ class DialogueEngine:
 
         else:
             result = self._chat_json(
-                "请自然地告诉顾客，马上帮他分析推荐合适的产品。\n"
+                "简短告诉顾客马上帮他分析推荐，不超过两句话。"
+                "不要问任何问题，不要提品类。\n"
                 "返回JSON: {\"message\": \"...\"}",
                 ctx
             )
             result["stage"] = Stage.RECOMMEND
             return result
+
+    def _handle_recommend(self, state: dict, user_input: str) -> dict:
+        ctx = self._state_context(state)
+        result = self._chat_json(
+            f"你已经给顾客做了推荐。现在顾客说：「{user_input}」\n\n"
+            "请灵活回应：\n"
+            "- 顾客问更多产品、想继续看 → 告诉顾客可以继续了解，返回 stage: recommend\n"
+            "- 顾客想重新了解体质 → 返回 stage: constitution, constitution_extract_done: false, constitution_questions_asked: 0, constitution_raw: \"{}\"\n"
+            "- 顾客想重新描述困扰 → 返回 stage: scene\n"
+            "- 顾客说谢谢、要走了 → 温暖地道别，返回 stage: done\n"
+            "- 顾客问别的 → 自然回答，返回 stage: recommend\n"
+            "不要问顾客'从哪个品类开始了解'——你已经做过推荐了。\n"
+            "判断顾客意图：search_product / show_catalog / continue_flow\n\n"
+            "返回JSON: {\"message\": \"...\", \"stage\": \"recommend|scene|constitution|done\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
+            ctx
+        )
+        response = {"message": result.get("message", "好的，还有什么可以帮你的？")}
+        next_stage = result.get("stage", Stage.RECOMMEND)
+        response["stage"] = next_stage
+        if next_stage == Stage.CONSTITUTION:
+            response["constitution_extract_done"] = False
+            response["constitution_questions_asked"] = 0
+            response["constitution_raw"] = "{}"
+            response["quick_replies"] = CONSTITUTION_ENTRY_REPLIES
+        elif next_stage == Stage.RECOMMEND:
+            response["quick_replies"] = ["推荐更多产品", "重新了解体质", "看看产品目录"]
+        return response
+
+    # ------------------------------------------------------------------
+    # Stage: Catalog
+    # ------------------------------------------------------------------
+
+    def _handle_catalog(self, state: dict, user_input: str) -> dict:
+        ctx = self._state_context(state)
+        result = self._chat_json(
+            f"顾客在看产品目录。现在顾客说：「{user_input}」\n\n"
+            "请灵活回应：\n"
+            "- 顾客想看某个品类（饼干/面包/茶/香囊）→ 告诉顾客这个品类有些什么类型的产品，返回 stage: catalog\n"
+            "- 顾客想了解体质 → 返回 stage: constitution, constitution_extract_done: false, constitution_questions_asked: 0, constitution_raw: \"{}\"\n"
+            "- 顾客想问具体产品功效 → 根据常识自然回答，返回 stage: catalog\n"
+            "- 顾客想做体质测试 → 返回 stage: screening\n"
+            "- 顾客要走了 → 温暖道别，返回 stage: done\n"
+            "判断顾客意图：search_product / show_catalog / continue_flow\n\n"
+            "返回JSON: {\"message\": \"...\", \"stage\": \"catalog|constitution|screening|done\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
+            ctx
+        )
+        response = {"message": result.get("message", "好的，还有什么可以帮你的？"),
+                    "intent": result.get("intent", "continue_flow")}
+        next_stage = result.get("stage", Stage.CATALOG)
+        response["stage"] = next_stage
+        if next_stage == Stage.CONSTITUTION:
+            response["constitution_extract_done"] = False
+            response["constitution_questions_asked"] = 0
+            response["constitution_raw"] = "{}"
+            response["quick_replies"] = CONSTITUTION_ENTRY_REPLIES
+        elif next_stage == Stage.SCREENING:
+            response["quick_replies"] = ["都没有", "在备孕或怀孕", "在哺乳期", "在吃处方药"]
+        return response
+
+    # ------------------------------------------------------------------
+    # Stage: Done
+    # ------------------------------------------------------------------
+
+    def _handle_done(self, state: dict, user_input: str) -> dict:
+        ctx = self._state_context(state)
+        is_blocked = state.get("screening_result") == "blocked"
+        result = self._chat_json(
+            f"对话已经{'结束' if is_blocked else '告一段落'}。现在顾客说：「{user_input}」\n\n"
+            "请灵活回应：\n"
+            "- 顾客还想继续聊 → 根据上下文自然回应，可以返回 stage: catalog 让他看产品\n"
+            "- 顾客说谢谢拜拜 → 温暖道别，返回 stage: done\n"
+            "- 顾客问产品 → 介绍品类，返回 stage: catalog\n"
+            "判断顾客意图：search_product / show_catalog / continue_flow\n\n"
+            "返回JSON: {\"message\": \"...\", \"stage\": \"done|catalog\", \"intent\": \"search_product|show_catalog|continue_flow\"}",
+            ctx
+        )
+        next_stage = result.get("stage", Stage.DONE)
+        return {"message": result.get("message", "好的，随时欢迎回来。"), "stage": next_stage}

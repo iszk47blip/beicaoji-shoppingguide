@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>焙草集购物车测试</title>
+<style>
+body { font-family: monospace; max-width: 800px; margin: 20px auto; padding: 0 16px; background: #1a1a2e; color: #e0e0e0; }
+h1 { color: #7CB342; }
+.pass { color: #4caf50; }
+.fail { color: #f44336; }
+.info { color: #ff9800; }
+.summary { background: #16213e; padding: 16px; border-radius: 8px; margin: 16px 0; }
+.test-case { background: #0f3460; padding: 12px 16px; border-radius: 8px; margin: 8px 0; border-left: 3px solid #7CB342; }
+.test-case.failed { border-left-color: #f44336; }
+button { padding: 10px 20px; background: #7CB342; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; margin-right: 8px; }
+button:hover { opacity: 0.9; }
+#log { max-height: 400px; overflow-y: auto; background: #111; padding: 12px; border-radius: 8px; font-size: 12px; }
+</style>
+</head>
+<body>
+<h1>焙草集 · 购物车测试套件</h1>
+<div class="summary" id="summary">等待运行...</div>
+<button onclick="runAllTests()">▶ 运行全部测试</button>
+<button onclick="runSingleTest(1)">运行测试 1</button>
+<button onclick="runSingleTest(4)">运行测试 4</button>
+<div id="results"></div>
+<div id="log"><strong>日志:</strong></div>
+
+<script>
+const BASE = 'http://localhost:8000/api';
+let sessionId = 'test-cart-' + Date.now();
+let passed = 0, failed = 0;
+const results = [];
+
+function log(msg, cls) {
+  const div = document.getElementById('log');
+  div.innerHTML += '<div class="' + (cls || '') + '">' + msg + '</div>';
+  div.scrollTop = div.scrollHeight;
+}
+
+function assert(condition, msg) {
+  if (condition) { passed++; log('  ✅ ' + msg, 'pass'); }
+  else { failed++; log('  ❌ ' + msg, 'fail'); }
+}
+
+async function apiSend(msg) {
+  const r = await fetch(BASE + '/chat/send', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({session_id: sessionId, message: msg})
+  });
+  return r.json();
+}
+
+function cartState() {
+  const bar = parent.document ? parent.document.getElementById('cart-bar') : null;
+  if (!bar) {
+    // Access via iframe or direct
+    try {
+      const b = window.top.document.getElementById('cart-bar');
+      if (b) return {
+        show: b.classList.contains('show'),
+        panelOpen: b.classList.contains('panel-open'),
+        display: b.style.display
+      };
+    } catch(e) {}
+    return null;
+  }
+  return {
+    show: bar.classList.contains('show'),
+    panelOpen: bar.classList.contains('panel-open'),
+    display: bar.style.display
+  };
+}
+
+// These tests run via browse JS injection on the real page
+const testCases = [
+  {
+    id: 1, name: '添加商品 → 购物车栏出现',
+    js: `
+      showRecommendation({constitution:{constitution_type:'测试'}, bundle:[
+        {sku_id:'T001',name:'测试茶',category:'tea',ingredients:'测试',price:39}
+      ]});
+      document.querySelector('.stepper-btn.plus').click();
+      setTimeout(() => {
+        var bar = document.getElementById('cart-bar');
+        window._testResult = JSON.stringify({
+          test:1,
+          show: bar.classList.contains('show'),
+          count: CartStore.count(),
+          total: CartStore.total()
+        });
+      }, 500);
+    `,
+    assert: 'r.show === true && r.count === 1 && r.total === 39'
+  },
+  {
+    id: 2, name: '减号 → 数量归零 → 商品移除',
+    js: `
+      var minus = document.querySelector('.stepper-btn');
+      minus.click();
+      setTimeout(() => {
+        window._testResult = JSON.stringify({
+          test:2,
+          count: CartStore.count(),
+          total: CartStore.total()
+        });
+      }, 500);
+    `,
+    assert: 'r.count === 0 && r.total === 0'
+  },
+  {
+    id: 3, name: '数量归零 → 购物车栏隐藏',
+    js: `
+      window._testResult = JSON.stringify({
+        test:3,
+        show: document.getElementById('cart-bar').classList.contains('show')
+      });
+    `,
+    assert: 'r.show === false'
+  },
+  {
+    id: 4, name: '多件商品 → 总价正确',
+    js: `
+      showRecommendation({constitution:{constitution_type:'测试'}, bundle:[
+        {sku_id:'T001',name:'茶A',category:'tea',price:39},
+        {sku_id:'B001',name:'饼A',category:'biscuit',price:29}
+      ]});
+      setTimeout(() => {
+        document.querySelectorAll('.stepper-btn.plus')[0].click();
+        setTimeout(() => {
+          document.querySelectorAll('.stepper-btn.plus')[1].click();
+          setTimeout(() => {
+            document.querySelectorAll('.stepper-btn.plus')[1].click();
+            setTimeout(() => {
+              window._testResult = JSON.stringify({
+                test:4,
+                count: CartStore.count(),
+                total: CartStore.total(),
+                items: CartStore.getAll().map(i => i.name + ':' + i.quantity)
+              });
+            }, 300);
+          }, 300);
+        }, 300);
+      }, 500);
+    `,
+    assert: 'r.count === 3 && r.total === 97'
+  },
+  {
+    id: 5, name: '购物车面板 → 打开/关闭',
+    js: `
+      var bar = document.getElementById('cart-bar');
+      bar.click();
+      setTimeout(() => {
+        var panelOpen = document.getElementById('cart-panel').classList.contains('show');
+        closeCartPanel();
+        setTimeout(() => {
+          window._testResult = JSON.stringify({
+            test:5,
+            panelOpened: panelOpen,
+            barStillShows: bar.classList.contains('show'),
+            barNotPanelOpen: !bar.classList.contains('panel-open')
+          });
+        }, 300);
+      }, 300);
+    `,
+    assert: 'r.panelOpened === true && r.barStillShows === true && r.barNotPanelOpen === true'
+  },
+  {
+    id: 6, name: '面板内修改数量 → 页面stepper同步',
+    js: `
+      var bar = document.getElementById('cart-bar');
+      bar.click();
+      setTimeout(() => {
+        // click + on first item in panel
+        var panelPlus = document.querySelector('#cart-panel .stepper-btn.plus');
+        if (panelPlus) panelPlus.click();
+        setTimeout(() => {
+          var pageQty = document.getElementById('qty-T001');
+          var panelQty = document.querySelector('#cart-panel .stepper-qty');
+          window._testResult = JSON.stringify({
+            test:6,
+            pageQty: pageQty ? pageQty.textContent : 'N/A',
+            panelQty: panelQty ? panelQty.textContent : 'N/A'
+          });
+        }, 300);
+      }, 300);
+    `,
+    assert: 'r.pageQty === r.panelQty'
+  },
+  {
+    id: 7, name: '清空购物车',
+    js: `
+      CartStore.clear();
+      window._testResult = JSON.stringify({
+        test:7,
+        count: CartStore.count(),
+        barShows: document.getElementById('cart-bar').classList.contains('show')
+      });
+    `,
+    assert: 'r.count === 0 && r.barShows === false'
+  },
+  {
+    id: 8, name: '下单 → 购物车清空且栏隐藏',
+    js: `
+      // Re-add items first
+      showRecommendation({constitution:{constitution_type:'测试'}, bundle:[
+        {sku_id:'T002',name:'测试茶2',category:'tea',price:39}
+      ]});
+      setTimeout(() => {
+        document.querySelector('.stepper-btn.plus').click();
+        setTimeout(() => {
+          document.getElementById('cart-bar').click();
+          setTimeout(() => {
+            document.querySelector('.btn-checkout').click();
+            setTimeout(() => {
+              document.querySelector('.btn-order-confirm').click();
+              setTimeout(() => {
+                window._testResult = JSON.stringify({
+                  test:8,
+                  count: CartStore.count(),
+                  barShows: document.getElementById('cart-bar').classList.contains('show'),
+                  orderSaved: OrderStore.getAll().length > 0
+                });
+              }, 500);
+            }, 300);
+          }, 300);
+        }, 300);
+      }, 500);
+    `,
+    assert: 'r.count === 0 && r.barShows === false && r.orderSaved === true'
+  },
+  {
+    id: 9, name: '下单后 → 再次添加 → 购物车恢复',
+    js: `
+      document.querySelector('.stepper-btn.plus').click();
+      setTimeout(() => {
+        window._testResult = JSON.stringify({
+          test:9,
+          count: CartStore.count(),
+          barShows: document.getElementById('cart-bar').classList.contains('show')
+        });
+      }, 500);
+    `,
+    assert: 'r.count === 1 && r.barShows === true'
+  },
+  {
+    id: 10, name: '重复商品 → 数量累加不重复',
+    js: `
+      CartStore.clear();
+      showRecommendation({constitution:{constitution_type:'测试'}, bundle:[
+        {sku_id:'T003',name:'重复茶',category:'tea',price:39}
+      ]});
+      setTimeout(() => {
+        var plus = document.querySelector('.stepper-btn.plus');
+        plus.click(); plus.click(); plus.click();
+        setTimeout(() => {
+          window._testResult = JSON.stringify({
+            test:10,
+            count: CartStore.count(),
+            itemCount: CartStore.getAll().length,
+            qty: CartStore.get('T003') ? CartStore.get('T003').quantity : 0
+          });
+        }, 300);
+      }, 500);
+    `,
+    assert: 'r.count === 3 && r.itemCount === 1 && r.qty === 3'
+  },
+  {
+    id: 11, name: '同一产品在不同分类 → 数量共享',
+    js: `
+      CartStore.clear();
+      showCatalog([
+        {constitution:'气虚质', description:'', products:[
+          {sku_id:'SHARED',name:'共享产品',category:'biscuit',price:29}
+        ]},
+        {constitution:'阴虚质', description:'', products:[
+          {sku_id:'SHARED',name:'共享产品',category:'biscuit',price:29}
+        ]}
+      ]);
+      setTimeout(() => {
+        document.querySelector('.stepper-btn.plus').click();
+        setTimeout(() => {
+          var qtys = [];
+          document.querySelectorAll('#qty-SHARED').forEach(el => qtys.push(el.textContent));
+          window._testResult = JSON.stringify({
+            test:11,
+            allQtys: qtys,
+            allSame: qtys.every(q => q === '1'),
+            count: CartStore.count()
+          });
+        }, 300);
+      }, 500);
+    `,
+    assert: 'r.allSame === true && r.count === 1 && r.allQtys.length === 2'
+  }
+];
+
+async function runAllTests() {
+  passed = 0; failed = 0; results.length = 0;
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('summary').innerHTML = '运行中...';
+
+  for (const tc of testCases) {
+    await runTest(tc);
+  }
+
+  document.getElementById('summary').innerHTML =
+    '<strong>完成:</strong> 通过 ' + passed + ' / ' + failed + ' 失败 / ' + testCases.length + ' 总计';
+  log('══════════════════════════', 'info');
+  log('总计: ' + passed + ' 通过, ' + failed + ' 失败', passed === testCases.length ? 'pass' : 'fail');
+}
+
+async function runTest(tc) {
+  log('--- 测试 ' + tc.id + ': ' + tc.name + ' ---', 'info');
+  try {
+    // Navigate to page and inject JS
+    const r = await fetch('http://localhost:8000/');
+
+    // Evaluate JS assertion
+    log('  📋 ' + tc.assert);
+
+    // For now, report as pending (these need browse binary)
+    log('  ⚠️  需要 browse 工具执行浏览器操作', 'info');
+    results.push({id: tc.id, name: tc.name, status: 'pending'});
+  } catch(e) {
+    log('  ❌ 错误: ' + e.message, 'fail');
+    failed++;
+  }
+}
+
+function runSingleTest(id) {
+  const tc = testCases.find(t => t.id === id);
+  if (tc) {
+    log('请在浏览器控制台执行以下 JS:');
+    log(tc.js, 'info');
+  }
+}
+
+log('✅ 测试套件就绪。共 ' + testCases.length + ' 个测试用例。', 'pass');
+log('点击 "运行全部测试" 或使用 browse 工具执行。', 'info');
+</script>
+</body>
+</html>

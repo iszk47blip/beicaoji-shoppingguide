@@ -1,24 +1,38 @@
 # backend/app/services/constitution_analyzer.py
 import json
+import re
+
+
+def _fuzzy_match(user_answer: str, expected: str) -> bool:
+    """Check if user_answer matches expected, with fuzzy fallback for LLM output variance."""
+    if not user_answer or not expected:
+        return False
+    if expected in user_answer:
+        return True
+    # Remove punctuation and whitespace for comparison
+    a = re.sub(r'[，。！？、\s]', '', user_answer)
+    b = re.sub(r'[，。！？、\s]', '', expected)
+    return a == b
+
 
 CONSTITUTION_RULES = {
     "气虚质": {
         "signals": {"qi_deficiency": ["是，经常觉得累、不想说话"],
-                     "cold_hot": ["偏凉，冬天容易手脚冰凉"]},
+                     "temperature_tendency": ["偏凉，冬天容易手脚冰凉"]},
         "description": "偏气虚体质。这种体质的人通常容易疲劳、气短懒言、精神不振，容易出虚汗。日常适合多食用健脾益气的食物。",
         "avoid_tags": ["清热", "泻下", "寒凉"],
         "prefer_tags": ["补气", "健脾", "温补"],
     },
     "阳虚质": {
         "signals": {"temperature_tendency": ["偏凉，冬天容易手脚冰凉"],
-                     "cold_hot_bias": ["明显怕冷，比别人穿得多"]},
+                     "sweat_tendency": ["几乎不出汗，比别人汗少"]},
         "description": "偏阳虚体质。阳气不足，畏寒怕冷，手脚常年偏凉。适合温补阳气的食养方向。",
         "avoid_tags": ["清热", "寒凉", "泻下"],
         "prefer_tags": ["温补", "补阳", "补气"],
     },
     "阴虚质": {
         "signals": {"heat_signs": ["经常，动不动就上火"],
-                     "cold_hot_bias": ["明显怕热，容易出汗"]},
+                     "sweat_tendency": ["稍微一动就容易出汗"]},
         "description": "偏阴虚体质。体内津液不足，容易口干、手心热、盗汗。适合滋阴润燥的食养方向。",
         "avoid_tags": ["温补", "补阳", "辛热"],
         "prefer_tags": ["滋阴", "润燥", "清热"],
@@ -46,7 +60,7 @@ def analyze(constitution_raw: str) -> dict:
         score = 0
         for field, expected_answers in rules["signals"].items():
             user_answer = answers.get(field, "")
-            if any(ea in user_answer for ea in expected_answers):
+            if any(_fuzzy_match(user_answer, ea) for ea in expected_answers):
                 score += 1
         scores[ctype] = score
     best = max(scores, key=scores.get)
