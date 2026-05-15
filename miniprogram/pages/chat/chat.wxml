@@ -22,7 +22,7 @@
               <view class="rx-desc" wx:if="{{item.constitution.description}}">{{item.constitution.description}}</view>
               <view class="rx-ornament">࿄</view>
               <view class="rx-products-title">推 荐 食 单</view>
-              <product-card wx:for="{{item.bundle}}" wx:key="sku_id" product="{{item}}" quantity="{{item.quantity || 0}}" bind:quantitychange="onProductQuantityChange"/>
+              <product-card wx:for="{{item.bundle}}" wx:key="sku_id" product="{{item}}" quantity="{{item.quantity || 0}}" bindquantitychange="onProductQuantityChange"/>
               <button class="rx-report-btn" bindtap="onViewReport">查阅完整调理报告</button>
             </view>
           </view>
@@ -37,7 +37,7 @@
                   <text class="catalog-ctype">{{cat.constitution}}</text>
                   <text class="catalog-desc">{{cat.description}}</text>
                 </view>
-                <product-card wx:for="{{cat.products}}" wx:for-item="prod" wx:key="sku_id" product="{{prod}}" quantity="{{prod.quantity || 0}}" bind:quantitychange="onProductQuantityChange"/>
+                <product-card wx:for="{{cat.products}}" wx:for-item="prod" wx:key="sku_id" product="{{prod}}" quantity="{{prod.quantity || 0}}" bindquantitychange="onProductQuantityChange"/>
               </view>
             </block>
           </view>
@@ -60,7 +60,7 @@
   </view>
 
   <!-- Cart bar above input -->
-  <cart-bar count="{{cartCount}}" total="{{cartTotal}}" bind:tap="onCartBarTap"/>
+  <cart-bar count="{{cartCount}}" total="{{cartTotal}}" bindtap="onCartBarTap"/>
 
   <!-- Fixed input bar -->
   <view class="input-bar">
@@ -72,11 +72,11 @@
 
   <!-- Overlays inside container so WeChat analyzer finds them -->
   <cart-panel show="{{cartPanelShow}}" items="{{cartItems}}" total="{{cartTotal}}"
-    bind:close="onCartPanelClose" bind:qtychange="onCartQtyChange"
-    bind:remove="onCartRemove" bind:clear="onCartClear"
-    bind:copy="onCartCopy" bind:checkout="onCartCheckout"/>
+    bindclose="onCartPanelClose" bindqtychange="onCartQtyChange"
+    bindremove="onCartRemove" bindclear="onCartClear"
+    bindcopy="onCartCopy" bindcheckout="onCartCheckout"/>
 
   <order-modal show="{{orderShow}}" items="{{cartItems}}" total="{{cartTotal}}" count="{{cartCount}}"
     orderNo="{{orderNo}}" orderTime="{{orderTime}}"
-    bind:close="onOrderClose" bind:confirm="onOrderConfirm"/>
+    bindclose="onOrderClose" bindconfirm="onOrderConfirm"/>
 </view>

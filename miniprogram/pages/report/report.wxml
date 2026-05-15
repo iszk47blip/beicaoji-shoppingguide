@@ -19,14 +19,14 @@
       <text class="section-title">推荐商品</text>
       <product-card wx:for="{{report.bundle}}" wx:key="sku_id"
         product="{{item}}" quantity="{{item.quantity || 0}}"
-        bind:quantitychange="onProductQuantityChange"/>
+        bindquantitychange="onProductQuantityChange"/>
     </view>
 
     <view class="section" wx:elif="{{report.products && report.products.length > 0}}">
       <text class="section-title">推荐商品</text>
       <product-card wx:for="{{report.products}}" wx:key="sku_id"
         product="{{item}}" quantity="{{item.quantity || 0}}"
-        bind:quantitychange="onProductQuantityChange"/>
+        bindquantitychange="onProductQuantityChange"/>
     </view>
 
     <view class="actions">
@@ -45,4 +45,4 @@
   </view>
 </view>
 
-<cart-bar count="{{cartCount}}" total="{{cartTotal}}" bind:tap="onCartBarTap"/>
+<cart-bar count="{{cartCount}}" total="{{cartTotal}}" bindtap="onCartBarTap"/>

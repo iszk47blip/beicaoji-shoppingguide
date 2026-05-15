@@ -12,7 +12,7 @@
           <text class="cart-item-price">¥{{item.price}}</text>
         </view>
         <view class="cart-item-actions">
-          <stepper skuId="{{item.sku_id}}" quantity="{{item.quantity}}" bind:change="onStepperChange"/>
+          <stepper skuId="{{item.sku_id}}" quantity="{{item.quantity}}" bindchange="onStepperChange"/>
           <view class="cart-item-del" data-sku-id="{{item.sku_id}}" bindtap="onRemove">🗑</view>
         </view>
       </view>
