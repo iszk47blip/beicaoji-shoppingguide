@@ -73,7 +73,7 @@ class ProductService:
                 "constitution": ctype,
                 "description": rules["description"],
                 "products": [
-                    {"name": p.name, "category": p.category,
+                    {"name": p.name, "sku_id": p.sku_id, "category": p.category,
                      "ingredients": p.ingredients or "", "price": p.price or 0}
                     for p in bundle
                 ],

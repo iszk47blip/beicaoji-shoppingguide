@@ -1,8 +1,38 @@
 <view class="chat-container">
   <scroll-view class="message-list" scroll-y scroll-into-view="msg-{{messages.length - 1}}" scroll-with-animation>
-    <view wx:for="{{messages}}" wx:key="index" id="msg-{{index}}" class="msg-row {{item.role}}">
-      <view class="bubble" wx:if="{{item.type === 'text'}}">{{item.content}}</view>
-    </view>
+    <block wx:for="{{messages}}" wx:key="index">
+      <view id="msg-{{index}}" class="msg-row {{item.role}}">
+        <!-- Text bubble -->
+        <view class="bubble" wx:if="{{item.type === 'text'}}">{{item.content}}</view>
+
+        <!-- Recommendation block -->
+        <block wx:if="{{item.type === 'recommendation'}}">
+          <view class="bubble bot">{{item.content}}</view>
+          <view class="rec-container">
+            <view class="constitution-badge">{{item.constitution.constitution_type}}</view>
+            <product-card wx:for="{{item.bundle}}" wx:key="sku_id" product="{{item}}" quantity="{{item.quantity || 0}}"/>
+            <button class="report-btn" bindtap="onViewReport">查看完整调理报告</button>
+          </view>
+        </block>
+
+        <!-- Catalog block -->
+        <block wx:if="{{item.type === 'catalog'}}">
+          <view class="bubble bot" wx:if="{{item.content}}">{{item.content}}</view>
+          <view class="catalog-container">
+            <block wx:for="{{item.categories}}" wx:for-item="cat" wx:key="constitution">
+              <view class="catalog-group">
+                <view class="catalog-header">
+                  <text class="catalog-ctype">{{cat.constitution}}</text>
+                  <text class="catalog-desc">{{cat.description}}</text>
+                </view>
+                <product-card wx:for="{{cat.products}}" wx:for-item="prod" wx:key="sku_id" product="{{prod}}" quantity="{{prod.quantity || 0}}"/>
+              </view>
+            </block>
+          </view>
+        </block>
+      </view>
+    </block>
+
     <view wx:if="{{loading}}" class="msg-row bot" id="loading-msg">
       <view class="bubble typing">
         <view class="dot"></view>

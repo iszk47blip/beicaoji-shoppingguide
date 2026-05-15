@@ -1,0 +1,10 @@
+<view class="rec-card">
+  <view class="card-emoji bg-{{product.category}}">
+    <text>{{emoji}}</text>
+  </view>
+  <view class="card-body">
+    <view class="card-name">{{product.name}}</view>
+    <view wx:if="{{product.ingredients}}" class="card-ingredients">成分：{{product.ingredients}}</view>
+    <view class="card-price">¥{{product.price}}</view>
+  </view>
+</view>

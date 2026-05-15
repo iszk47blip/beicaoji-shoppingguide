@@ -18,18 +18,7 @@ Page({
     this.setData({ sessionId: sid, loading: true });
     api.sendMessage('', sid).then(res => {
       this.setData({ loading: false });
-      if (res.message) {
-        this.addMessage('text', 'bot', res.message);
-      }
-      if (res.quick_replies) {
-        this.setData({ quickReplies: res.quick_replies });
-      }
-      if (res.recommendation) {
-        this.addRecommendation(res.recommendation, res.message);
-      }
-      if (res.catalog) {
-        this.addCatalog(res.catalog);
-      }
+      this._handleResponse(res);
     }).catch(() => {
       this.setData({ loading: false });
       this.addMessage('text', 'bot', '你好！我是焙草集的健康顾问，有什么可以帮你的？');
@@ -48,8 +37,8 @@ Page({
     this.setData({ messages: this.data.messages });
   },
 
-  addCatalog(catalog) {
-    const msg = { type: 'catalog', role: 'bot', categories: catalog };
+  addCatalog(catalog, content) {
+    const msg = { type: 'catalog', role: 'bot', content: content || '', categories: catalog };
     this.data.messages.push(msg);
     this.setData({ messages: this.data.messages });
   },
@@ -73,24 +62,35 @@ Page({
     this._send(text);
   },
 
+  _handleResponse(res) {
+    if (res.recommendation) {
+      this.addRecommendation(res.recommendation, res.message);
+    } else if (res.catalog) {
+      this.addCatalog(res.catalog, res.message);
+    } else if (res.message) {
+      this.addMessage('text', 'bot', res.message);
+    }
+    if (res.quick_replies) {
+      this.setData({ quickReplies: res.quick_replies });
+    }
+  },
+
   _send(message) {
     api.sendMessage(message, this.data.sessionId).then(res => {
       this.setData({ loading: false });
-      if (res.message) {
-        this.addMessage('text', 'bot', res.message);
-      }
-      if (res.recommendation) {
-        this.addRecommendation(res.recommendation, res.message);
-      }
-      if (res.catalog) {
-        this.addCatalog(res.catalog);
-      }
-      if (res.quick_replies) {
-        this.setData({ quickReplies: res.quick_replies });
-      }
+      this._handleResponse(res);
     }).catch(() => {
       this.setData({ loading: false });
       this.addMessage('text', 'system', '抱歉出了点问题，请稍后再试。');
+    });
+  },
+
+  onViewReport() {
+    wx.navigateTo({
+      url: '/pages/report/report',
+      success: page => {
+        page.setData({ sessionId: this.data.sessionId });
+      }
     });
   }
 });
