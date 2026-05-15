@@ -4,7 +4,7 @@
     <text class="header-orders {{hasOrders ? 'visible' : ''}}" bindtap="onShowOrders">我的订单</text>
   </view>
 
-  <scroll-view class="message-list" scroll-y enhanced scroll-with-animation id="msg-scroll">
+  <scroll-view class="message-list" scroll-y scroll-into-view="{{scrollAnchor}}" scroll-with-animation>
     <block wx:for="{{messages}}" wx:key="index">
       <view class="msg-row {{item.role}}">
         <view class="msg-block" wx:if="{{item.type === 'text'}}">
@@ -55,7 +55,7 @@
         <text class="loading-hint" wx:if="{{loadingHint}}">{{loadingHint}}</text>
       </view>
     </view>
-    <view id="bottom-anchor" class="scroll-spacer" style="height: {{cartCount > 0 ? '360rpx' : '260rpx'}}"></view>
+    <view id="{{scrollAnchor}}" class="scroll-spacer" style="height: {{cartCount > 0 ? '360rpx' : '260rpx'}}"></view>
   </scroll-view>
 
   <!-- Fixed bottom bar -->

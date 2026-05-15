@@ -10,6 +10,7 @@ Page({
     loading: false,
     loadingHint: '',
     sessionId: '',
+    scrollAnchor: 'a0',
     cartCount: 0,
     cartTotal: 0,
     cartItems: [],
@@ -50,32 +51,26 @@ Page({
   addMessage(type, role, content) {
     const msg = { type, role, content };
     const messages = [...this.data.messages, msg];
-    this.setData({ messages }, () => this._scrollToBottom());
+    const anchor = 'a' + Date.now();
+    this.setData({ messages, scrollAnchor: anchor });
   },
 
   addRecommendation(rec, content) {
     const msg = { type: 'recommendation', role: 'bot', content, constitution: rec.constitution, bundle: rec.bundle };
     const messages = [...this.data.messages, msg];
-    this.setData({ messages }, () => this._scrollToBottom());
+    const anchor = 'a' + Date.now();
+    this.setData({ messages, scrollAnchor: anchor });
   },
 
   addCatalog(catalog, content) {
     const msg = { type: 'catalog', role: 'bot', content: content || '', categories: catalog };
     const messages = [...this.data.messages, msg];
-    this.setData({ messages }, () => this._scrollToBottom());
+    const anchor = 'a' + Date.now();
+    this.setData({ messages, scrollAnchor: anchor });
   },
 
   _scrollToBottom() {
-    setTimeout(() => {
-      wx.createSelectorQuery()
-        .select('#msg-scroll')
-        .node()
-        .exec((res) => {
-          if (res[0] && res[0].node) {
-            res[0].node.scrollTo({ top: 99999, animated: true });
-          }
-        });
-    }, 150);
+    this.setData({ scrollAnchor: 'a' + Date.now() });
   },
 
   _handleResponse(res) {
@@ -99,6 +94,7 @@ Page({
     const text = e.currentTarget.dataset.text;
     this.addMessage('text', 'user', text);
     this.setData({ quickReplies: [], loading: true, loadingHint: '小焙正在思考...' });
+    this._scrollToBottom();
     this._send(text);
   },
 
@@ -107,6 +103,7 @@ Page({
     if (!text) return;
     this.addMessage('text', 'user', text);
     this.setData({ inputText: '', quickReplies: [], loading: true, loadingHint: '小焙正在思考...' });
+    this._scrollToBottom();
     this._send(text);
   },
 
