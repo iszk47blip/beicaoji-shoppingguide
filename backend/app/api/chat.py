@@ -49,7 +49,7 @@ def _describe_recommendation(engine: DialogueEngine, state: dict, rec: dict) -> 
     return msg
 
 
-def _search_products(db, query: str, limit: int = 4) -> dict:
+def _search_products(db, query: str, state: dict = None, limit: int = 4) -> dict:
     """Free-text search across product names, ingredients, and scene tags."""
     from app.models.product import Product
     products = db.query(Product).filter(Product.is_active == True).all()
@@ -63,7 +63,6 @@ def _search_products(db, query: str, limit: int = 4) -> dict:
         if keywords in name: score += 10
         if keywords in ingredients: score += 5
         if keywords in scene_tags: score += 5
-        # Individual keyword matching
         for kw in keywords:
             if kw in name: score += 2
             if kw in ingredients: score += 1
@@ -74,8 +73,19 @@ def _search_products(db, query: str, limit: int = 4) -> dict:
     bundle = [{"name": p.name, "sku_id": p.sku_id, "category": p.category,
                "ingredients": p.ingredients or "", "price": p.price or 0}
               for _, p in scored[:limit]]
+
+    # Use stored constitution data if available, otherwise show generic label
+    ctype = "为你挑选"
+    cdesc = f"根据「{keywords[:20]}」找到以下产品"
+    if state:
+        stored = state.get("recommendation", {})
+        stored_ctype = stored.get("constitution", {}).get("constitution_type", "")
+        if stored_ctype and stored_ctype != "为你挑选":
+            ctype = stored_ctype
+            cdesc = stored.get("constitution", {}).get("description", cdesc)
+
     return {"bundle": bundle, "products": bundle,
-            "constitution": {"constitution_type": "为你挑选", "description": f"根据「{keywords[:20]}」找到以下产品"}}
+            "constitution": {"constitution_type": ctype, "description": cdesc}}
 
 def _describe_search_result(engine: DialogueEngine, state: dict, rec: dict, query: str) -> str:
     """Use LLM to naturally describe search results."""
@@ -113,7 +123,7 @@ def send_message(req: SendRequest, db=Depends(get_db)):
 
     # Intent routing: product search or catalog display at any stage
     if intent == "search_product" and message:
-        rec = _search_products(db, message)
+        rec = _search_products(db, message, state)
         if rec.get("bundle"):
             recommendation = rec
             try:
