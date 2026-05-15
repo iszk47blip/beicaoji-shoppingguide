@@ -46,15 +46,15 @@ Page({
 
   addMessage(type, role, content) {
     const msg = { type, role, content };
-    this.data.messages.push(msg);
-    this.setData({ messages: this.data.messages });
+    const messages = [...this.data.messages, msg];
+    this.setData({ messages });
   },
 
   addRecommendation(rec, content) {
     const bundle = rec.bundle.map(p => ({ ...p, quantity: cart.getQuantity(p.sku_id) }));
     const msg = { type: 'recommendation', role: 'bot', content, constitution: rec.constitution, bundle };
-    this.data.messages.push(msg);
-    this.setData({ messages: this.data.messages });
+    const messages = [...this.data.messages, msg];
+    this.setData({ messages });
   },
 
   addCatalog(catalog, content) {
@@ -63,8 +63,8 @@ Page({
       products: cat.products.map(p => ({ ...p, quantity: cart.getQuantity(p.sku_id || '') }))
     }));
     const msg = { type: 'catalog', role: 'bot', content: content || '', categories };
-    this.data.messages.push(msg);
-    this.setData({ messages: this.data.messages });
+    const messages = [...this.data.messages, msg];
+    this.setData({ messages });
   },
 
   _syncCartToMessages() {

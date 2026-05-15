@@ -7,6 +7,7 @@ page {
   --border: #e8e8e8;
   --ink: #3d3226;
   --red: #c0392b;
+  height: 100%;
   background-color: var(--bg);
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 28rpx;
