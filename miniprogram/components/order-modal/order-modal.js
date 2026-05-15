@@ -9,6 +9,8 @@ Component({
   },
 
   methods: {
+    noop() {},
+
     onClose() {
       this.triggerEvent('close');
     },
