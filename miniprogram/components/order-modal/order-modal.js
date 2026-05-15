@@ -8,6 +8,19 @@ Component({
     orderTime: { type: String, value: '' }
   },
 
+  observers: {
+    'items': function(items) {
+      const formatted = (items || []).map(i => ({
+        ...i,
+        _subtotal: ((i.price || 0) * (i.quantity || 0)).toFixed(1)
+      }));
+      this.setData({ _items: formatted });
+    },
+    'total': function(total) {
+      this.setData({ _total: (total || 0).toFixed(1) });
+    }
+  },
+
   methods: {
     noop() {},
 

@@ -9,14 +9,14 @@
 
     <view class="order-section">
       <text class="order-section-title">选购商品</text>
-      <view class="order-item" wx:for="{{items}}" wx:key="sku_id">
+      <view class="order-item" wx:for="{{_items}}" wx:key="sku_id">
         <text class="order-item-name">{{item.name}}</text>
         <text class="order-item-meta">x{{item.quantity}}</text>
-        <text class="order-item-price">¥{{(item.price * item.quantity).toFixed(1)}}</text>
+        <text class="order-item-price">¥{{item._subtotal}}</text>
       </view>
       <view class="order-total-row">
         <text>合计</text>
-        <text class="order-total-price">¥{{total.toFixed(1)}}</text>
+        <text class="order-total-price">¥{{_total}}</text>
       </view>
     </view>
 
