@@ -1,5 +1,6 @@
 # backend/app/services/recommend_engine.py
 import random
+from datetime import datetime
 from app.services.product_service import ProductService
 from app.services.constitution_analyzer import analyze
 
@@ -9,9 +10,17 @@ SCENE_TAG_MAP = {
     "胃": ["消食", "健脾", "肠胃"],
     "累": ["补气", "抗疲劳", "精力"],
     "疲劳": ["补气", "抗疲劳", "精力"],
-    "皮肤": ["养颜", "润肤"],
+    "皮肤": ["养颜", "润肤", "安神", "清热"],
     "上火": ["清热", "降火"],
+    "心情": ["安神", "舒缓", "助眠"],
+    "压力": ["安神", "舒缓", "补气"],
     "调理": ["补气", "健脾", "滋阴", "温补"],
+    "湿": ["利湿", "健脾", "清热"],
+    "寒": ["温补", "暖身", "补气"],
+    "免疫": ["补气", "抗疲劳", "温补"],
+    "头发": ["养颜", "补气", "滋阴"],
+    "气色": ["养颜", "补气", "滋阴"],
+    "经期": ["温补", "暖身", "舒缓"],
 }
 
 class RecommendEngine:
@@ -33,6 +42,7 @@ class RecommendEngine:
             return {"name": p.name, "sku_id": p.sku_id, "category": p.category,
                     "ingredients": p.ingredients, "price": p.price}
 
+        random.shuffle(safe_matches)
         bundle = self._build_bundle(safe_matches)
         no_match = len(bundle) == 0
 
@@ -55,14 +65,19 @@ class RecommendEngine:
         return list(set(tags)) if tags else ["调理"]
 
     def _build_bundle(self, products, size=3):
+        """Cross-category bundle with randomized selection per category."""
         if len(products) < 2:
             return products
         cats = {}
         for p in products:
             cats.setdefault(p.category, []).append(p)
         bundle = []
-        for cat_products in cats.values():
+        cat_names = list(cats.keys())
+        random.shuffle(cat_names)
+        for cat in cat_names:
             if len(bundle) < size:
+                cat_products = cats[cat]
+                random.shuffle(cat_products)
                 bundle.append(cat_products[0])
         return bundle[:size]
 

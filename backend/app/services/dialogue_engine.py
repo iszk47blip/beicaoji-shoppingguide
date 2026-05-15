@@ -220,9 +220,13 @@ class DialogueEngine:
 
         ctx = self._state_context(state)
         result = self._chat_json(
-            f"顾客说：「{user_input}」\n"
-            "灵活回应：问产品→介绍并引导回体质；不想做体质→跳到catalog；说身体困扰→screening；愿意了解体质→screening\n"
-            "意图判断：找具体产品/要推荐→search_product；看所有产品→show_catalog；其他→continue_flow\n"
+            f"顾客说：「{user_input}」\n\n"
+            "你是门店店员，根据顾客的话灵活回应：\n"
+            "- 问产品/找推荐 → 介绍产品后引导回体质了解，stage: greeting\n"
+            "- 不想做体质/想看所有产品 → 介绍四大品类，stage: catalog\n"
+            "- 说了身体困扰 → 表达理解后做安全筛查，stage: screening\n"
+            "- 愿意了解体质/打招呼 → 自然过渡到筛查，stage: screening\n\n"
+            "意图：找具体产品→search_product；看所有产品→show_catalog；其他→continue_flow\n"
             "JSON: {\"message\":\"...\",\"stage\":\"screening|greeting|catalog\",\"intent\":\"search_product|show_catalog|continue_flow\"}",
             ctx
         )
@@ -287,10 +291,12 @@ class DialogueEngine:
         ctx = self._state_context(state)
 
         result = self._chat_json(
-            f"顾客回应：「{user_input}」\n"
-            "说了名字→用名字打招呼后过渡到体质；不想说→直接过渡\n"
-            "引导顾客用自己的话描述最近身体感受。不要提具体问题，不要列选项，像朋友聊天一样开放式邀请。\n"
-            "绝不要说'那你平时怎么称呼你呀'。不要说'帮你找到适合体质的产品'。\n"
+            f"顾客回应：「{user_input}」\n\n"
+            "说了名字→用名字打招呼，然后自然地请他聊聊最近身体感觉怎么样，用开放式问题\n"
+            "不想说名字→没关系，直接请他聊聊身体感受\n"
+            "问产品/闲聊→简短回应后引导回体质\n\n"
+            "铁律：不要提任何具体的体质问题（如手脚凉不凉、上不上火），不要列选项，不要用'第一个问题'这种字眼\n"
+            "像朋友聊天一样，请他随便说说最近身体的感觉\n\n"
             "意图：search_product/show_catalog/continue_flow\n"
             "JSON: {\"message\":\"...\",\"customer_name\":\"名字或空\",\"stage\":\"constitution|greeting\",\"intent\":\"...\"}",
             ctx
