@@ -65,6 +65,15 @@
     </view>
     <cart-bar count="{{cartCount}}" total="{{cartTotal}}" bindtap="onCartBarTap"/>
     <view class="input-bar">
+      <view class="voice-btn {{voiceState}}" bindtap="onVoiceTap"
+            bindtouchstart="onVoiceTouchStart"
+            bindtouchmove="onVoiceTouchMove"
+            bindtouchend="onVoiceTouchEnd">
+        <text class="voice-btn-text">{{voiceBtnText}}</text>
+      </view>
+      <view class="listening-hint" wx:if="{{voiceState === 'recording' || voiceState === 'recognizing'}}">
+        <text class="listening-hint-text">{{voiceHint}}</text>
+      </view>
       <input class="input" placeholder="输入你的情况..."
              value="{{inputText}}" bindinput="onInput" confirm-type="send"
              bindconfirm="onSend"/>
