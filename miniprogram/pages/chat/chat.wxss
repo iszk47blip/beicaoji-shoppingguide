@@ -12,6 +12,9 @@
   padding: 20rpx 28rpx;
   background: #5B8C5A;
   color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .header-title {
@@ -200,6 +203,57 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Voice button */
+.voice-btn {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: #fff;
+  border: 1rpx solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 8rpx;
+}
+
+.voice-btn-text {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.voice-btn.recording {
+  background: #8B2500;
+  border-color: #8B2500;
+}
+
+.voice-btn.recording .voice-btn-text {
+  color: #fff;
+}
+
+.voice-btn.error {
+  background: #fff;
+  border-color: #e64340;
+}
+
+.voice-btn.error .voice-btn-text {
+  color: #e64340;
+}
+
+/* Listening hint between mic and input */
+.listening-hint {
+  display: flex;
+  align-items: center;
+  padding: 0 12rpx;
+  flex-shrink: 0;
+}
+
+.listening-hint-text {
+  font-size: 24rpx;
+  color: #e64340;
+  white-space: nowrap;
 }
 
 /* Spacing below LLM text before prescription card */
