@@ -195,6 +195,42 @@ async def import_excel(file: UploadFile = File(...), db=Depends(get_db)):
     return {"imported": imported, "updated": updated, "total": imported + updated, "failed_tags": failed_tags}
 
 
+@router.post("/products/generate-tags")
+async def generate_missing_tags(db=Depends(get_db)):
+    """对所有 scene_tags 为空的有效产品批量生成标签"""
+    products = db.query(Product).filter(
+        Product.is_active == True,
+        Product.stock > 0,
+        (Product.scene_tags == None) | (Product.scene_tags == "")
+    ).all()
+
+    gen = TagGenerator()
+    success = 0
+    failed = []
+    for p in products:
+        try:
+            tags = gen.generate(p.name, p.ingredients or "")
+            p.scene_tags = tags["scene_tags"]
+            p.contraindication_tags = tags["contraindication_tags"]
+            db.commit()
+            success += 1
+        except Exception as e:
+            await asyncio.sleep(5)
+            try:
+                tags = gen.generate(p.name, p.ingredients or "")
+                p.scene_tags = tags["scene_tags"]
+                p.contraindication_tags = tags["contraindication_tags"]
+                db.commit()
+                success += 1
+            except Exception as e2:
+                failed.append({"sku_id": p.sku_id, "name": p.name, "reason": str(e2)[:100]})
+                if len(failed) % 10 == 0:
+                    db.commit()
+
+    db.commit()
+    return {"total": len(products), "success": success, "failed": failed}
+
+
 @router.get("/customers")
 def list_customers(page: int = 1, page_size: int = 20, db=Depends(get_db)):
     offset = (page - 1) * page_size
