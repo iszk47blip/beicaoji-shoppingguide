@@ -27,11 +27,12 @@ def _describe_recommendation(engine: DialogueEngine, state: dict, rec: dict) -> 
     """Use LLM to naturally describe the engine's recommendation results."""
     constitution = rec.get("constitution", {})
     ctype = constitution.get("constitution_type", "平和质")
-    products = rec.get("bundle", [])
-    CAT_CN = {"biscuit": "饼干", "bread": "面包", "tea": "茶", "toy": "香囊"}
+    fixed = rec.get("fixed_bundle", [])
+    llm_recs = rec.get("llm_recommendations", [])
+    all_products = fixed + llm_recs
     product_list = "\n".join(
-        f"- {CAT_CN.get(p.get('category', ''), '')}「{p.get('name', '')}」成分：{p.get('ingredients', '')}"
-        for p in products
+        f"- 「{p.get('name', '')}」成分：{p.get('ingredients', '')}"
+        for p in all_products
     )
     ctx = engine._state_context(state)
     instruction = (
@@ -212,9 +213,9 @@ def send_message(req: SendRequest, db=Depends(get_db)):
                     pass
     elif intent == "show_catalog":
         product_svc = ProductService(db)
-        raw_catalog = product_svc.get_constitution_catalog()
+        hot_products = product_svc.get_hot_products()
         catalog = {
-            "categories": raw_catalog,
+            "hot_products": hot_products,
             "youzan_url": "https://shop187173170.m.youzan.com/v2/feature/7E6JIPDsLP",
             "youzan_qr": "/static/youzan-qr.jpg",
         }
@@ -222,12 +223,12 @@ def send_message(req: SendRequest, db=Depends(get_db)):
     # Existing stage-based routing
     if result.get("stage") == "recommend" and not recommendation:
         product_svc = ProductService(db)
-        rec_engine = RecommendEngine(product_svc)
+        rec_engine = RecommendEngine(product_svc, client=engine.client)
         recommendation = rec_engine.recommend(
             state.get("constitution_raw", "{}"),
             result.get("scene_raw", "")
         )
-        if recommendation.get("bundle"):
+        if recommendation.get("fixed_bundle") or recommendation.get("llm_recommendations"):
             try:
                 if recommendation.get("no_match"):
                     result["message"] = _describe_fallback(engine, state, recommendation)
@@ -244,7 +245,7 @@ def send_message(req: SendRequest, db=Depends(get_db)):
         result["quick_replies"] = ["推荐更多产品", "重新了解体质", "看看产品目录"]
         result["stage"] = "recommend"
     elif catalog:
-        result["quick_replies"] = ["饼干", "面包", "茶", "香囊", "帮我看看体质"]
+        result["quick_replies"] = ["继续了解体质", "看看产品目录"]
         result["stage"] = "catalog"
 
     new_state = {**state, **result}

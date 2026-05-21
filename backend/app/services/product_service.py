@@ -6,10 +6,17 @@ class ProductService:
     def __init__(self, session):
         self.session = session
 
-    def search(self, scene_tags=None, exclude_tags=None, categories=None, limit=20):
+    # Food-only categories — exclude "玩具" (handchains/incense) and "其他" (misc)
+    # Include both Chinese names and English keys used by data_importer
+    FOOD_CATEGORIES = ["饼干", "面包", "茶", "糕点", "滋补", "礼盒", "零食", "冲调", "蜜饯", "糖果", "肉干", "海味", "坚果", "米面", "杂粮", "油", "调味品", "干货",
+                       "biscuit", "bread", "tea"]
+
+    def search(self, scene_tags=None, exclude_tags=None, categories=None, limit=20, food_only=True):
         q = self.session.query(Product).filter(Product.is_active == True, Product.stock > 0)
         if categories:
             q = q.filter(Product.category.in_(categories))
+        elif food_only:
+            q = q.filter(Product.category.in_(self.FOOD_CATEGORIES))
         results = q.all()
 
         if scene_tags:
@@ -28,6 +35,8 @@ class ProductService:
         q = self.session.query(Product).filter(Product.is_active == True, Product.stock > 0)
         if category:
             q = q.filter(Product.category == category)
+        else:
+            q = q.filter(Product.category.in_(self.FOOD_CATEGORIES))
         return q.all()
 
     def get_constitution_catalog(self) -> list[dict]:
@@ -79,3 +88,19 @@ class ProductService:
                 ],
             })
         return catalog
+
+    def get_hot_products(self) -> list:
+        """Return hot/focus products for storefront display."""
+        from app.models.constitution_bundle import HotProduct
+        items = self.session.query(HotProduct).order_by(HotProduct.sort_order).all()
+        result = []
+        for h in items:
+            product = self.get_by_sku(h.sku_id)
+            if product and product.is_active and product.stock > 0:
+                result.append({
+                    "name": product.name, "sku_id": product.sku_id,
+                    "category": product.category,
+                    "ingredients": product.ingredients or "",
+                    "price": product.price or 0
+                })
+        return result
