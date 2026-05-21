@@ -29,6 +29,14 @@ class TagGenerator:
         if not text:
             raise TagGenerationError("LLM 返回为空")
         try:
+            text = text.strip()
+            # Strip triple-backtick code fences: ```json ... ```
+            import re
+            m = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', text, re.DOTALL)
+            if m:
+                text = m.group(1)
+            else:
+                text = re.sub(r'```[a-z]*\s*', '', text).strip()
             data = json.loads(text)
             return {
                 "scene_tags": data.get("scene_tags", ""),
@@ -40,11 +48,22 @@ class TagGenerator:
     def _call_llm(self, prompt: str) -> str:
         resp = self.client.messages.create(
             model=settings.llm_model,
-            max_tokens=256,
+            max_tokens=1024,
+            thinking={"type": "disabled"},
             system=TAG_GENERATION_SYSTEM,
             messages=[{"role": "user", "content": prompt}],
         )
+        result_text = None
         for block in resp.content:
             if hasattr(block, "text"):
-                return block.text.strip()
+                text = block.text.strip()
+                if text:
+                    result_text = text
+                    break
+            elif hasattr(block, "thinking"):
+                thinking = block.thinking or ""
+                if thinking.strip() and result_text is None:
+                    result_text = thinking.strip()
+        if result_text:
+            return result_text
         raise TagGenerationError("LLM 返回为空")
