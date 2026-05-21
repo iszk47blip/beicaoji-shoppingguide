@@ -4,7 +4,7 @@ import io
 import json
 import time
 import openpyxl
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Body, Depends, UploadFile, File, HTTPException
 from app.models.customer import Customer
 from app.models.conversation import Conversation
 from app.models.product import Product
@@ -328,3 +328,55 @@ def update_order_status(order_id: int, status: str, db=Depends(get_db)):
         order.paid_at = datetime.utcnow()
     db.commit()
     return _order_dict(order)
+
+
+@router.get("/constitution-bundles")
+def get_constitution_bundles(db=Depends(get_db)):
+    """获取所有体质套餐，按体质类型分组"""
+    from app.models.constitution_bundle import ConstitutionBundle
+    bundles = db.query(ConstitutionBundle).order_by(ConstitutionBundle.sort_order).all()
+    grouped = {}
+    for b in bundles:
+        grouped.setdefault(b.constitution_type, []).append({
+            "sku_id": b.sku_id,
+            "sort_order": b.sort_order,
+            "description": b.description,
+        })
+    return grouped
+
+
+@router.put("/constitution-bundles/{ctype}")
+def put_constitution_bundle(ctype: str, data: dict = Body(...), db=Depends(get_db)):
+    """整体替换某体质类型的套餐"""
+    from app.models.constitution_bundle import ConstitutionBundle
+    db.query(ConstitutionBundle).filter(ConstitutionBundle.constitution_type == ctype).delete()
+    for i, p in enumerate(data.get("products", [])):
+        item = ConstitutionBundle(
+            constitution_type=ctype,
+            sku_id=p["sku_id"],
+            sort_order=p.get("sort_order", i),
+            description=p.get("description", "")
+        )
+        db.add(item)
+    db.commit()
+    return {"status": "ok", "count": len(data.get("products", []))}
+
+
+@router.get("/hot-products")
+def get_hot_products(db=Depends(get_db)):
+    """获取主推产品列表"""
+    from app.models.constitution_bundle import HotProduct
+    items = db.query(HotProduct).order_by(HotProduct.sort_order).all()
+    return [{"sku_id": h.sku_id, "sort_order": h.sort_order} for h in items]
+
+
+@router.put("/hot-products")
+def put_hot_products(data: dict = Body(...), db=Depends(get_db)):
+    """整体替换主推产品列表"""
+    from app.models.constitution_bundle import HotProduct
+    db.query(HotProduct).delete()
+    for i, p in enumerate(data.get("products", [])):
+        item = HotProduct(sku_id=p["sku_id"], sort_order=p.get("sort_order", i))
+        db.add(item)
+    db.commit()
+    return {"status": "ok", "count": len(data.get("products", []))}
