@@ -7,8 +7,9 @@ from app.models.product import Product
 from app.models.customer import Customer
 from app.models.conversation import Conversation
 from app.models.order import Order
+from app.models.constitution_bundle import ConstitutionBundle, HotProduct
 
-__all__ = ["Base", "Product", "Customer", "Conversation", "Order"]
+__all__ = ["Base", "Product", "Customer", "Conversation", "Order", "ConstitutionBundle", "HotProduct"]
 
 
 def init_db():
