@@ -15,3 +15,18 @@ def test_hot_product_crud(test_db):
     test_db.commit()
     result = test_db.query(HotProduct).all()
     assert len(result) == 1
+    assert result[0].sku_id == "S001"
+
+
+def test_constitution_bundle_unique_constraint(test_db):
+    from sqlalchemy.exc import IntegrityError
+    item1 = ConstitutionBundle(constitution_type="气虚质", sku_id="S001", sort_order=0)
+    test_db.add(item1)
+    test_db.commit()
+    item2 = ConstitutionBundle(constitution_type="气虚质", sku_id="S001", sort_order=1)
+    test_db.add(item2)
+    try:
+        test_db.commit()
+        assert False, "Should have raised IntegrityError"
+    except Exception:
+        test_db.rollback()
