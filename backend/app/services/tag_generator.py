@@ -3,9 +3,9 @@ import time
 from anthropic import Anthropic
 from app.config import settings
 
-TAG_GENERATION_SYSTEM = """你是药食同源产品标签专家。根据产品信息生成场景标签和禁忌标签。
+TAG_GENERATION_SYSTEM = "你是药食同源产品标签专家。根据产品信息生成场景标签和禁忌标签。"
 
-产品名称：{name}
+TAG_GENERATION_USER = """产品名称：{name}
 成分：{ingredients}
 
 要求：
@@ -24,8 +24,10 @@ class TagGenerator:
 
     def generate(self, name: str, ingredients: str) -> dict:
         """Returns {"scene_tags": "...", "contraindication_tags": "..."}"""
-        prompt = TAG_GENERATION_SYSTEM.format(name=name, ingredients=ingredients or "未知")
+        prompt = TAG_GENERATION_USER.format(name=name, ingredients=ingredients or "未知")
         text = self._call_llm(prompt)
+        if not text:
+            raise TagGenerationError("LLM 返回为空")
         try:
             data = json.loads(text)
             return {
@@ -39,7 +41,7 @@ class TagGenerator:
         resp = self.client.messages.create(
             model=settings.llm_model,
             max_tokens=256,
-            system="你是一个 JSON 输出的标签生成器。",
+            system=TAG_GENERATION_SYSTEM,
             messages=[{"role": "user", "content": prompt}],
         )
         for block in resp.content:

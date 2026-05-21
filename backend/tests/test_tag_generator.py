@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 import sys
 sys.path.insert(0, 'backend')
-from app.services.tag_generator import TagGenerator
+from app.services.tag_generator import TagGenerator, TagGenerationError
 
 def test_generate_returns_scene_and_contra_tags():
     gen = TagGenerator()
@@ -19,4 +19,12 @@ def test_generate_calls_correct_prompt():
         return '{"scene_tags": "x", "contraindication_tags": "y"}'
     with patch.object(gen, '_call_llm', side_effect=capture_prompt):
         gen.generate("测试", "成分")
-    assert "山药茯苓饼干" in captured["prompt"] or "测试" in captured["prompt"]
+    assert "测试" in captured["prompt"]
+    assert "成分" in captured["prompt"]
+
+def test_generate_raises_on_empty_llm_response():
+    from app.services.tag_generator import TagGenerationError as TGError
+    gen = TagGenerator()
+    with patch.object(gen, '_call_llm', side_effect=TGError('LLM 返回为空')):
+        with pytest.raises(TGError, match='LLM 返回为空'):
+            gen.generate("测试", "成分")
