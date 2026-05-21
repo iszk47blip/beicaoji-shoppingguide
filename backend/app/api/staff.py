@@ -1,4 +1,5 @@
 # backend/app/api/staff.py
+import asyncio
 import io
 import json
 import time
@@ -96,7 +97,7 @@ def list_categories(db=Depends(get_db)):
 async def import_excel(file: UploadFile = File(...), db=Depends(get_db)):
     """上传有赞导出的商品库 Excel，全量导入（以最新数据为准）"""
     if not file.filename.endswith('.xlsx'):
-        return {"error": "仅支持 .xlsx 文件"}, 400
+        raise HTTPException(status_code=400, detail="仅支持 .xlsx 文件")
     content = await file.read()
     wb = openpyxl.load_workbook(io.BytesIO(content))
     ws = wb.active
@@ -122,6 +123,7 @@ async def import_excel(file: UploadFile = File(...), db=Depends(get_db)):
     imported = 0
     updated = 0
     failed_tags = []
+    gen = TagGenerator()
 
     for row in ws.iter_rows(min_row=2, values_only=True):
         sku = str(row[idx_sku]).strip() if idx_sku is not None and row[idx_sku] else ""
@@ -144,7 +146,6 @@ async def import_excel(file: UploadFile = File(...), db=Depends(get_db)):
             existing.category = category
             existing.is_active = (lifecycle == "正常")
             if not (existing.scene_tags and existing.scene_tags.strip()):
-                gen = TagGenerator()
                 scene_tags_val, contra_tags_val = None, None
                 for attempt in range(2):
                     try:
@@ -154,7 +155,7 @@ async def import_excel(file: UploadFile = File(...), db=Depends(get_db)):
                         break
                     except Exception as e:
                         if attempt == 0:
-                            time.sleep(5)
+                            await asyncio.sleep(5)
                             continue
                         failed_tags.append({"sku_id": sku, "name": existing.name, "reason": str(e)[:100]})
                 if scene_tags_val:
@@ -173,7 +174,6 @@ async def import_excel(file: UploadFile = File(...), db=Depends(get_db)):
                 stock=0,
             )
             db.add(product)
-            gen = TagGenerator()
             scene_tags_val, contra_tags_val = None, None
             for attempt in range(2):
                 try:
@@ -183,7 +183,7 @@ async def import_excel(file: UploadFile = File(...), db=Depends(get_db)):
                     break
                 except Exception as e:
                     if attempt == 0:
-                        time.sleep(5)
+                        await asyncio.sleep(5)
                         continue
                     failed_tags.append({"sku_id": sku, "name": product.name, "reason": str(e)[:100]})
             if scene_tags_val:
