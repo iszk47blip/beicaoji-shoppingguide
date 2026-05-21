@@ -18,6 +18,10 @@ def test_db():
 def test_search_by_scene(test_db):
     from app.services.product_service import ProductService
     import_all(test_db)
+    # Set stock > 0 so product_service search filters work
+    from app.models.product import Product
+    test_db.query(Product).update({Product.stock: 10})
+    test_db.commit()
     svc = ProductService(test_db)
     results = svc.search(scene_tags=["睡眠", "安神"])
     assert len(results) > 0
