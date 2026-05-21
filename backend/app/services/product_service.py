@@ -7,7 +7,7 @@ class ProductService:
         self.session = session
 
     def search(self, scene_tags=None, exclude_tags=None, categories=None, limit=20):
-        q = self.session.query(Product).filter(Product.is_active == True)
+        q = self.session.query(Product).filter(Product.is_active == True, Product.stock > 0)
         if categories:
             q = q.filter(Product.category.in_(categories))
         results = q.all()
@@ -25,7 +25,7 @@ class ProductService:
         return self.session.query(Product).filter(Product.sku_id == sku_id).first()
 
     def get_all_active(self, category=None):
-        q = self.session.query(Product).filter(Product.is_active == True)
+        q = self.session.query(Product).filter(Product.is_active == True, Product.stock > 0)
         if category:
             q = q.filter(Product.category == category)
         return q.all()

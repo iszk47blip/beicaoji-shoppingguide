@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>焙草集 - 运营后台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-primary:   #2d7d46;
+      --color-primary-hover: #236839;
+      --color-secondary: #475569;
+      --color-accent:    #059669;
+      --color-bg:        #F8FAFC;
+      --color-surface:   #FFFFFF;
+      --color-fg:        #0F172A;
+      --color-muted:     #F1F5F9;
+      --color-border:    #E2E8F0;
+      --color-text-secondary: #64748B;
+      --color-danger:    #DC2626;
+      --color-warning:   #D97706;
+      --color-success:   #059669;
+      --font-sans: 'Fira Sans', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      --font-mono: 'Fira Code', 'Cascadia Code', monospace;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+      --transition: 150ms ease;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-sans); background: var(--color-bg); color: var(--color-fg); line-height: 1.5; }
+
+    /* ── Header ── */
+    .app-header {
+      background: var(--color-primary);
+      color: #fff;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-md);
+    }
+    .app-header .logo { display: flex; align-items: center; gap: 10px; }
+    .app-header h1 { font-size: 16px; font-weight: 600; }
+    .app-header .server-badge {
+      font-size: 12px; opacity: 0.75; font-family: var(--font-mono);
+      background: rgba(255,255,255,0.15); padding: 3px 10px; border-radius: 20px;
+    }
+
+    /* ── Body layout ── */
+    .app-body { display: flex; height: calc(100vh - 56px); overflow: hidden; }
+
+    /* ── Nav sidebar ── */
+    .nav-sidebar {
+      width: 64px; min-width: 64px; background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+      display: flex; flex-direction: column; align-items: center;
+      padding: 16px 0; gap: 6px;
+    }
+    .nav-item {
+      width: 48px; height: 48px; border-radius: var(--radius-md);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; cursor: pointer; transition: all var(--transition);
+      color: var(--color-text-secondary); font-size: 10px; font-weight: 500;
+      border: 1.5px solid transparent;
+    }
+    .nav-item:hover { background: var(--color-muted); color: var(--color-fg); }
+    .nav-item.active {
+      background: rgb(45 125 70 / 0.08);
+      color: var(--color-primary);
+      border-color: rgb(45 125 70 / 0.2);
+    }
+    .nav-item svg { width: 22px; height: 22px; }
+    .nav-item span { line-height: 1; }
+
+    /* ── Toolbar (shared) ── */
+    .toolbar {
+      background: var(--color-surface);
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+      max-width: 320px;
+    }
+    .search-wrap svg {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      color: var(--color-text-secondary); pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      height: 34px;
+      padding: 0 10px 0 34px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-family: var(--font-sans);
+      background: var(--color-muted);
+      color: var(--color-fg);
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+    }
+    .search-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgb(45 125 70 / 0.12);
+      background: var(--color-surface);
+    }
+    .toolbar select {
+      height: 34px; padding: 0 10px; border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); font-size: 13px; font-family: var(--font-sans);
+      background: var(--color-surface); color: var(--color-fg); outline: none;
+      transition: border-color var(--transition);
+    }
+    .toolbar select:focus { border-color: var(--color-primary); }
+    .toolbar label {
+      display: flex; align-items: center; gap: 6px; font-size: 13px;
+      color: var(--color-text-secondary); cursor: pointer; user-select: none;
+    }
+    .toolbar input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--color-primary); cursor: pointer; }
+    .toolbar .sep { width: 1px; height: 24px; background: var(--color-border); margin: 0 4px; }
+    .toolbar .sel-count {
+      font-size: 12px; font-family: var(--font-mono);
+      background: rgb(45 125 70 / 0.1); color: var(--color-primary);
+      padding: 2px 10px; border-radius: 20px; font-weight: 500;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      height: 34px; padding: 0 14px; border: none; border-radius: var(--radius-md);
+      font-size: 13px; font-weight: 500; font-family: var(--font-sans); cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: background var(--transition), transform 80ms;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary { background: var(--color-primary); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+    .btn-secondary { background: var(--color-muted); color: var(--color-fg); border: 1px solid var(--color-border); }
+    .btn-secondary:hover:not(:disabled) { background: var(--color-border); }
+    .btn-danger { background: var(--color-danger); color: #fff; }
+    .btn-danger:hover:not(:disabled) { background: #B91C1C; }
+    .btn-ghost { background: transparent; color: var(--color-text-secondary); padding: 0 8px; }
+    .btn-ghost:hover:not(:disabled) { background: var(--color-muted); color: var(--color-fg); }
+    .btn-icon { width: 34px; padding: 0; justify-content: center; }
+
+    /* ── Main content ── */
+    .main-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .main { flex: 1; overflow-y: auto; padding: 16px 20px; }
+
+    /* ── KPI Cards ── */
+    .kpi-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .kpi-card {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg); padding: 12px 16px; min-width: 110px; flex: 1;
+      box-shadow: var(--shadow-sm);
+    }
+    .kpi-card .kpi-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; font-weight: 500; letter-spacing: 0.02em; }
+    .kpi-card .kpi-value { font-size: 24px; font-weight: 700; font-family: var(--font-mono); line-height: 1; color: var(--color-fg); }
+    .kpi-card.danger .kpi-value { color: var(--color-danger); }
+    .kpi-card.warning .kpi-value { color: var(--color-warning); }
+    .kpi-card.success .kpi-value { color: var(--color-success); }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm);
+    }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table thead { background: var(--color-muted); }
+    .data-table th {
+      padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 600;
+      color: var(--color-text-secondary); letter-spacing: 0.04em; text-transform: uppercase;
+      border-bottom: 1px solid var(--color-border); white-space: nowrap;
+    }
+    .data-table td {
+      padding: 10px 12px; font-size: 13px; border-bottom: 1px solid var(--color-muted);
+      vertical-align: middle;
+    }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr { transition: background 80ms; cursor: pointer; }
+    .data-table tbody tr:hover td { background: var(--color-muted); }
+    .data-table tbody tr.selected td { background: rgb(45 125 70 / 0.05); }
+
+    /* ── Category Pills ── */
+    .category-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      align-items: center;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding: 2px 0;
+    }
+    .category-pills::-webkit-scrollbar { display: none; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      height: 30px;
+      padding: 0 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+      border: 1.5px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text-secondary);
+      transition: all var(--transition);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .pill:hover:not(.active) {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      background: rgb(45 125 70 / 0.04);
+    }
+    .pill.active {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #fff;
+      box-shadow: 0 2px 6px rgb(45 125 70 / 0.25);
+    }
+    .pill .count {
+      margin-left: 5px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      opacity: 0.7;
+    }
+    .pill.active .count { opacity: 0.85; }
+
+    /* ── Show-zero label ── */
+    .show-zero-label {
+      display: flex; align-items: center; gap: 6px; font-size: 13px;
+      color: var(--color-text-secondary); cursor: pointer; user-select: none;
+      white-space: nowrap;
+    }
+    .show-zero-label input { width: 15px; height: 15px; accent-color: var(--color-primary); cursor: pointer; }
+
+    /* ── Checkbox ── */
+    .row-checkbox { width: 18px; height: 18px; accent-color: var(--color-primary); cursor: pointer; }
+
+    /* ── Product Cell ── */
+    .cell-name { max-width: 180px; }
+    .cell-name .name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cell-name .sku { font-size: 11px; font-family: var(--font-mono); color: var(--color-text-secondary); margin-top: 2px; }
+
+    /* ── Badge ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px;
+      border-radius: 20px; font-size: 11px; font-weight: 500;
+    }
+    .badge-active { background: rgb(5 150 105 / 0.1); color: var(--color-success); }
+    .badge-inactive { background: var(--color-muted); color: var(--color-text-secondary); }
+    .badge-pending { background: rgb(217 119 6 / 0.1); color: var(--color-warning); }
+    .badge-paid { background: rgb(5 150 105 / 0.1); color: var(--color-success); }
+    .badge-cancelled { background: rgb(100 116 139 / 0.15); color: var(--color-secondary); }
+    .badge-refunded { background: rgb(220 38 38 / 0.1); color: var(--color-danger); }
+
+    /* ── Stock Input ── */
+    .stock-input-wrap { display: flex; align-items: center; gap: 8px; }
+    .stock-input {
+      width: 70px; height: 30px; padding: 0 8px; border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font-mono);
+      text-align: center; outline: none; background: var(--color-surface);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .stock-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgb(45 125 70 / 0.12); }
+    .stock-input.stock-ok { border-color: var(--color-success); background: rgb(5 150 105 / 0.04); color: var(--color-success); font-weight: 600; }
+    .stock-input.stock-low { border-color: var(--color-warning); background: rgb(217 119 6 / 0.04); color: var(--color-warning); font-weight: 600; }
+    .stock-input.stock-zero { border-color: var(--color-danger); background: rgb(220 38 38 / 0.04); color: var(--color-danger); font-weight: 600; }
+    .stock-input.dirty { box-shadow: 0 0 0 3px rgb(217 119 6 / 0.2); border-color: var(--color-warning); }
+
+    /* ── Pagination ── */
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 16px; }
+    .pagination button {
+      min-width: 32px; height: 32px; padding: 0 8px; border: 1px solid var(--color-border);
+      background: var(--color-surface); border-radius: var(--radius-sm); cursor: pointer;
+      font-size: 12px; font-family: var(--font-mono); color: var(--color-fg);
+      transition: all var(--transition); display: flex; align-items: center; justify-content: center;
+    }
+    .pagination button:hover:not(:disabled) { background: var(--color-muted); }
+    .pagination button.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .pagination .page-info { font-size: 12px; color: var(--color-text-secondary); padding: 0 8px; font-family: var(--font-mono); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; background: var(--color-fg); color: #fff;
+      padding: 10px 18px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500;
+      opacity: 0; transform: translateY(8px); transition: opacity 200ms, transform 200ms;
+      pointer-events: none; display: flex; align-items: center; gap: 8px;
+      box-shadow: var(--shadow-md); z-index: 9999;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(15,23,42,0.45);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; opacity: 0; pointer-events: none;
+      transition: opacity 200ms;
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--color-surface); border-radius: var(--radius-lg);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18); width: 380px; max-width: 90vw;
+      transform: translateY(16px); transition: transform 200ms;
+    }
+    .modal-overlay.show .modal { transform: translateY(0); }
+    .modal-header {
+      padding: 18px 20px 14px; border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-header h3 { font-size: 15px; font-weight: 600; }
+    .modal-body { padding: 18px 20px; }
+    .modal-footer { padding: 14px 20px; border-top: 1px solid var(--color-border); display: flex; gap: 8px; justify-content: flex-end; }
+
+    /* ── Form elements ── */
+    .form-field { margin-bottom: 14px; }
+    .form-field label { display: block; font-size: 12px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 6px; }
+    .form-field input[type="text"], .form-field input[type="number"] {
+      width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); font-size: 13px; font-family: var(--font-sans);
+      outline: none; transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .form-field input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgb(45 125 70 / 0.12); }
+    .form-hint { font-size: 11px; color: var(--color-text-secondary); margin-top: 4px; }
+    .radio-group { display: flex; gap: 8px; }
+    .radio-item {
+      display: flex; align-items: center; gap: 6px; cursor: pointer;
+      padding: 6px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+      font-size: 13px; transition: all var(--transition);
+    }
+    .radio-item input { accent-color: var(--color-primary); }
+    .radio-item.selected { border-color: var(--color-primary); background: rgb(45 125 70 / 0.06); color: var(--color-primary); }
+    .radio-item:hover:not(.selected) { background: var(--color-muted); }
+
+    /* ── Import ── */
+    .import-area {
+      border: 2px dashed var(--color-border); border-radius: var(--radius-lg);
+      padding: 32px 20px; text-align: center; cursor: pointer;
+      transition: border-color var(--transition), background var(--transition);
+    }
+    .import-area:hover { border-color: var(--color-primary); background: rgb(45 125 70 / 0.03); }
+    .import-area.drag-over { border-color: var(--color-primary); background: rgb(45 125 70 / 0.06); }
+    .import-area p { font-size: 13px; color: var(--color-text-secondary); margin-top: 8px; }
+    .import-result {
+      margin-top: 12px; padding: 12px 16px; border-radius: var(--radius-md);
+      font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap;
+    }
+    .import-result.success { background: rgb(5 150 105 / 0.08); border: 1px solid rgb(5 150 105 / 0.2); color: var(--color-success); }
+    .import-result .num { font-weight: 700; font-family: var(--font-mono); }
+
+    /* ── Empty / Loading ── */
+    .state-box { text-align: center; padding: 48px 20px; color: var(--color-text-secondary); }
+    .state-box svg { margin-bottom: 10px; opacity: 0.35; }
+    .state-box p { font-size: 14px; }
+
+    /* ── Detail Panel (slide-in) ── */
+    .panel-overlay {
+      position: fixed; inset: 0; background: rgba(15,23,42,0.35);
+      z-index: 200; opacity: 0; pointer-events: none;
+      transition: opacity 250ms;
+    }
+    .panel-overlay.show { opacity: 1; pointer-events: all; }
+    .detail-panel {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 560px; max-width: 95vw;
+      background: var(--color-surface);
+      box-shadow: var(--shadow-lg);
+      transform: translateX(100%);
+      transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+      display: flex; flex-direction: column;
+      z-index: 300;
+    }
+    .panel-overlay.show .detail-panel { transform: translateX(0); }
+    .panel-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+    }
+    .panel-header h2 { font-size: 15px; font-weight: 600; }
+    .panel-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+    .section { margin-bottom: 22px; }
+    .section-title {
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--color-text-secondary); margin-bottom: 10px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+    .info-item { display: flex; flex-direction: column; gap: 2px; }
+    .info-item .label { font-size: 11px; color: var(--color-text-secondary); }
+    .info-item .value { font-size: 13px; font-weight: 500; }
+    .items-list { display: flex; flex-direction: column; gap: 8px; }
+    .item-card {
+      border: 1px solid var(--color-border); border-radius: var(--radius-md);
+      padding: 10px 12px; display: flex; justify-content: space-between; align-items: center;
+      background: var(--color-bg);
+    }
+    .item-info .item-name { font-weight: 500; font-size: 13px; }
+    .item-info .item-meta { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+    .item-right { text-align: right; }
+    .item-price { font-family: var(--font-mono); font-weight: 600; font-size: 13px; }
+    .item-qty { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+    .status-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border); }
+    .status-btn {
+      padding: 6px 14px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500;
+      cursor: pointer; border: 1px solid transparent; transition: all var(--transition);
+    }
+    .status-btn.paid { background: rgb(5 150 105 / 0.1); color: var(--color-success); border-color: rgb(5 150 105 / 0.25); }
+    .status-btn.paid:hover { background: rgb(5 150 105 / 0.2); }
+    .status-btn.cancelled { background: rgb(100 116 139 / 0.1); color: var(--color-secondary); border-color: rgb(100 116 139 / 0.25); }
+    .status-btn.cancelled:hover { background: rgb(100 116 139 / 0.2); }
+    .status-btn.refunded { background: rgb(220 38 38 / 0.08); color: var(--color-danger); border-color: rgb(220 38 38 / 0.2); }
+    .status-btn.refunded:hover { background: rgb(220 38 38 / 0.15); }
+
+    /* ── Chat bubbles ── */
+    .chat-list { display: flex; flex-direction: column; gap: 10px; }
+    .chat-msg { display: flex; flex-direction: column; max-width: 85%; }
+    .chat-msg.user { align-self: flex-end; align-items: flex-end; }
+    .chat-msg.assistant { align-self: flex-start; align-items: flex-start; }
+    .chat-bubble {
+      padding: 8px 12px; border-radius: 12px; font-size: 13px; line-height: 1.5;
+      word-break: break-all;
+    }
+    .chat-msg.user .chat-bubble { background: var(--color-primary); color: #fff; border-bottom-right-radius: 4px; }
+    .chat-msg.assistant .chat-bubble { background: var(--color-muted); color: var(--color-fg); border-bottom-left-radius: 4px; }
+    .chat-time { font-size: 10px; color: var(--color-text-secondary); margin-top: 3px; font-family: var(--font-mono); }
+
+    /* ── Recommendation ── */
+    .rec-products { display: flex; flex-direction: column; gap: 8px; }
+    .rec-card {
+      border: 1px solid var(--color-border); border-radius: var(--radius-md);
+      padding: 10px 12px; display: flex; gap: 10px; align-items: center;
+      background: var(--color-bg);
+    }
+    .rec-card .rec-name { font-weight: 500; font-size: 13px; }
+    .rec-card .rec-cat { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+    .rec-card .rec-price { font-family: var(--font-mono); font-weight: 600; font-size: 13px; color: var(--color-primary); margin-left: auto; }
+
+    /* ── Constitution ── */
+    .constitution-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .constitution-item {
+      background: var(--color-muted); border-radius: var(--radius-sm); padding: 8px 10px;
+    }
+    .constitution-item .ci-label { font-size: 11px; color: var(--color-text-secondary); }
+    .constitution-item .ci-value { font-size: 14px; font-weight: 600; margin-top: 2px; }
+
+    /* ── View visibility ── */
+    .view { display: none; }
+    .view.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+    .view.active .main { flex: 1; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .app-body { flex-direction: column; height: auto; }
+      .nav-sidebar { width: 100%; min-width: unset; height: 60px; flex-direction: row; border-right: none; border-bottom: 1px solid var(--color-border); padding: 0 16px; }
+      .nav-item { width: auto; height: auto; padding: 4px 12px; }
+      .kpi-row { gap: 8px; }
+      .kpi-card { min-width: calc(50% - 5px); }
+    }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <rect width="24" height="24" rx="6" fill="rgba(255,255,255,0.2)"/>
+      <path d="M7 8h10M7 12h7M7 16h5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+    <h1 id="headerTitle">焙草集 运营后台</h1>
+  </div>
+  <span class="server-badge" id="serverStatus">检测中</span>
+</header>
+
+<div class="app-body">
+  <!-- Nav sidebar -->
+  <nav class="nav-sidebar">
+    <div class="nav-item active" data-view="products" onclick="switchView('products')" title="商品管理">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/>
+        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+      </svg>
+      <span>商品</span>
+    </div>
+    <div class="nav-item" data-view="orders" onclick="switchView('orders')" title="订单管理">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+        <rect x="9" y="3" width="6" height="4" rx="1"/>
+        <line x1="9" y1="12" x2="15" y2="12"/>
+        <line x1="9" y1="16" x2="13" y2="16"/>
+      </svg>
+      <span>订单</span>
+    </div>
+  </nav>
+
+  <div class="main-wrap">
+    <!-- ═══ Products View ═══ -->
+    <div id="productsView" class="view active">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="searchInput" type="text" placeholder="搜索商品名称、条码、成分…" aria-label="搜索商品">
+        </div>
+        <div class="category-pills" id="categoryPills" role="group" aria-label="分类筛选">
+          <button class="pill active" data-cat="" onclick="filterCategory('')">全部</button>
+        </div>
+        <label class="show-zero-label"><input type="checkbox" id="showZeroStock">无库存</label>
+        <div class="sep"></div>
+        <span class="sel-count" id="selCount" style="display:none">已选 <span id="selNum">0</span> 件</span>
+        <button class="btn btn-secondary" id="batchSetBtn" style="display:none" onclick="openBatchModal('set')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          批量修改
+        </button>
+        <button class="btn btn-secondary" id="batchDeltaBtn" style="display:none" onclick="openBatchModal('delta')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          批量增减
+        </button>
+        <div class="sep"></div>
+        <button class="btn btn-secondary" onclick="loadProducts()" title="刷新">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        </button>
+        <button class="btn btn-primary" id="saveBtn" onclick="saveAllChanges()" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          保存
+        </button>
+        <button class="btn btn-secondary" onclick="openImportModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          导入
+        </button>
+      </div>
+      <div class="main">
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-label">当前显示</div>
+            <div class="kpi-value" id="kpi-shown">—</div>
+          </div>
+          <div class="kpi-card danger">
+            <div class="kpi-label">无库存</div>
+            <div class="kpi-value" id="kpi-zero">—</div>
+          </div>
+          <div class="kpi-card warning">
+            <div class="kpi-label">库存 &lt; 5</div>
+            <div class="kpi-value" id="kpi-low">—</div>
+          </div>
+          <div class="kpi-card success">
+            <div class="kpi-label">有货合计</div>
+            <div class="kpi-value" id="kpi-has-stock">—</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" role="grid">
+            <thead>
+              <tr>
+                <th style="width:36px"><input type="checkbox" class="row-checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
+                <th>商品</th>
+                <th>状态</th>
+                <th>分类</th>
+                <th>价格</th>
+                <th>成分</th>
+                <th>库存</th>
+              </tr>
+            </thead>
+            <tbody id="productTableBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+
+    <!-- ═══ Orders View ═══ -->
+    <div id="ordersView" class="view">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="orderSearchInput" type="text" placeholder="搜索订单号、顾客昵称…" aria-label="搜索订单">
+        </div>
+        <select id="statusFilter" aria-label="状态筛选">
+          <option value="">全部状态</option>
+          <option value="pending">待支付</option>
+          <option value="paid">已支付</option>
+          <option value="cancelled">已取消</option>
+          <option value="refunded">已退款</option>
+        </select>
+        <div style="flex:1"></div>
+        <button class="btn btn-secondary" onclick="loadOrders()" title="刷新">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        </button>
+      </div>
+      <div class="main">
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-label">全部订单</div>
+            <div class="kpi-value" id="kpi-total">—</div>
+          </div>
+          <div class="kpi-card warning">
+            <div class="kpi-label">待支付</div>
+            <div class="kpi-value" id="kpi-pending">—</div>
+          </div>
+          <div class="kpi-card success">
+            <div class="kpi-label">已支付</div>
+            <div class="kpi-value" id="kpi-paid">—</div>
+          </div>
+          <div class="kpi-card danger">
+            <div class="kpi-label">已退款</div>
+            <div class="kpi-value" id="kpi-refunded">—</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" role="grid">
+            <thead>
+              <tr>
+                <th>订单号</th>
+                <th>顾客昵称</th>
+                <th>商品数</th>
+                <th>金额</th>
+                <th>状态</th>
+                <th>时间</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="ordersPagination"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ── Batch Edit Modal ── -->
+<div class="modal-overlay" id="batchModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="batchModalTitle">批量修改库存</h3>
+      <button class="btn btn-ghost btn-icon" onclick="closeBatchModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label>修改方式</label>
+        <div class="radio-group">
+          <label class="radio-item selected" id="mode-set">
+            <input type="radio" name="batchMode" value="set" checked onclick="setBatchMode('set')"> 设为固定值
+          </label>
+          <label class="radio-item" id="mode-delta">
+            <input type="radio" name="batchMode" value="delta" onclick="setBatchMode('delta')"> 增减相对值
+          </label>
+        </div>
+      </div>
+      <div class="form-field" id="batchSetField">
+        <label>库存数量（件）</label>
+        <input type="number" id="batchSetInput" min="0" placeholder="例如 10">
+      </div>
+      <div class="form-field" id="batchDeltaField" style="display:none">
+        <label>增减数量（件）</label>
+        <input type="number" id="batchDeltaInput" placeholder="例如 +5 或 -3">
+        <p class="form-hint">正数增加，负数减少</p>
+      </div>
+      <p id="batchModalDesc" style="font-size:12px;color:var(--color-text-secondary);margin-top:4px"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeBatchModal()">取消</button>
+      <button class="btn btn-primary" id="batchConfirmBtn" onclick="executeBatchUpdate()">确认修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Import Modal ── -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <h3>导入有赞商品库</h3>
+      <button class="btn btn-ghost btn-icon" onclick="closeImportModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="import-area" id="importArea" onclick="document.getElementById('importFile').click()"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="handleFileDrop(event)">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-secondary)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p id="importHint">点击上传或拖拽 Excel 文件</p>
+        <p style="font-size:11px;margin-top:4px;color:var(--color-text-secondary)">支持 .xlsx 格式，以商品条码(sku_id)匹配</p>
+        <input type="file" id="importFile" accept=".xlsx" style="display:none" onchange="handleFileSelect(this)">
+      </div>
+      <div class="import-result" id="importResult" style="display:none"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeImportModal()">关闭</button>
+      <button class="btn btn-primary" id="importBtn" onclick="doImport()" disabled>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        开始导入
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Order Detail Panel ── -->
+<div class="panel-overlay" id="panelOverlay" onclick="closePanel(event.target === this)">
+  <div class="detail-panel" id="detailPanel">
+    <div class="panel-header">
+      <h2>订单详情</h2>
+      <button class="btn btn-ghost btn-icon" onclick="closePanel()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+  </div>
+</div>
+
+<script>
+const API = '/api/staff';
+let currentView = 'products';
+
+// ── Products state ──────────────────────────────────────────────────
+let products = [];
+let categories = [];
+let currentPage = 1;
+let pageSize = 30;
+let currentCategory = '';
+let showZeroStock = false;
+let searchQuery = '';
+let dirtyMap = {};
+let selectedIds = new Set();
+let totalCount = 0;
+let pendingFile = null;
+let batchMode = 'set';
+
+// ── Orders state ──────────────────────────────────────────────────
+let orders = [];
+let ordersPage = 1;
+let ordersPageSize = 20;
+let ordersTotalCount = 0;
+let currentStatus = '';
+let orderSearchQuery = '';
+let panelOrder = null;
+
+function api(path, opts = {}) {
+  return fetch(API + path, opts).then(r => r.json());
+}
+
+// ── View switching ──────────────────────────────────────────────────
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.view === view);
+  });
+  document.querySelectorAll('.view').forEach(el => {
+    el.classList.toggle('active', el.id === view + 'View');
+  });
+  document.getElementById('headerTitle').textContent =
+    view === 'products' ? '焙草集 运营后台' : '焙草集 运营后台';
+  if (view === 'orders') loadOrders();
+}
+
+// ── Products ─────────────────────────────────────────────────────
+async function loadCategories() {
+  try {
+    const data = await api('/categories');
+    categories = data.categories || [];
+    renderCategoryPills();
+  } catch(e) { console.error(e); }
+}
+
+function renderCategoryPills() {
+  const pills = document.getElementById('categoryPills');
+  const allCount = products.length;
+  pills.innerHTML = `<button class="pill active" data-cat="" onclick="filterCategory('')">全部</button>` +
+    categories.map(c => {
+      const count = products.filter(p => p.category === c).length;
+      return `<button class="pill" data-cat="${c}" onclick="filterCategory('${c}')">${c}${count > 0 ? `<span class="count">${count}</span>` : ''}</button>`;
+    }).join('');
+}
+
+function filterCategory(cat) {
+  currentCategory = cat;
+  currentPage = 1;
+  document.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.cat === cat));
+  loadProducts();
+}
+
+async function loadProducts() {
+  const params = new URLSearchParams({ page: currentPage, page_size: pageSize });
+  if (currentCategory) params.set('category', currentCategory);
+  if (showZeroStock) params.set('stock_zero', 'true');
+  if (searchQuery) params.set('q', searchQuery);
+  try {
+    const data = await api('/products?' + params.toString());
+    products = data.products || [];
+    totalCount = data.total || 0;
+    renderKpis();
+    renderTable();
+    renderPagination();
+    renderCategoryPills();
+  } catch(e) { console.error(e); }
+}
+
+function renderKpis() {
+  const zero = products.filter(p => p.stock <= 0).length;
+  const low = products.filter(p => p.stock > 0 && p.stock < 5).length;
+  const hasStock = products.filter(p => p.stock > 0).length;
+  document.getElementById('kpi-shown').textContent = products.length;
+  document.getElementById('kpi-zero').textContent = zero;
+  document.getElementById('kpi-low').textContent = low;
+  document.getElementById('kpi-has-stock').textContent = hasStock;
+}
+
+function renderTable() {
+  const tbody = document.getElementById('productTableBody');
+  if (!products.length) {
+    tbody.innerHTML = `<tr><td colspan="7">
+      <div class="state-box">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <p>${searchQuery ? '未找到匹配商品' : '暂无商品'}</p>
+      </div>
+    </td></tr>`;
+    return;
+  }
+  tbody.innerHTML = products.map(p => {
+    const isDirty = !!dirtyMap[p.id];
+    const isSelected = selectedIds.has(p.id);
+    const stockClass = isDirty
+      ? (dirtyMap[p.id].stock <= 0 ? 'stock-zero' : dirtyMap[p.id].stock < 5 ? 'stock-low' : 'stock-ok')
+      : (p.stock <= 0 ? 'stock-zero' : p.stock < 5 ? 'stock-low' : 'stock-ok');
+    const dispStock = isDirty ? dirtyMap[p.id].stock : p.stock;
+    const statusBadge = p.is_active
+      ? '<span class="badge badge-active">上架</span>'
+      : '<span class="badge badge-inactive">下架</span>';
+    const ing = p.ingredients ? p.ingredients.substring(0, 28) : '—';
+    return `<tr class="${isSelected ? 'selected' : ''}" data-id="${p.id}">
+      <td><input type="checkbox" class="row-checkbox" ${isSelected ? 'checked' : ''} onclick="toggleRow(this,${p.id})"></td>
+      <td class="cell-name">
+        <div class="name" title="${p.name}">${p.name}</div>
+        <div class="sku">${p.sku_id}</div>
+      </td>
+      <td>${statusBadge}</td>
+      <td>${p.category || '—'}</td>
+      <td style="font-family:var(--font-mono);font-weight:500">¥${(p.price || 0).toFixed(1)}</td>
+      <td style="font-size:12px;color:var(--color-text-secondary);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.ingredients || ''}">${ing}</td>
+      <td>
+        <div class="stock-input-wrap">
+          <input type="number" min="0" value="${dispStock}" data-id="${p.id}"
+            class="stock-input ${stockClass}${isDirty ? ' dirty' : ''}"
+            onchange="onStockChange(this,${p.id})" aria-label="商品 ${p.name} 库存">
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function onStockChange(input, id) {
+  const val = Math.max(0, parseInt(input.value) || 0);
+  products.forEach(p => { if (p.id === id) p.stock = val; });
+  dirtyMap[id] = { stock: val };
+  input.classList.remove('stock-ok', 'stock-low', 'stock-zero', 'dirty');
+  input.classList.add(val <= 0 ? 'stock-zero' : val < 5 ? 'stock-low' : 'stock-ok', 'dirty');
+  updateSelAndSave();
+}
+
+function toggleRow(cb, id) {
+  if (cb.checked) selectedIds.add(id);
+  else selectedIds.delete(id);
+  cb.closest('tr').classList.toggle('selected', cb.checked);
+  updateSelAndSave();
+}
+
+function toggleSelectAll(cb) {
+  if (cb.checked) products.forEach(p => selectedIds.add(p.id));
+  else selectedIds.clear();
+  renderTable();
+}
+
+function updateSelAndSave() {
+  const count = Object.keys(dirtyMap).length;
+  const sel = selectedIds.size;
+  document.getElementById('selCount').style.display = sel > 0 ? 'inline' : 'none';
+  document.getElementById('selNum').textContent = sel;
+  document.getElementById('batchSetBtn').style.display = sel > 0 ? 'inline-flex' : 'none';
+  document.getElementById('batchDeltaBtn').style.display = sel > 0 ? 'inline-flex' : 'none';
+  document.getElementById('saveBtn').disabled = count === 0;
+  document.getElementById('saveBtn').textContent = count > 0 ? `保存 (${count})` : '保存';
+}
+
+function renderPagination() {
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const pag = document.getElementById('pagination');
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+  const pages = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) pages.push(i);
+    else if (i === currentPage - 2 || i === currentPage + 2) pages.push('...');
+  }
+  pag.innerHTML = `
+    <button ${currentPage === 1 ? 'disabled' : ''} onclick="goPage(${currentPage - 1})" aria-label="上一页">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    ${pages.map(p => p === '...' ? '<span class="page-info" style="padding:0 4px">…</span>'
+      : `<button class="${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`).join('')}
+    <button ${currentPage === totalPages ? 'disabled' : ''} onclick="goPage(${currentPage + 1})" aria-label="下一页">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  `;
+}
+
+function goPage(p) { currentPage = p; loadProducts(); }
+
+async function saveAllChanges() {
+  const updates = Object.entries(dirtyMap).map(([id, v]) => {
+    const p = products.find(x => x.id === parseInt(id));
+    return { sku_id: p.sku_id, stock: v.stock };
+  });
+  if (!updates.length) return;
+  try {
+    const res = await fetch(API + '/batch-stock-relative', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    }).then(r => r.json());
+    if (res.updated > 0) {
+      dirtyMap = {};
+      updateSelAndSave();
+      showToast(`已保存 ${res.updated} 件商品`);
+      loadProducts();
+    }
+  } catch(e) { showToast('保存失败，请重试'); }
+}
+
+/* ── Batch Modal ── */
+function openBatchModal(mode) {
+  batchMode = mode;
+  document.getElementById('batchModalTitle').textContent = mode === 'set' ? '批量设置库存' : '批量增减库存';
+  document.getElementById('batchSetField').style.display = mode === 'set' ? 'block' : 'none';
+  document.getElementById('batchDeltaField').style.display = mode === 'delta' ? 'block' : 'none';
+  document.getElementById('batchModalDesc').textContent = `将修改 ${selectedIds.size} 件商品`;
+  document.getElementById('batchSetInput').value = '';
+  document.getElementById('batchDeltaInput').value = '';
+  document.getElementById('batchModal').classList.add('show');
+}
+
+function closeBatchModal() {
+  document.getElementById('batchModal').classList.remove('show');
+}
+
+function setBatchMode(mode) {
+  batchMode = mode;
+  document.getElementById('mode-set').classList.toggle('selected', mode === 'set');
+  document.getElementById('mode-delta').classList.toggle('selected', mode === 'delta');
+  document.getElementById('batchSetField').style.display = mode === 'set' ? 'block' : 'none';
+  document.getElementById('batchDeltaField').style.display = mode === 'delta' ? 'block' : 'none';
+}
+
+async function executeBatchUpdate() {
+  let updates = [];
+  if (batchMode === 'set') {
+    const val = parseInt(document.getElementById('batchSetInput').value);
+    if (isNaN(val) || val < 0) { showToast('请输入有效的库存数量'); return; }
+    selectedIds.forEach(id => {
+      const p = products.find(x => x.id === id);
+      if (p) updates.push({ sku_id: p.sku_id, stock: val });
+    });
+  } else {
+    const delta = parseInt(document.getElementById('batchDeltaInput').value);
+    if (isNaN(delta)) { showToast('请输入有效的增减数量'); return; }
+    updates = Array.from(selectedIds).map(id => {
+      const p = products.find(x => x.id === id);
+      return { sku_id: p.sku_id, delta };
+    });
+  }
+  closeBatchModal();
+  const endpoint = '/batch-stock-relative';
+  try {
+    const res = await fetch(API + endpoint, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    }).then(r => r.json());
+    selectedIds.clear();
+    showToast(`已更新 ${res.updated} 件商品`);
+    loadProducts();
+  } catch(e) { showToast('操作失败，请重试'); }
+}
+
+/* ── Import Modal ── */
+function openImportModal() {
+  pendingFile = null;
+  document.getElementById('importHint').textContent = '点击上传或拖拽 Excel 文件';
+  document.getElementById('importResult').style.display = 'none';
+  document.getElementById('importBtn').disabled = true;
+  document.getElementById('importModal').classList.add('show');
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').classList.remove('show');
+}
+
+function handleFileSelect(input) {
+  if (input.files && input.files[0]) {
+    pendingFile = input.files[0];
+    document.getElementById('importHint').textContent = '已选: ' + input.files[0].name;
+    document.getElementById('importBtn').disabled = false;
+  }
+}
+
+function handleFileDrop(e) {
+  e.preventDefault();
+  e.target.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.xlsx')) {
+    pendingFile = file;
+    document.getElementById('importHint').textContent = '已选: ' + file.name;
+    document.getElementById('importBtn').disabled = false;
+  } else {
+    showToast('仅支持 .xlsx 文件');
+  }
+}
+
+async function doImport() {
+  if (!pendingFile) return;
+  document.getElementById('importBtn').disabled = true;
+  document.getElementById('importHint').textContent = '导入中…';
+  const fd = new FormData();
+  fd.append('file', pendingFile);
+  try {
+    const res = await fetch(API + '/products/import', { method: 'POST', body: fd }).then(r => r.json());
+    if (res.error) { showToast(res.error); return; }
+    const el = document.getElementById('importResult');
+    el.className = 'import-result success';
+    el.style.display = 'flex';
+    el.innerHTML = `<span><span class="num">${res.imported}</span> 新增</span><span><span class="num">${res.updated}</span> 更新</span><span>共 <span class="num">${res.total}</span> 件</span>`;
+    document.getElementById('importHint').textContent = '导入完成';
+    loadProducts();
+    loadCategories();
+  } catch(e) {
+    showToast('导入失败，请重试');
+    document.getElementById('importHint').textContent = '点击上传或拖拽 Excel 文件';
+  }
+  document.getElementById('importBtn').disabled = false;
+}
+
+// ── Orders ────────────────────────────────────────────────────────
+function badgeHTML(status) {
+  const map = {
+    pending: ['待支付', 'badge-pending'],
+    paid: ['已支付', 'badge-paid'],
+    cancelled: ['已取消', 'badge-cancelled'],
+    refunded: ['已退款', 'badge-refunded'],
+  };
+  const [label, cls] = map[status] || [status, 'badge-pending'];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+async function loadOrders() {
+  const params = new URLSearchParams({ page: ordersPage, page_size: ordersPageSize });
+  if (currentStatus) params.set('status', currentStatus);
+  if (orderSearchQuery) params.set('q', orderSearchQuery);
+  try {
+    const data = await api('/orders?' + params.toString());
+    orders = data.orders || [];
+    ordersTotalCount = data.total || 0;
+    renderOrderKPIs();
+    renderOrdersTable();
+    renderOrdersPagination();
+  } catch(e) { showToast('加载失败，请重试'); }
+}
+
+function renderOrderKPIs() {
+  const pending = orders.filter(o => o.status === 'pending').length;
+  const paid = orders.filter(o => o.status === 'paid').length;
+  const refunded = orders.filter(o => o.status === 'refunded').length;
+  document.getElementById('kpi-pending').textContent = pending;
+  document.getElementById('kpi-paid').textContent = paid;
+  document.getElementById('kpi-refunded').textContent = refunded;
+  document.getElementById('kpi-total').textContent = ordersTotalCount;
+}
+
+function renderOrdersTable() {
+  const tbody = document.getElementById('ordersTableBody');
+  if (!orders.length) {
+    tbody.innerHTML = `<tr><td colspan="6">
+      <div class="state-box">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+        <p>${orderSearchQuery ? '未找到匹配订单' : '暂无订单'}</p>
+      </div>
+    </td></tr>`;
+    return;
+  }
+  tbody.innerHTML = orders.map(o => `
+    <tr onclick="openOrder(${o.id})" title="点击查看详情">
+      <td style="font-family:var(--font-mono);font-size:12px">${o.order_no}</td>
+      <td>${o.customer_nickname || '—'}</td>
+      <td>${o.items ? o.items.length : 0}</td>
+      <td style="font-family:var(--font-mono);font-weight:500">¥${(o.total_amount || 0).toFixed(2)}</td>
+      <td>${badgeHTML(o.status)}</td>
+      <td style="font-family:var(--font-mono);font-size:12px;color:var(--color-text-secondary)">${o.created_at ? o.created_at.substring(0, 16) : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+function renderOrdersPagination() {
+  const totalPages = Math.ceil(ordersTotalCount / ordersPageSize);
+  const pag = document.getElementById('ordersPagination');
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+  const pages = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= ordersPage - 1 && i <= ordersPage + 1)) pages.push(i);
+    else if (i === ordersPage - 2 || i === ordersPage + 2) pages.push('...');
+  }
+  pag.innerHTML = `
+    <button ${ordersPage === 1 ? 'disabled' : ''} onclick="goOrdersPage(${ordersPage - 1})" aria-label="上一页">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    ${pages.map(p => p === '...' ? '<span class="page-info" style="padding:0 4px">…</span>'
+      : `<button class="${p === ordersPage ? 'active' : ''}" onclick="goOrdersPage(${p})">${p}</button>`).join('')}
+    <button ${ordersPage === totalPages ? 'disabled' : ''} onclick="goOrdersPage(${ordersPage + 1})" aria-label="下一页">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  `;
+}
+
+function goOrdersPage(p) { ordersPage = p; loadOrders(); }
+
+async function openOrder(id) {
+  try {
+    const data = await api('/orders/' + id);
+    if (data.detail) { showToast('订单不存在'); return; }
+    panelOrder = data;
+    renderPanel(data);
+    document.getElementById('panelOverlay').classList.add('show');
+  } catch(e) { showToast('加载失败'); }
+}
+
+function closePanel() {
+  document.getElementById('panelOverlay').classList.remove('show');
+  panelOrder = null;
+}
+
+function renderPanel(o) {
+  const body = document.getElementById('panelBody');
+  const statusActions = o.status !== 'paid' ? `
+    <div class="status-actions">
+      ${o.status !== 'paid' ? `<button class="status-btn paid" onclick="changeStatus(${o.id}, 'paid')">标记已支付</button>` : ''}
+      ${o.status !== 'cancelled' ? `<button class="status-btn cancelled" onclick="changeStatus(${o.id}, 'cancelled')">取消订单</button>` : ''}
+      ${o.status !== 'refunded' ? `<button class="status-btn refunded" onclick="changeStatus(${o.id}, 'refunded')">退款</button>` : ''}
+    </div>` : `<div class="status-actions"><button class="status-btn refunded" onclick="changeStatus(${o.id}, 'refunded')">退款</button></div>`;
+
+  const itemsHTML = (o.items || []).map(item => `
+    <div class="item-card">
+      <div class="item-info">
+        <div class="item-name">${item.name || '—'}</div>
+        <div class="item-meta">${item.category || ''} ${item.sku_id ? '· ' + item.sku_id : ''}</div>
+      </div>
+      <div class="item-right">
+        <div class="item-price">¥${(item.price || 0).toFixed(2)}</div>
+        <div class="item-qty">× ${item.quantity || 1}</div>
+      </div>
+    </div>
+  `).join('');
+
+  const convHTML = o.conversation_snapshot ? renderConversation(o.conversation_snapshot) : '<p style="color:var(--color-text-secondary);font-size:13px">无对话记录</p>';
+  const recHTML = o.recommendation_snapshot ? renderRecommendations(o.recommendation_snapshot) : '<p style="color:var(--color-text-secondary);font-size:13px">无推荐记录</p>';
+  const constitutionHTML = o.constitution_snapshot ? renderConstitution(o.constitution_snapshot) : '<p style="color:var(--color-text-secondary);font-size:13px">无体质分析</p>';
+
+  body.innerHTML = `
+    <div class="section">
+      <div class="section-title">订单信息</div>
+      <div class="info-grid">
+        <div class="info-item"><span class="label">订单号</span><span class="value" style="font-family:var(--font-mono)">${o.order_no}</span></div>
+        <div class="info-item"><span class="label">状态</span><span class="value">${badgeHTML(o.status)}</span></div>
+        <div class="info-item"><span class="label">顾客昵称</span><span class="value">${o.customer_nickname || '—'}</span></div>
+        <div class="info-item"><span class="label">手机号</span><span class="value">${o.customer_phone || '—'}</span></div>
+        <div class="info-item"><span class="label">订单金额</span><span class="value" style="font-family:var(--font-mono);font-size:16px;color:var(--color-primary)">¥${(o.total_amount || 0).toFixed(2)}</span></div>
+        <div class="info-item"><span class="label">下单时间</span><span class="value" style="font-family:var(--font-mono)">${o.created_at || '—'}</span></div>
+        ${o.paid_at ? `<div class="info-item"><span class="label">支付时间</span><span class="value" style="font-family:var(--font-mono)">${o.paid_at}</span></div>` : ''}
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">商品明细 <span style="font-weight:400;font-size:10px;text-transform:none;letter-spacing:0;color:var(--color-text-secondary)">（${(o.items || []).length} 件）</span></div>
+      <div class="items-list">${itemsHTML || '<p style="color:var(--color-text-secondary);font-size:13px">无商品</p>'}</div>
+    </div>
+    <div class="section">
+      <div class="section-title">对话记录</div>
+      ${convHTML}
+    </div>
+    <div class="section">
+      <div class="section-title">推荐产品</div>
+      ${recHTML}
+    </div>
+    <div class="section">
+      <div class="section-title">体质分析</div>
+      ${constitutionHTML}
+    </div>
+    ${statusActions}
+  `;
+}
+
+function renderConversation(msgs) {
+  if (!Array.isArray(msgs) || !msgs.length) return '<p style="color:var(--color-text-secondary);font-size:13px">无对话记录</p>';
+  return `<div class="chat-list">${msgs.map(m => {
+    const role = m.role === 'user' ? 'user' : 'assistant';
+    const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content);
+    return `<div class="chat-msg ${role}">
+      <div class="chat-bubble">${escapeHTML(content)}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderRecommendations(rec) {
+  let products = [];
+  if (Array.isArray(rec)) products = rec;
+  else if (rec && typeof rec === 'object') products = rec.products || rec.recommended || [];
+  if (!products.length) return '<p style="color:var(--color-text-secondary);font-size:13px">无推荐记录</p>';
+  return `<div class="rec-products">${products.map(p => `
+    <div class="rec-card">
+      <div>
+        <div class="rec-name">${p.name || '—'}</div>
+        <div class="rec-cat">${p.category || ''} ${p.sku_id ? '· ' + p.sku_id : ''}</div>
+      </div>
+      ${p.price ? `<div class="rec-price">¥${p.price.toFixed(2)}</div>` : ''}
+    </div>
+  `).join('')}</div>`;
+}
+
+function renderConstitution(cons) {
+  if (!cons || typeof cons !== 'object') return '<p style="color:var(--color-text-secondary);font-size:13px">无体质分析</p>';
+  const entries = Object.entries(cons).filter(([k]) => k && !k.startsWith('_'));
+  if (!entries.length) return '<p style="color:var(--color-text-secondary);font-size:13px">无体质分析</p>';
+  return `<div class="constitution-grid">${entries.map(([k, v]) => `
+    <div class="constitution-item">
+      <div class="ci-label">${k}</div>
+      <div class="ci-value">${typeof v === 'object' ? JSON.stringify(v) : String(v)}</div>
+    </div>
+  `).join('')}</div>`;
+}
+
+async function changeStatus(id, status) {
+  try {
+    const data = await api('/orders/' + id + '/status?' + new URLSearchParams({ status }).toString(), { method: 'PATCH' });
+    if (data.detail) { showToast(data.detail); return; }
+    showToast('状态已更新为: ' + statusText(status));
+    if (panelOrder && panelOrder.id === id) {
+      panelOrder = data;
+      renderPanel(data);
+      renderOrdersTable();
+    }
+  } catch(e) { showToast('更新失败，请重试'); }
+}
+
+function statusText(s) {
+  return { paid: '已支付', cancelled: '已取消', refunded: '已退款' }[s] || s;
+}
+
+function escapeHTML(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* ── Toast ── */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>${msg}`;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ── Search debounce ── */
+let searchTimer = null;
+document.getElementById('searchInput').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchQuery = e.target.value.trim();
+    currentPage = 1;
+    loadProducts();
+  }, 300);
+});
+
+document.getElementById('showZeroStock').addEventListener('change', e => {
+  showZeroStock = e.target.checked;
+  currentPage = 1;
+  loadProducts();
+});
+
+/* ── Order search debounce ── */
+let orderSearchTimer = null;
+document.getElementById('orderSearchInput').addEventListener('input', e => {
+  clearTimeout(orderSearchTimer);
+  orderSearchTimer = setTimeout(() => {
+    orderSearchQuery = e.target.value.trim();
+    ordersPage = 1;
+    loadOrders();
+  }, 300);
+});
+
+document.getElementById('statusFilter').addEventListener('change', e => {
+  currentStatus = e.target.value;
+  ordersPage = 1;
+  loadOrders();
+});
+
+/* ── Init ── */
+fetch('/health').then(r => {
+  document.getElementById('serverStatus').textContent = r.ok ? '后端正常' : '后端异常';
+}).catch(() => { document.getElementById('serverStatus').textContent = '后端离线'; });
+
+updateSelAndSave();
+loadProducts().then(loadCategories);
+</script>
+</body>
+</html>

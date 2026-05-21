@@ -18,3 +18,4 @@ class Product(Base):
     contraindication_tags = Column(Text)
     price = Column(Float, default=0)
     is_active = Column(Boolean, default=True)
+    stock = Column(Integer, default=0)

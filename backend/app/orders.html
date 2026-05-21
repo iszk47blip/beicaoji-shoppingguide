@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>焙草集 - 订单管理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-primary:   #2d7d46;
+      --color-primary-hover: #236839;
+      --color-secondary: #475569;
+      --color-accent:    #059669;
+      --color-bg:        #F8FAFC;
+      --color-surface:   #FFFFFF;
+      --color-fg:        #0F172A;
+      --color-muted:     #F1F5F9;
+      --color-border:    #E2E8F0;
+      --color-text-secondary: #64748B;
+      --color-danger:    #DC2626;
+      --color-warning:   #D97706;
+      --color-success:   #059669;
+      --font-sans: 'Fira Sans', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      --font-mono: 'Fira Code', 'Cascadia Code', monospace;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+      --transition: 150ms ease;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-sans); background: var(--color-bg); color: var(--color-fg); line-height: 1.5; }
+
+    /* ── Header ── */
+    .app-header {
+      background: var(--color-primary);
+      color: #fff;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-md);
+    }
+    .app-header .logo { display: flex; align-items: center; gap: 10px; }
+    .app-header h1 { font-size: 16px; font-weight: 600; }
+    .app-header .server-badge {
+      font-size: 12px; opacity: 0.75; font-family: var(--font-mono);
+      background: rgba(255,255,255,0.15); padding: 3px 10px; border-radius: 20px;
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      background: var(--color-surface);
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+      max-width: 300px;
+    }
+    .search-wrap svg {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      color: var(--color-text-secondary); pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      height: 34px;
+      padding: 0 10px 0 34px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-family: var(--font-sans);
+      background: var(--color-muted);
+      color: var(--color-fg);
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+    }
+    .search-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgb(45 125 70 / 0.12);
+      background: var(--color-surface);
+    }
+    .toolbar select {
+      height: 34px; padding: 0 10px; border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); font-size: 13px; font-family: var(--font-sans);
+      background: var(--color-surface); color: var(--color-fg); outline: none;
+      transition: border-color var(--transition);
+    }
+    .toolbar select:focus { border-color: var(--color-primary); }
+
+    /* ── Buttons ── */
+    .btn {
+      height: 34px; padding: 0 14px; border: none; border-radius: var(--radius-md);
+      font-size: 13px; font-weight: 500; font-family: var(--font-sans); cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: background var(--transition), transform 80ms;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary { background: var(--color-primary); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+    .btn-secondary { background: var(--color-muted); color: var(--color-fg); border: 1px solid var(--color-border); }
+    .btn-secondary:hover:not(:disabled) { background: var(--color-border); }
+    .btn-danger { background: var(--color-danger); color: #fff; }
+    .btn-danger:hover:not(:disabled) { background: #B91C1C; }
+    .btn-ghost { background: transparent; color: var(--color-text-secondary); padding: 0 8px; }
+    .btn-ghost:hover:not(:disabled) { background: var(--color-muted); color: var(--color-fg); }
+    .btn-icon { width: 34px; padding: 0; justify-content: center; }
+
+    /* ── Layout ── */
+    .main { padding: 16px 20px; max-width: 1200px; margin: 0 auto; }
+
+    /* ── KPI Cards ── */
+    .kpi-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .kpi-card {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg); padding: 12px 16px; min-width: 110px; flex: 1;
+      box-shadow: var(--shadow-sm);
+    }
+    .kpi-card .kpi-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; font-weight: 500; letter-spacing: 0.02em; }
+    .kpi-card .kpi-value { font-size: 24px; font-weight: 700; font-family: var(--font-mono); line-height: 1; color: var(--color-fg); }
+    .kpi-card.danger .kpi-value { color: var(--color-danger); }
+    .kpi-card.warning .kpi-value { color: var(--color-warning); }
+    .kpi-card.success .kpi-value { color: var(--color-success); }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm);
+    }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table thead { background: var(--color-muted); }
+    .data-table th {
+      padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 600;
+      color: var(--color-text-secondary); letter-spacing: 0.04em; text-transform: uppercase;
+      border-bottom: 1px solid var(--color-border); white-space: nowrap;
+    }
+    .data-table td {
+      padding: 10px 12px; font-size: 13px; border-bottom: 1px solid var(--color-muted);
+      vertical-align: middle;
+    }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr { transition: background 80ms; cursor: pointer; }
+    .data-table tbody tr:hover td { background: var(--color-muted); }
+
+    /* ── Badge ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px;
+      border-radius: 20px; font-size: 11px; font-weight: 500;
+    }
+    .badge-pending { background: rgb(217 119 6 / 0.1); color: var(--color-warning); }
+    .badge-paid { background: rgb(5 150 105 / 0.1); color: var(--color-success); }
+    .badge-cancelled { background: rgb(100 116 139 / 0.15); color: var(--color-secondary); }
+    .badge-refunded { background: rgb(220 38 38 / 0.1); color: var(--color-danger); }
+
+    /* ── Pagination ── */
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 16px; }
+    .pagination button {
+      min-width: 32px; height: 32px; padding: 0 8px; border: 1px solid var(--color-border);
+      background: var(--color-surface); border-radius: var(--radius-sm); cursor: pointer;
+      font-size: 12px; font-family: var(--font-mono); color: var(--color-fg);
+      transition: all var(--transition); display: flex; align-items: center; justify-content: center;
+    }
+    .pagination button:hover:not(:disabled) { background: var(--color-muted); }
+    .pagination button.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .pagination .page-info { font-size: 12px; color: var(--color-text-secondary); padding: 0 8px; font-family: var(--font-mono); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; background: var(--color-fg); color: #fff;
+      padding: 10px 18px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500;
+      opacity: 0; transform: translateY(8px); transition: opacity 200ms, transform 200ms;
+      pointer-events: none; display: flex; align-items: center; gap: 8px;
+      box-shadow: var(--shadow-md); z-index: 9999;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── Detail Panel (slide-in from right) ── */
+    .panel-overlay {
+      position: fixed; inset: 0; background: rgba(15,23,42,0.35);
+      z-index: 200; opacity: 0; pointer-events: none;
+      transition: opacity 250ms;
+    }
+    .panel-overlay.show { opacity: 1; pointer-events: all; }
+    .detail-panel {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 560px; max-width: 95vw;
+      background: var(--color-surface);
+      box-shadow: var(--shadow-lg);
+      transform: translateX(100%);
+      transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+      display: flex; flex-direction: column;
+      z-index: 300;
+    }
+    .panel-overlay.show .detail-panel { transform: translateX(0); }
+
+    .panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .panel-header h2 { font-size: 15px; font-weight: 600; }
+    .panel-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+
+    /* ── Section inside panel ── */
+    .section { margin-bottom: 22px; }
+    .section-title {
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--color-text-secondary); margin-bottom: 10px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+    .info-item { display: flex; flex-direction: column; gap: 2px; }
+    .info-item .label { font-size: 11px; color: var(--color-text-secondary); }
+    .info-item .value { font-size: 13px; font-weight: 500; }
+
+    /* ── Order Items ── */
+    .items-list { display: flex; flex-direction: column; gap: 8px; }
+    .item-card {
+      border: 1px solid var(--color-border); border-radius: var(--radius-md);
+      padding: 10px 12px; display: flex; justify-content: space-between; align-items: center;
+      background: var(--color-bg);
+    }
+    .item-info .item-name { font-weight: 500; font-size: 13px; }
+    .item-info .item-meta { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+    .item-right { text-align: right; }
+    .item-price { font-family: var(--font-mono); font-weight: 600; font-size: 13px; }
+    .item-qty { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+
+    /* ── Status buttons ── */
+    .status-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border); }
+    .status-btn {
+      padding: 6px 14px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500;
+      cursor: pointer; border: 1px solid transparent; transition: all var(--transition);
+    }
+    .status-btn.paid { background: rgb(5 150 105 / 0.1); color: var(--color-success); border-color: rgb(5 150 105 / 0.25); }
+    .status-btn.paid:hover { background: rgb(5 150 105 / 0.2); }
+    .status-btn.cancelled { background: rgb(100 116 139 / 0.1); color: var(--color-secondary); border-color: rgb(100 116 139 / 0.25); }
+    .status-btn.cancelled:hover { background: rgb(100 116 139 / 0.2); }
+    .status-btn.refunded { background: rgb(220 38 38 / 0.08); color: var(--color-danger); border-color: rgb(220 38 38 / 0.2); }
+    .status-btn.refunded:hover { background: rgb(220 38 38 / 0.15); }
+
+    /* ── Conversation chat bubbles ── */
+    .chat-list { display: flex; flex-direction: column; gap: 10px; }
+    .chat-msg { display: flex; flex-direction: column; max-width: 85%; }
+    .chat-msg.user { align-self: flex-end; align-items: flex-end; }
+    .chat-msg.assistant { align-self: flex-start; align-items: flex-start; }
+    .chat-bubble {
+      padding: 8px 12px; border-radius: 12px; font-size: 13px; line-height: 1.5;
+      word-break: break-all;
+    }
+    .chat-msg.user .chat-bubble {
+      background: var(--color-primary); color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .chat-msg.assistant .chat-bubble {
+      background: var(--color-muted); color: var(--color-fg);
+      border-bottom-left-radius: 4px;
+    }
+    .chat-time { font-size: 10px; color: var(--color-text-secondary); margin-top: 3px; font-family: var(--font-mono); }
+
+    /* ── Recommendation products ── */
+    .rec-products { display: flex; flex-direction: column; gap: 8px; }
+    .rec-card {
+      border: 1px solid var(--color-border); border-radius: var(--radius-md);
+      padding: 10px 12px; display: flex; gap: 10px; align-items: center;
+      background: var(--color-bg);
+    }
+    .rec-card .rec-name { font-weight: 500; font-size: 13px; }
+    .rec-card .rec-cat { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+    .rec-card .rec-price { font-family: var(--font-mono); font-weight: 600; font-size: 13px; color: var(--color-primary); margin-left: auto; }
+
+    /* ── Constitution ── */
+    .constitution-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .constitution-item {
+      background: var(--color-muted); border-radius: var(--radius-sm);
+      padding: 8px 10px;
+    }
+    .constitution-item .ci-label { font-size: 11px; color: var(--color-text-secondary); }
+    .constitution-item .ci-value { font-size: 14px; font-weight: 600; margin-top: 2px; }
+
+    /* ── Empty / Loading ── */
+    .state-box { text-align: center; padding: 48px 20px; color: var(--color-text-secondary); }
+    .state-box svg { margin-bottom: 10px; opacity: 0.35; }
+    .state-box p { font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <rect width="24" height="24" rx="6" fill="rgba(255,255,255,0.2)"/>
+      <path d="M7 8h10M7 12h7M7 16h5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+    <h1>焙草集 订单管理</h1>
+  </div>
+  <span class="server-badge" id="serverStatus">检测中</span>
+</header>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input class="search-input" id="searchInput" type="text" placeholder="搜索订单号、顾客昵称…" aria-label="搜索订单">
+  </div>
+  <select id="statusFilter" aria-label="状态筛选">
+    <option value="">全部状态</option>
+    <option value="pending">待支付</option>
+    <option value="paid">已支付</option>
+    <option value="cancelled">已取消</option>
+    <option value="refunded">已退款</option>
+  </select>
+  <div style="flex:1"></div>
+  <button class="btn btn-secondary" onclick="loadOrders()" title="刷新">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+  </button>
+</div>
+
+<main class="main">
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi-card">
+      <div class="kpi-label">全部订单</div>
+      <div class="kpi-value" id="kpi-total">—</div>
+    </div>
+    <div class="kpi-card warning">
+      <div class="kpi-label">待支付</div>
+      <div class="kpi-value" id="kpi-pending">—</div>
+    </div>
+    <div class="kpi-card success">
+      <div class="kpi-label">已支付</div>
+      <div class="kpi-value" id="kpi-paid">—</div>
+    </div>
+    <div class="kpi-card danger">
+      <div class="kpi-label">已退款</div>
+      <div class="kpi-value" id="kpi-refunded">—</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table" role="grid">
+      <thead>
+        <tr>
+          <th>订单号</th>
+          <th>顾客昵称</th>
+          <th>商品数</th>
+          <th>金额</th>
+          <th>状态</th>
+          <th>时间</th>
+        </tr>
+      </thead>
+      <tbody id="ordersTableBody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination"></div>
+</main>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ── Detail Panel ── -->
+<div class="panel-overlay" id="panelOverlay" onclick="closePanel(event.target === this)">
+  <div class="detail-panel" id="detailPanel">
+    <div class="panel-header">
+      <h2>订单详情</h2>
+      <button class="btn btn-ghost btn-icon" onclick="closePanel()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="panel-body" id="panelBody">
+      <!-- dynamic content -->
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api/staff';
+let orders = [];
+let currentPage = 1;
+let pageSize = 20;
+let totalCount = 0;
+let currentStatus = '';
+let searchQuery = '';
+let panelOrder = null;
+
+function api(path, opts = {}) {
+  return fetch(API + path, opts).then(r => r.json());
+}
+
+function badgeHTML(status) {
+  const map = {
+    pending: ['待支付', 'badge-pending'],
+    paid: ['已支付', 'badge-paid'],
+    cancelled: ['已取消', 'badge-cancelled'],
+    refunded: ['已退款', 'badge-refunded'],
+  };
+  const [label, cls] = map[status] || [status, 'badge-pending'];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+async function loadOrders() {
+  const params = new URLSearchParams({ page: currentPage, page_size: pageSize });
+  if (currentStatus) params.set('status', currentStatus);
+  if (searchQuery) params.set('q', searchQuery);
+  try {
+    const data = await api('/orders?' + params.toString());
+    orders = data.orders || [];
+    totalCount = data.total || 0;
+    renderKPIs();
+    renderTable();
+    renderPagination();
+  } catch(e) {
+    showToast('加载失败，请重试');
+  }
+}
+
+function renderKPIs() {
+  // For simplicity, derive from current page data for now; we'll track totals in memory
+  const pending = orders.filter(o => o.status === 'pending').length;
+  const paid = orders.filter(o => o.status === 'paid').length;
+  const refunded = orders.filter(o => o.status === 'refunded').length;
+  document.getElementById('kpi-pending').textContent = pending;
+  document.getElementById('kpi-paid').textContent = paid;
+  document.getElementById('kpi-refunded').textContent = refunded;
+  document.getElementById('kpi-total').textContent = totalCount;
+}
+
+function renderTable() {
+  const tbody = document.getElementById('ordersTableBody');
+  if (!orders.length) {
+    tbody.innerHTML = `<tr><td colspan="6">
+      <div class="state-box">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+        <p>${searchQuery ? '未找到匹配订单' : '暂无订单'}</p>
+      </div>
+    </td></tr>`;
+    return;
+  }
+  tbody.innerHTML = orders.map(o => `
+    <tr onclick="openOrder(${o.id})" title="点击查看详情">
+      <td style="font-family:var(--font-mono);font-size:12px">${o.order_no}</td>
+      <td>${o.customer_nickname || '—'}</td>
+      <td>${o.items ? o.items.length : 0}</td>
+      <td style="font-family:var(--font-mono);font-weight:500">¥${(o.total_amount || 0).toFixed(2)}</td>
+      <td>${badgeHTML(o.status)}</td>
+      <td style="font-family:var(--font-mono);font-size:12px;color:var(--color-text-secondary)">${o.created_at ? o.created_at.substring(0, 16) : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+function renderPagination() {
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const pag = document.getElementById('pagination');
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+  const pages = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) pages.push(i);
+    else if (i === currentPage - 2 || i === currentPage + 2) pages.push('...');
+  }
+  pag.innerHTML = `
+    <button ${currentPage === 1 ? 'disabled' : ''} onclick="goPage(${currentPage - 1})" aria-label="上一页">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    ${pages.map(p => p === '...' ? '<span class="page-info" style="padding:0 4px">…</span>'
+      : `<button class="${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`).join('')}
+    <button ${currentPage === totalPages ? 'disabled' : ''} onclick="goPage(${currentPage + 1})" aria-label="下一页">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  `;
+}
+
+function goPage(p) { currentPage = p; loadOrders(); }
+
+async function openOrder(id) {
+  try {
+    const data = await api('/orders/' + id);
+    if (data.detail) { showToast('订单不存在'); return; }
+    panelOrder = data;
+    renderPanel(data);
+    document.getElementById('panelOverlay').classList.add('show');
+  } catch(e) { showToast('加载失败'); }
+}
+
+function closePanel() {
+  document.getElementById('panelOverlay').classList.remove('show');
+  panelOrder = null;
+}
+
+function renderPanel(o) {
+  const body = document.getElementById('panelBody');
+  const statusActions = o.status !== 'paid' ? `
+    <div class="status-actions">
+      ${o.status !== 'paid' ? `<button class="status-btn paid" onclick="changeStatus(${o.id}, 'paid')">标记已支付</button>` : ''}
+      ${o.status !== 'cancelled' ? `<button class="status-btn cancelled" onclick="changeStatus(${o.id}, 'cancelled')">取消订单</button>` : ''}
+      ${o.status !== 'refunded' ? `<button class="status-btn refunded" onclick="changeStatus(${o.id}, 'refunded')">退款</button>` : ''}
+    </div>` : `<div class="status-actions"><button class="status-btn refunded" onclick="changeStatus(${o.id}, 'refunded')">退款</button></div>`;
+
+  const itemsHTML = (o.items || []).map(item => `
+    <div class="item-card">
+      <div class="item-info">
+        <div class="item-name">${item.name || '—'}</div>
+        <div class="item-meta">${item.category || ''} ${item.sku_id ? '· ' + item.sku_id : ''}</div>
+      </div>
+      <div class="item-right">
+        <div class="item-price">¥${(item.price || 0).toFixed(2)}</div>
+        <div class="item-qty">× ${item.quantity || 1}</div>
+      </div>
+    </div>
+  `).join('');
+
+  const convHTML = o.conversation_snapshot ? renderConversation(o.conversation_snapshot) : '<p style="color:var(--color-text-secondary);font-size:13px">无对话记录</p>';
+  const recHTML = o.recommendation_snapshot ? renderRecommendations(o.recommendation_snapshot) : '<p style="color:var(--color-text-secondary);font-size:13px">无推荐记录</p>';
+  const constitutionHTML = o.constitution_snapshot ? renderConstitution(o.constitution_snapshot) : '<p style="color:var(--color-text-secondary);font-size:13px">无体质分析</p>';
+
+  body.innerHTML = `
+    <div class="section">
+      <div class="section-title">订单信息</div>
+      <div class="info-grid">
+        <div class="info-item"><span class="label">订单号</span><span class="value" style="font-family:var(--font-mono)">${o.order_no}</span></div>
+        <div class="info-item"><span class="label">状态</span><span class="value">${badgeHTML(o.status)}</span></div>
+        <div class="info-item"><span class="label">顾客昵称</span><span class="value">${o.customer_nickname || '—'}</span></div>
+        <div class="info-item"><span class="label">手机号</span><span class="value">${o.customer_phone || '—'}</span></div>
+        <div class="info-item"><span class="label">订单金额</span><span class="value" style="font-family:var(--font-mono);font-size:16px;color:var(--color-primary)">¥${(o.total_amount || 0).toFixed(2)}</span></div>
+        <div class="info-item"><span class="label">下单时间</span><span class="value" style="font-family:var(--font-mono)">${o.created_at || '—'}</span></div>
+        ${o.paid_at ? `<div class="info-item"><span class="label">支付时间</span><span class="value" style="font-family:var(--font-mono)">${o.paid_at}</span></div>` : ''}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">商品明细 <span style="font-weight:400;font-size:10px;text-transform:none;letter-spacing:0;color:var(--color-text-secondary)">（${(o.items || []).length} 件）</span></div>
+      <div class="items-list">${itemsHTML || '<p style="color:var(--color-text-secondary);font-size:13px">无商品</p>'}</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">对话记录</div>
+      ${convHTML}
+    </div>
+
+    <div class="section">
+      <div class="section-title">推荐产品</div>
+      ${recHTML}
+    </div>
+
+    <div class="section">
+      <div class="section-title">体质分析</div>
+      ${constitutionHTML}
+    </div>
+
+    ${statusActions}
+  `;
+}
+
+function renderConversation(msgs) {
+  if (!Array.isArray(msgs) || !msgs.length) return '<p style="color:var(--color-text-secondary);font-size:13px">无对话记录</p>';
+  return `<div class="chat-list">${msgs.map(m => {
+    const role = m.role === 'user' ? 'user' : 'assistant';
+    const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content);
+    return `<div class="chat-msg ${role}">
+      <div class="chat-bubble">${escapeHTML(content)}</div>
+      ${m.created_at ? `<div class="chat-time">${m.created_at.substring(0, 16)}</div>` : ''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderRecommendations(rec) {
+  // rec can be a product list or a dict with products key
+  let products = [];
+  if (Array.isArray(rec)) products = rec;
+  else if (rec && typeof rec === 'object') products = rec.products || rec.recommended || [];
+  if (!products.length) return '<p style="color:var(--color-text-secondary);font-size:13px">无推荐记录</p>';
+  return `<div class="rec-products">${products.map(p => `
+    <div class="rec-card">
+      <div>
+        <div class="rec-name">${p.name || '—'}</div>
+        <div class="rec-cat">${p.category || ''} ${p.sku_id ? '· ' + p.sku_id : ''}</div>
+      </div>
+      ${p.price ? `<div class="rec-price">¥${p.price.toFixed(2)}</div>` : ''}
+    </div>
+  `).join('')}</div>`;
+}
+
+function renderConstitution(cons) {
+  if (!cons || typeof cons !== 'object') return '<p style="color:var(--color-text-secondary);font-size:13px">无体质分析</p>';
+  const entries = Object.entries(cons).filter(([k]) => k && !k.startsWith('_'));
+  if (!entries.length) return '<p style="color:var(--color-text-secondary);font-size:13px">无体质分析</p>';
+  return `<div class="constitution-grid">${entries.map(([k, v]) => `
+    <div class="constitution-item">
+      <div class="ci-label">${k}</div>
+      <div class="ci-value">${typeof v === 'object' ? JSON.stringify(v) : String(v)}</div>
+    </div>
+  `).join('')}</div>`;
+}
+
+async function changeStatus(id, status) {
+  try {
+    const data = await api('/orders/' + id + '/status?' + new URLSearchParams({ status }).toString(), {
+      method: 'PATCH',
+    });
+    if (data.detail) { showToast(data.detail); return; }
+    showToast('状态已更新为: ' + statusText(status));
+    // Refresh panel if still open
+    if (panelOrder && panelOrder.id === id) {
+      panelOrder = data;
+      renderPanel(data);
+      renderTable();
+    }
+  } catch(e) { showToast('更新失败，请重试'); }
+}
+
+function statusText(s) {
+  return {paid:'已支付', cancelled:'已取消', refunded:'已退款'}[s] || s;
+}
+
+function escapeHTML(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>${msg}`;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ── Search debounce ── */
+let searchTimer = null;
+document.getElementById('searchInput').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchQuery = e.target.value.trim();
+    currentPage = 1;
+    loadOrders();
+  }, 300);
+});
+
+/* ── Status filter ── */
+document.getElementById('statusFilter').addEventListener('change', e => {
+  currentStatus = e.target.value;
+  currentPage = 1;
+  loadOrders();
+});
+
+/* ── Init ── */
+fetch('/health').then(r => {
+  document.getElementById('serverStatus').textContent = r.ok ? '后端正常' : '后端异常';
+}).catch(() => { document.getElementById('serverStatus').textContent = '后端离线'; });
+
+loadOrders();
+</script>
+</body>
+</html>
