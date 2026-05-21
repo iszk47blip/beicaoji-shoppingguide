@@ -212,7 +212,12 @@ def send_message(req: SendRequest, db=Depends(get_db)):
                     pass
     elif intent == "show_catalog":
         product_svc = ProductService(db)
-        catalog = product_svc.get_constitution_catalog()
+        raw_catalog = product_svc.get_constitution_catalog()
+        catalog = {
+            "categories": raw_catalog,
+            "youzan_url": "https://shop187173170.m.youzan.com/v2/feature/7E6JIPDsLP",
+            "youzan_qr": "/static/youzan-qr.jpg",
+        }
 
     # Existing stage-based routing
     if result.get("stage") == "recommend" and not recommendation:
