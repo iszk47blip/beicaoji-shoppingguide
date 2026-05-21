@@ -192,7 +192,7 @@ async def import_excel(file: UploadFile = File(...), db=Depends(get_db)):
             imported += 1
 
     db.commit()
-    return {"imported": imported, "updated": updated, "total": imported + updated, "failed": failed_tags}
+    return {"imported": imported, "updated": updated, "total": imported + updated, "failed_tags": failed_tags}
 
 
 @router.get("/customers")
