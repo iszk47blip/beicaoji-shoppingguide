@@ -334,13 +334,17 @@ def update_order_status(order_id: int, status: str, db=Depends(get_db)):
 def get_constitution_bundles(db=Depends(get_db)):
     """获取所有体质套餐，按体质类型分组"""
     from app.models.constitution_bundle import ConstitutionBundle
+    from app.models.product import Product
     bundles = db.query(ConstitutionBundle).order_by(ConstitutionBundle.sort_order).all()
     grouped = {}
     for b in bundles:
+        prod = db.query(Product).filter_by(sku_id=b.sku_id).first()
         grouped.setdefault(b.constitution_type, []).append({
             "sku_id": b.sku_id,
             "sort_order": b.sort_order,
             "description": b.description,
+            "name": prod.name if prod else b.sku_id,
+            "category": prod.category if prod else "—",
         })
     return grouped
 
@@ -366,8 +370,14 @@ def put_constitution_bundle(ctype: str, data: dict = Body(...), db=Depends(get_d
 def get_hot_products(db=Depends(get_db)):
     """获取主推产品列表"""
     from app.models.constitution_bundle import HotProduct
+    from app.models.product import Product
     items = db.query(HotProduct).order_by(HotProduct.sort_order).all()
-    return [{"sku_id": h.sku_id, "sort_order": h.sort_order} for h in items]
+    return [
+        {"sku_id": h.sku_id, "sort_order": h.sort_order,
+         "name": db.query(Product).filter_by(sku_id=h.sku_id).first().name if db.query(Product).filter_by(sku_id=h.sku_id).first() else h.sku_id,
+         "category": db.query(Product).filter_by(sku_id=h.sku_id).first().category if db.query(Product).filter_by(sku_id=h.sku_id).first() else "—"}
+        for h in items
+    ]
 
 
 @router.put("/hot-products")

@@ -507,6 +507,20 @@
       </svg>
       <span>订单</span>
     </div>
+    <div class="nav-item" data-view="hotProducts" onclick="switchView('hotProducts')" title="主推管理">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+      <span>主推</span>
+    </div>
+    <div class="nav-item" data-view="bundle" onclick="switchView('bundle')" title="体质套餐">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+      <span>体质套餐</span>
+    </div>
   </nav>
 
   <div class="main-wrap">
@@ -637,6 +651,62 @@
           </table>
         </div>
         <div class="pagination" id="ordersPagination"></div>
+      </div>
+    </div>
+
+    <!-- ═══ Hot Products View ═══ -->
+    <div id="hotProductsView" class="view">
+      <div class="toolbar">
+        <div style="display:flex;align-items:center;gap:8px;flex:1">
+          <strong>主推产品</strong>
+          <span style="color:var(--color-text-secondary);font-size:13px">— 顾客问"你有什么产品"时展示</span>
+        </div>
+        <button class="btn btn-primary" onclick="saveHotProducts()">
+          保存修改
+        </button>
+      </div>
+      <div class="main">
+        <div class="table-wrap">
+          <table class="data-table" role="grid">
+            <thead>
+              <tr>
+                <th>排序</th>
+                <th>商品</th>
+                <th>分类</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="hotProductsTableBody"></tbody>
+          </table>
+        </div>
+        <div style="padding:16px">
+          <p style="color:var(--color-text-secondary);font-size:13px">从商品列表添加主推产品：</p>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <select id="addHotProductSelect" style="flex:1;padding:6px 10px;border:1px solid var(--color-border);border-radius:6px">
+              <option value="">— 选择商品 —</option>
+            </select>
+            <button class="btn btn-secondary" onclick="addHotProduct()">添加</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Bundle View ═══ -->
+    <div id="bundleView" class="view">
+      <div class="toolbar">
+        <div style="display:flex;align-items:center;gap:8px;flex:1">
+          <strong>体质套餐</strong>
+          <span style="color:var(--color-text-secondary);font-size:13px">— 体质辨识后推荐给顾客的固定套餐</span>
+        </div>
+        <button class="btn btn-primary" onclick="saveBundle()">
+          保存修改
+        </button>
+      </div>
+      <div class="main">
+        <div style="padding:12px 20px;border-bottom:1px solid var(--color-border)">
+          <div id="bundleTabBar" style="display:flex;gap:4px"></div>
+        </div>
+        <div id="bundleContent"></div>
       </div>
     </div>
   </div>
@@ -771,6 +841,8 @@ function switchView(view) {
   document.getElementById('headerTitle').textContent =
     view === 'products' ? '焙草集 运营后台' : '焙草集 运营后台';
   if (view === 'orders') loadOrders();
+  if (view === 'hotProducts') loadHotProducts();
+  if (view === 'bundle') loadBundles();
 }
 
 // ── Products ─────────────────────────────────────────────────────
@@ -1320,6 +1392,144 @@ fetch('/health').then(r => {
 
 updateSelAndSave();
 loadProducts().then(loadCategories);
+
+// ── Hot Products ──────────────────────────────────────────────────
+let hotProducts = [];
+
+async function loadHotProducts() {
+  hotProducts = await api('/hot-products');
+  // enrich with product names from the full product list
+  const products = await api('/products?limit=500');
+  const prodMap = {};
+  products.products.forEach(p => { prodMap[p.sku_id] = p; });
+  hotProducts.forEach(h => {
+    const prod = prodMap[h.sku_id];
+    h.name = prod ? prod.name : h.sku_id;
+    h.category = prod ? prod.category : '—';
+  });
+  renderHotProducts();
+  // populate the select dropdown with all products
+  const sel = document.getElementById('addHotProductSelect');
+  sel.innerHTML = '<option value="">— 选择商品 —</option>' +
+    products.products.filter(p => !hotProducts.find(h => h.sku_id === p.sku_id))
+      .map(p => `<option value="${p.sku_id}">${p.name} (${p.category})</option>`).join('');
+}
+
+function renderHotProducts() {
+  const tbody = document.getElementById('hotProductsTableBody');
+  tbody.innerHTML = hotProducts.map((p, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${p.name || p.sku_id}</td>
+      <td>${p.category || '—'}</td>
+      <td><button class="btn btn-secondary" style="padding:4px 10px;font-size:12px" onclick="removeHotProduct('${p.sku_id}')">移除</button></td>
+    </tr>`).join('');
+}
+
+function addHotProduct() {
+  const sel = document.getElementById('addHotProductSelect');
+  const sku = sel.value;
+  if (!sku) return;
+  const products = window._allProducts || [];
+  const prod = products.find(p => p.sku_id === sku);
+  if (prod && !hotProducts.find(h => h.sku_id === sku)) {
+    hotProducts.push({ sku_id: sku, name: prod.name, category: prod.category, sort_order: hotProducts.length });
+    renderHotProducts();
+  }
+  sel.value = '';
+}
+
+function removeHotProduct(sku) {
+  hotProducts = hotProducts.filter(p => p.sku_id !== sku);
+  renderHotProducts();
+}
+
+async function saveHotProducts() {
+  const payload = { products: hotProducts.map((p, i) => ({ sku_id: p.sku_id, sort_order: i })) };
+  const res = await api('/hot-products', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  if (res.status === 'ok') { alert('保存成功'); loadHotProducts(); }
+  else { alert('保存失败'); }
+}
+
+// ── Constitution Bundle ─────────────────────────────────────────
+const BUNDLE_TYPES = ['气虚质', '阳虚质', '阴虚质', '湿热质', '平和质'];
+let bundleData = {};
+
+async function loadBundles() {
+  bundleData = await api('/constitution-bundles');
+  const tabBar = document.getElementById('bundleTabBar');
+  tabBar.innerHTML = BUNDLE_TYPES.map(t =>
+    `<button class="pill" id="bundleTab-${t}" onclick="showBundleTab('${t}')" style="padding:6px 14px;border-radius:20px;border:1px solid var(--color-border);background:none;cursor:pointer">${t}</button>`
+  ).join('');
+  showBundleTab('气虚质');
+}
+
+function showBundleTab(type) {
+  BUNDLE_TYPES.forEach(t => {
+    const btn = document.getElementById('bundleTab-' + t);
+    btn.style.background = t === type ? 'var(--color-primary)' : '';
+    btn.style.color = t === type ? '#fff' : '';
+  });
+  const items = bundleData[type] || [];
+  const content = document.getElementById('bundleContent');
+  content.innerHTML = `
+    <div style="padding:16px 20px">
+      <p style="margin-bottom:12px">${type} 套餐商品：</p>
+      <table class="data-table" role="grid">
+        <thead><tr><th>商品</th><th>分类</th><th>操作</th></tr></thead>
+        <tbody id="bundleTableBody">
+          ${items.map(p => `<tr><td>${p.name || p.sku_id}</td><td>—</td><td><button class="btn btn-secondary" style="padding:4px 10px;font-size:12px" onclick="removeBundleItem('${type}','${p.sku_id}')">移除</button></td></tr>`).join('')}
+        </tbody>
+      </table>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <select id="addBundleSelect-${type}" style="flex:1;padding:6px 10px;border:1px solid var(--color-border);border-radius:6px">
+          <option value="">— 添加商品 —</option>
+        </select>
+        <button class="btn btn-secondary" onclick="addBundleItem('${type}')">添加</button>
+      </div>
+    </div>`;
+  // populate select with products
+  (async () => {
+    const products = await api('/products?limit=500');
+    const existingSkus = new Set((bundleData[type] || []).map(p => p.sku_id));
+    const sel = document.getElementById('addBundleSelect-' + type);
+    sel.innerHTML = '<option value="">— 添加商品 —</option>' +
+      products.products.filter(p => !existingSkus.has(p.sku_id))
+        .map(p => `<option value="${p.sku_id}">${p.name} (${p.category})</option>`).join('');
+    window._allProducts = products.products;
+  })();
+}
+
+function addBundleItem(type) {
+  const sel = document.getElementById('addBundleSelect-' + type);
+  const sku = sel.value;
+  if (!sku || !bundleData[type]) return;
+  if (!bundleData[type].find(p => p.sku_id === sku)) {
+    bundleData[type].push({ sku_id: sku });
+    showBundleTab(type);
+  }
+}
+
+function removeBundleItem(type, sku) {
+  if (bundleData[type]) {
+    bundleData[type] = bundleData[type].filter(p => p.sku_id !== sku);
+    showBundleTab(type);
+  }
+}
+
+async function saveBundle() {
+  // Save all bundle types
+  let ok = true;
+  for (const type of BUNDLE_TYPES) {
+    const items = (bundleData[type] || []);
+    const res = await api(`/staff/constitution-bundles/${encodeURIComponent(type)}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ products: items.map((p, i) => ({ sku_id: p.sku_id, sort_order: i })) })
+    });
+    if (res.status !== 'ok') ok = false;
+  }
+  alert(ok ? '保存成功' : '部分保存失败');
+}
 </script>
 </body>
 </html>

@@ -17,7 +17,12 @@
   "compileType": "miniprogram",
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "/minitest"
+      }
+    ],
     "include": []
   },
   "appid": "wx2e15befdbdeedc34",

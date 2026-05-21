@@ -27,4 +27,17 @@ function resetSession() {
   wx.removeStorageSync('session_id');
 }
 
-module.exports = { sendMessage, resetSession, generateSessionId, BASE };
+function createOrder(data) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: BASE + '/staff/orders',
+      method: 'POST',
+      timeout: 30000,
+      data: data,
+      success: res => resolve(res.data),
+      fail: reject
+    });
+  });
+}
+
+module.exports = { sendMessage, resetSession, generateSessionId, BASE, createOrder };

@@ -21,7 +21,7 @@
               <text class="rx-subtitle">体质食养方</text>
               <view class="rx-desc" wx:if="{{item.constitution.description}}">{{item.constitution.description}}</view>
               <view class="rx-ornament">࿄</view>
-              <view class="rx-products-title">推 荐 食 单</view>
+              <view class="rx-products-title">精选搭配</view>
               <product-card wx:for="{{item.bundle}}" wx:key="sku_id" product="{{item}}" bindquantitychange="onProductQuantityChange"/>
               <button class="rx-report-btn" bindtap="onViewReport">查阅完整调理报告</button>
             </view>
@@ -31,15 +31,11 @@
         <view class="msg-block" wx:if="{{item.type === 'catalog'}}">
           <view class="bubble" wx:if="{{item.content}}">{{item.content}}</view>
           <view class="catalog-container">
-            <block wx:for="{{item.categories}}" wx:for-item="cat" wx:key="constitution">
-              <view class="catalog-group">
-                <view class="catalog-header">
-                  <text class="catalog-ctype">{{cat.constitution}}</text>
-                  <text class="catalog-desc">{{cat.description}}</text>
-                </view>
-                <product-card wx:for="{{cat.products}}" wx:for-item="prod" wx:key="sku_id" product="{{prod}}" quantity="{{cartQty[prod.sku_id] || 0}}" bindquantitychange="onProductQuantityChange"/>
-              </view>
-            </block>
+            <product-card wx:for="{{item.categories}}" wx:for-item="prod" wx:key="sku_id" product="{{prod}}" bindquantitychange="onProductQuantityChange"/>
+          </view>
+          <view class="youzan-tip" wx:if="{{item.youzanUrl}}">
+            <text class="youzan-hint-text">更多商品可长按识别二维码进店逛逛</text>
+            <image class="youzan-qr" src="{{item.youzanQr}}" mode="aspectFit" bindtap="onYouzanTap" data-url="{{item.youzanUrl}}"/>
           </view>
         </view>
       </view>
@@ -65,15 +61,6 @@
     </view>
     <cart-bar count="{{cartCount}}" total="{{cartTotal}}" bindtap="onCartBarTap"/>
     <view class="input-bar">
-      <view class="voice-btn {{voiceState}}" bindtap="onVoiceTap"
-            bindtouchstart="onVoiceTouchStart"
-            bindtouchmove="onVoiceTouchMove"
-            bindtouchend="onVoiceTouchEnd">
-        <text class="voice-btn-text">{{voiceBtnText}}</text>
-      </view>
-      <view class="listening-hint" wx:if="{{voiceState === 'recording' || voiceState === 'recognizing'}}">
-        <text class="listening-hint-text">{{voiceHint}}</text>
-      </view>
       <input class="input" placeholder="输入你的情况..."
              value="{{inputText}}" bindinput="onInput" confirm-type="send"
              bindconfirm="onSend"/>

@@ -563,6 +563,7 @@ class DialogueEngine:
             result["stage"] = Stage.RECOMMEND
             result["scene_raw"] = combined_scene
             result["scene_followup_done"] = True
+            result["quick_replies"] = ["推荐更多产品", "重新了解体质", "看看产品目录"]
             return result
 
         else:
@@ -571,6 +572,7 @@ class DialogueEngine:
                 ctx
             )
             result["stage"] = Stage.RECOMMEND
+            result["quick_replies"] = ["推荐更多产品", "重新了解体质", "看看产品目录"]
             return result
 
     def _handle_recommend(self, state: dict, user_input: str) -> dict:
