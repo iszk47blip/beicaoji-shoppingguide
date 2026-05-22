@@ -771,6 +771,14 @@
         <input type="file" id="importFile" accept=".xlsx" style="display:none" onchange="handleFileSelect(this)">
       </div>
       <div class="import-result" id="importResult" style="display:none"></div>
+      <!-- Preview section (hidden by default) -->
+      <div id="importPreview" style="display:none; margin-top:16px;">
+        <div style="font-size:13px;color:#666;margin-bottom:8px;">列映射确认：</div>
+        <div id="previewMapping" style="background:#f8f8f8;border-radius:6px;padding:10px;font-size:12px;margin-bottom:12px;"></div>
+        <div id="previewWarnings" style="margin-bottom:12px;"></div>
+        <div style="font-size:13px;color:#666;margin-bottom:4px;">数据样例（前5行）：</div>
+        <div id="previewSamples" style="max-height:200px;overflow-y:auto;border:1px solid #eee;border-radius:6px;"></div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeImportModal()">关闭</button>
@@ -1083,7 +1091,9 @@ function openImportModal() {
   pendingFile = null;
   document.getElementById('importHint').textContent = '点击上传或拖拽 Excel 文件';
   document.getElementById('importResult').style.display = 'none';
+  document.getElementById('importPreview').style.display = 'none';
   document.getElementById('importBtn').disabled = true;
+  document.getElementById('importBtn').textContent = '开始导入';
   document.getElementById('importModal').classList.add('show');
 }
 
@@ -1092,11 +1102,13 @@ function closeImportModal() {
 }
 
 function handleFileSelect(input) {
-  if (input.files && input.files[0]) {
-    pendingFile = input.files[0];
-    document.getElementById('importHint').textContent = '已选: ' + input.files[0].name;
-    document.getElementById('importBtn').disabled = false;
-  }
+  if (!input.files.length) return;
+  document.getElementById('importHint').textContent = '已选: ' + input.files[0].name;
+  document.getElementById('importBtn').disabled = true;
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('importBtn').textContent = '预览确认';
+  pendingFile = input.files[0];
+  doPreview();
 }
 
 function handleFileDrop(e) {
@@ -1106,9 +1118,49 @@ function handleFileDrop(e) {
   if (file && file.name.endsWith('.xlsx')) {
     pendingFile = file;
     document.getElementById('importHint').textContent = '已选: ' + file.name;
-    document.getElementById('importBtn').disabled = false;
+    document.getElementById('importBtn').disabled = true;
+    document.getElementById('importPreview').style.display = 'none';
+    document.getElementById('importBtn').textContent = '预览确认';
+    doPreview();
   } else {
     showToast('仅支持 .xlsx 文件');
+  }
+}
+
+async function doPreview() {
+  const fileInput = document.getElementById('importFile');
+  if (!pendingFile) return;
+  const fd = new FormData();
+  fd.append('file', pendingFile);
+  document.getElementById('importHint').textContent = '正在分析...';
+  try {
+    const res = await fetch(API + '/products/preview', { method: 'POST', body: fd }).then(r => r.json());
+    document.getElementById('importPreview').style.display = 'block';
+    const mappingDiv = document.getElementById('previewMapping');
+    const mapLines = Object.entries(res.mapping || {}).map(([field, col]) => `${col} → ${field}`).join('\n');
+    mappingDiv.innerHTML = '<pre style="margin:0;white-space:pre-wrap;">' + mapLines + '</pre>';
+    const warnDiv = document.getElementById('previewWarnings');
+    if (res.warnings && res.warnings.length) {
+      warnDiv.innerHTML = res.warnings.map(w =>
+        `<div style="color:${w.type === 'garbled' ? '#e74c3c' : '#e67e22'};font-size:12px;margin-bottom:4px;">
+          ${w.type === 'garbled' ? '🔴' : '⚠️'} 第${w.row}行: ${w.message} (sku: ${w.sku_id})
+        </div>`
+      ).join('');
+    } else {
+      warnDiv.innerHTML = '';
+    }
+    const samplesDiv = document.getElementById('previewSamples');
+    samplesDiv.innerHTML = res.samples.map(s =>
+      `<div style="padding:6px 10px;border-bottom:1px solid #f0f0f0;font-size:12px;">
+        <strong>${s.sku_id || '(无条码)'}</strong>: ${s.name || '(无名称)'} | ¥${s.price || 0}
+      </div>`
+    ).join('');
+    document.getElementById('importHint').textContent = `共 ${res.total_rows} 行，已分析`;
+    document.getElementById('importBtn').disabled = false;
+    document.getElementById('importBtn').textContent = '确认导入';
+  } catch(e) {
+    document.getElementById('importHint').textContent = '分析失败，请重试';
+    console.error(e);
   }
 }
 
