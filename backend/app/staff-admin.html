@@ -802,6 +802,17 @@
 const API = '/api/staff';
 let currentView = 'products';
 
+// Product Picker state
+let _pickerCallback = null;
+let _pickerSelected = [];
+let _pickerAllProducts = [];
+let _pickerSearch = "";
+let _pickerCategory = "";
+let _pickerDebounceTimer = null;
+let _pickerPage = 1;
+let _pickerHasMore = true;
+let _pickerLoading = false;
+
 // ── Products state ──────────────────────────────────────────────────
 let products = [];
 let categories = [];
@@ -1653,6 +1664,152 @@ async function saveBundle() {
   background: #fafafa;
 }
 #pickerSelectedCount { font-size: 13px; color: #666; }
+
+// ── Product Picker ──────────────────────────────────────────
+
+async function openProductPicker(callback, alreadySelectedSkuIds) {
+  _pickerCallback = callback;
+  _pickerSelected = (alreadySelectedSkuIds || []).map(sku => ({ sku_id: sku }));
+  document.getElementById('pickerSearch').value = '';
+  document.getElementById('pickerResults').innerHTML = '<div class="picker-loading">加载中…</div>';
+  document.getElementById('pickerSelectedCount').textContent = '已选 0 件';
+  document.getElementById('pickerConfirmBtn').disabled = true;
+  document.getElementById('pickerCategoryPills').innerHTML = '';
+  _pickerSearch = '';
+  _pickerCategory = '';
+  _pickerPage = 1;
+  _pickerHasMore = true;
+  loadPickerCategories();
+  await loadPickerProducts(true);
+  document.getElementById('productPicker').classList.add('show');
+}
+
+function closeProductPicker() {
+  document.getElementById('productPicker').classList.remove('show');
+  _pickerCallback = null;
+  _pickerSelected = [];
+}
+
+function closePickerOnOverlay(e) {
+  if (e.target.id === 'productPicker') closeProductPicker();
+}
+
+async function loadPickerCategories() {
+  const data = await api('/categories');
+  const pills = document.getElementById('pickerCategoryPills');
+  pills.innerHTML = '<span class="ppicker-pill active" onclick="setPickerCategory(\'\')">全部</span>';
+  (data.categories || []).forEach(cat => {
+    pills.innerHTML += `<span class="ppicker-pill" onclick="setPickerCategory(\'${cat}\')">${cat}</span>`;
+  });
+}
+
+function setPickerCategory(cat) {
+  _pickerCategory = cat;
+  _pickerPage = 1;
+  _pickerHasMore = true;
+  document.querySelectorAll('.ppicker-pill').forEach(el => {
+    el.classList.toggle('active', el.textContent === (cat || '全部'));
+  });
+  loadPickerProducts(true);
+}
+
+function onPickerSearchInput() {
+  clearTimeout(_pickerDebounceTimer);
+  _pickerDebounceTimer = setTimeout(() => {
+    _pickerSearch = document.getElementById('pickerSearch').value.trim();
+    _pickerPage = 1;
+    _pickerHasMore = true;
+    loadPickerProducts(true);
+  }, 300);
+}
+
+async function loadPickerProducts(reset) {
+  if (_pickerLoading) return;
+  if (!reset && !_pickerHasMore) return;
+  if (reset) {
+    _pickerAllProducts = [];
+    _pickerPage = 1;
+  }
+  _pickerLoading = true;
+  const params = new URLSearchParams({ page: _pickerPage, page_size: 50 });
+  if (_pickerSearch) params.set('q', _pickerSearch);
+  if (_pickerCategory) params.set('category', _pickerCategory);
+  const data = await api('/products?' + params.toString());
+  const products = data.products || [];
+  if (reset) {
+    _pickerAllProducts = products;
+    document.getElementById('pickerResults').innerHTML = '';
+  } else {
+    _pickerAllProducts.push(...products);
+  }
+  _pickerHasMore = products.length === 50;
+  _pickerPage++;
+  _pickerLoading = false;
+  renderPickerItems();
+  setupPickerScroll();
+}
+
+function renderPickerItems() {
+  const container = document.getElementById('pickerResults');
+  const selectedSkus = new Set(_pickerSelected.map(i => i.sku_id));
+  container.innerHTML = _pickerAllProducts.map(p => {
+    const isSelected = selectedSkus.has(p.sku_id);
+    return `<div class="picker-item${isSelected ? ' disabled' : ''}" data-sku="${p.sku_id}" onclick="togglePickerItem('${p.sku_id}')">
+      <input type="checkbox"${isSelected ? ' checked' : ''}${isSelected ? ' disabled' : ''} onclick="event.stopPropagation();togglePickerItem('${p.sku_id}')">
+      <div class="picker-item-info">
+        <div class="picker-item-name">${p.name || p.sku_id}</div>
+        <div class="picker-item-meta">${p.category || ''} ${p.price ? '· ¥' + p.price : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+  if (!_pickerAllProducts.length) {
+    container.innerHTML = '<div class="picker-loading">未找到商品</div>';
+  }
+}
+
+function togglePickerItem(sku) {
+  const product = _pickerAllProducts.find(p => p.sku_id === sku);
+  if (!product) return;
+  const idx = _pickerSelected.findIndex(i => i.sku_id === sku);
+  if (idx >= 0) {
+    _pickerSelected.splice(idx, 1);
+  } else {
+    _pickerSelected.push({ sku_id: product.sku_id, name: product.name, category: product.category, price: product.price });
+  }
+  updatePickerUI();
+}
+
+function updatePickerUI() {
+  const count = _pickerSelected.length;
+  document.getElementById('pickerSelectedCount').textContent = `已选 ${count} 件`;
+  document.getElementById('pickerConfirmBtn').disabled = count === 0;
+  _pickerSelected.forEach(item => {
+    const row = document.querySelector(`.picker-item[data-sku="${item.sku_id}"]`);
+    if (row) {
+      row.querySelector('input').checked = true;
+      row.classList.add('disabled');
+      row.querySelector('input').disabled = true;
+    }
+  });
+}
+
+function setupPickerScroll() {
+  const el = document.getElementById('pickerResults');
+  if (el.dataset.bound) return;
+  el.dataset.bound = '1';
+  el.addEventListener('scroll', () => {
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
+      if (!_pickerLoading && _pickerHasMore) loadPickerProducts(false);
+    }
+  });
+}
+
+function confirmPickerSelection() {
+  if (!_pickerCallback || !_pickerSelected.length) return;
+  const items = _pickerSelected.map(i => ({ ...i }));
+  closeProductPicker();
+  _pickerCallback(items);
+}
 </script>
 
 <!-- Product Picker Slide-over -->
