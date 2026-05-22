@@ -1467,7 +1467,8 @@ const BUNDLE_TYPES = ['气虚质', '阳虚质', '阴虚质', '湿热质', '平�
 let bundleData = {};
 
 async function loadBundles() {
-  bundleData = await api('/constitution-bundles');
+  window._bundles = data;
+  bundleData = data;
   const tabBar = document.getElementById('bundleTabBar');
   tabBar.innerHTML = BUNDLE_TYPES.map(t =>
     `<button class="pill" id="bundleTab-${t}" onclick="showBundleTab('${t}')" style="padding:6px 14px;border-radius:20px;border:1px solid var(--color-border);background:none;cursor:pointer">${t}</button>`
@@ -1493,38 +1494,40 @@ function showBundleTab(type) {
         </tbody>
       </table>
       <div style="margin-top:12px;display:flex;gap:8px">
-        <select id="addBundleSelect-${type}" style="flex:1;padding:6px 10px;border:1px solid var(--color-border);border-radius:6px">
-          <option value="">— 添加商品 —</option>
-        </select>
-        <button class="btn btn-secondary" onclick="addBundleItem('${type}')">添加</button>
+        <button class="btn btn-secondary" onclick="openBundlePicker('${type}')">+ 添加商品</button>
       </div>
     </div>`;
-  // populate select with products
-  (async () => {
-    const products = await api('/products?limit=500');
-    const existingSkus = new Set((bundleData[type] || []).map(p => p.sku_id));
-    const sel = document.getElementById('addBundleSelect-' + type);
-    sel.innerHTML = '<option value="">— 添加商品 —</option>' +
-      products.products.filter(p => !existingSkus.has(p.sku_id))
-        .map(p => `<option value="${p.sku_id}">${p.name} (${p.category})</option>`).join('');
-    window._allProducts = products.products;
-  })();
 }
 
-function addBundleItem(type) {
-  const sel = document.getElementById('addBundleSelect-' + type);
-  const sku = sel.value;
-  if (!sku || !bundleData[type]) return;
-  if (!bundleData[type].find(p => p.sku_id === sku)) {
-    bundleData[type].push({ sku_id: sku });
-    showBundleTab(type);
-  }
+function openBundlePicker(type) {
+  const existing = window._bundles && window._bundles[type] ? window._bundles[type] : [];
+  const alreadySkus = existing.map(p => p.sku_id);
+  openProductPicker(async function(items) {
+    for (const item of items) {
+      await addBundleItemToType(type, item);
+    }
+    loadBundles();
+  }, alreadySkus);
+}
+
+async function addBundleItemToType(type, item) {
+  const current = window._bundles && window._bundles[type] ? [...window._bundles[type]] : [];
+  current.push({ sku_id: item.sku_id, sort_order: current.length });
+  await fetch(API + '/constitution-bundles/' + type, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items: current.map(p => ({ sku_id: p.sku_id, sort_order: p.sort_order || 0 })) })
+  });
 }
 
 function removeBundleItem(type, sku) {
-  if (bundleData[type]) {
-    bundleData[type] = bundleData[type].filter(p => p.sku_id !== sku);
-    showBundleTab(type);
+  if (window._bundles && window._bundles[type]) {
+    window._bundles[type] = window._bundles[type].filter(p => p.sku_id !== sku);
+    fetch(API + '/constitution-bundles/' + type, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: window._bundles[type].map(p => ({ sku_id: p.sku_id, sort_order: p.sort_order || 0 })) })
+    }).then(() => showBundleTab(type));
   }
 }
 
