@@ -1520,8 +1520,8 @@ const BUNDLE_TYPES = ['气虚质', '阳虚质', '阴虚质', '湿热质', '平�
 let bundleData = {};
 
 async function loadBundles() {
-  window._bundles = data;
-  bundleData = data;
+  bundleData = await api('/constitution-bundles');
+  window._bundles = bundleData;
   const tabBar = document.getElementById('bundleTabBar');
   tabBar.innerHTML = BUNDLE_TYPES.map(t =>
     `<button class="pill" id="bundleTab-${t}" onclick="showBundleTab('${t}')" style="padding:6px 14px;border-radius:20px;border:1px solid var(--color-border);background:none;cursor:pointer">${t}</button>`
