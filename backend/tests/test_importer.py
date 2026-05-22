@@ -125,17 +125,41 @@ def test_merge_preserves_tags_updates_master():
 
 def test_preview_endpoint_returns_mapping_and_warnings():
     """Test that preview endpoint returns mapping, samples, and warnings."""
+    import tempfile, os
     from fastapi.testclient import TestClient
     from app.main import app
-    client = TestClient(app)
-    with open("E:/VIBE/beicaoji/beicaoji-产品目录/bread.xlsx", "rb") as f:
-        response = client.post(
-            "/api/staff/products/preview",
-            files={"file": ("bread.xlsx", f, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}
-        )
-    assert response.status_code == 200
-    data = response.json()
-    assert "mapping" in data
-    assert "samples" in data
-    assert "warnings" in data
-    assert "total_rows" in data
+    # Use temp file DB so TestClient can access it
+    fd, db_path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+    try:
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
+        from app.models import Base
+        engine = create_engine(f"sqlite:///{db_path}")
+        Base.metadata.create_all(engine)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        # Override get_db to use this test session
+        from app.api.deps import get_db
+        app.dependency_overrides[get_db] = lambda: session
+        client = TestClient(app)
+        with open("E:/VIBE/beicaoji/beicaoji-产品目录/bread.xlsx", "rb") as f:
+            response = client.post(
+                "/api/staff/products/preview",
+                files={"file": ("bread.xlsx", f, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}
+            )
+        assert response.status_code == 200
+        data = response.json()
+        assert "mapping" in data
+        assert "samples" in data
+        assert "warnings" in data
+        assert "total_rows" in data
+        app.dependency_overrides.clear()
+    finally:
+        session.close()
+        engine.dispose()
+        import time; time.sleep(0.1)
+        try:
+            os.unlink(db_path)
+        except PermissionError:
+            pass  # Windows - file may still be held briefly

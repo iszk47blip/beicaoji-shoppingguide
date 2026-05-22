@@ -20,7 +20,9 @@ app.include_router(staff_admin_router)
 app.include_router(orders_page_router)
 
 # Serve static files (youzan QR code, etc.)
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+_STATIC_DIR = Path(__file__).parent / "static"
+if _STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 
 # Serve test page at root
 _TEST_HTML = Path(__file__).parent.parent.parent / "test-chat.html"
