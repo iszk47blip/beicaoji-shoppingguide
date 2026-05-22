@@ -93,6 +93,66 @@ def list_categories(db=Depends(get_db)):
     cats = db.query(Product.category).distinct().all()
     return {"categories": [c[0] for c in cats if c[0]]}
 
+
+@router.post("/products/preview")
+async def preview_import(file: UploadFile = File(...), db=Depends(get_db)):
+    """上传 Excel，返回预览（映射+样例+警告），不写 DB。"""
+    if not file.filename.endswith('.xlsx'):
+        raise HTTPException(status_code=400, detail="仅支持 .xlsx 文件")
+    content = await file.read()
+    wb = openpyxl.load_workbook(io.BytesIO(content))
+    ws = wb.active
+
+    headers = [cell.value for cell in ws[1]]
+    field_map = parse_excel_columns(headers)
+
+    total_rows = sum(1 for row in ws.iter_rows(min_row=2) if any(c.value for c in row))
+
+    samples = []
+    warnings = []
+    existing_skus = {p.sku_id for p in db.query(Product.sku_id).all()}
+
+    for row_idx, row in enumerate(ws.iter_rows(min_row=2, max_row=7, values_only=True), start=2):
+        row_data = {}
+        for field_name, col_idx in field_map.items():
+            val = row[col_idx] if col_idx < len(row) else None
+            row_data[field_name] = val
+
+        sku = row_data.get("sku_id", "")
+        name = row_data.get("name", "")
+
+        is_garbled = False
+        if name:
+            try:
+                name.encode("utf-8")
+            except UnicodeEncodeError:
+                is_garbled = True
+
+        if is_garbled:
+            warnings.append({
+                "row": row_idx,
+                "type": "garbled",
+                "sku_id": sku or "(empty)",
+                "message": "商品名乱码，请在有赞后台修正后重新导入"
+            })
+        elif sku and sku in existing_skus:
+            warnings.append({
+                "row": row_idx,
+                "type": "duplicate",
+                "sku_id": sku,
+                "message": "数据库已存在，将更新主数据"
+            })
+
+        samples.append({k: v for k, v in row_data.items() if k})
+
+    return {
+        "total_rows": total_rows,
+        "mapping": {v: k for k, v in field_map.items()},
+        "warnings": warnings,
+        "samples": samples
+    }
+
+
 @router.post("/products/import")
 async def import_excel(file: UploadFile = File(...), db=Depends(get_db)):
     """上传有赞导出的商品库 Excel，增量导入（主数据用导入值，Tag 保留/补全）"""

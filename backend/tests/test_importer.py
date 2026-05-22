@@ -121,3 +121,21 @@ def test_merge_preserves_tags_updates_master():
     assert existing.price == 25.0
     assert existing.scene_tags == "睡眠, 焦虑"  # preserved
     assert existing.feature_tag == "安神"  # preserved
+
+
+def test_preview_endpoint_returns_mapping_and_warnings():
+    """Test that preview endpoint returns mapping, samples, and warnings."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+    client = TestClient(app)
+    with open("E:/VIBE/beicaoji/beicaoji-产品目录/bread.xlsx", "rb") as f:
+        response = client.post(
+            "/api/staff/products/preview",
+            files={"file": ("bread.xlsx", f, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}
+        )
+    assert response.status_code == 200
+    data = response.json()
+    assert "mapping" in data
+    assert "samples" in data
+    assert "warnings" in data
+    assert "total_rows" in data
