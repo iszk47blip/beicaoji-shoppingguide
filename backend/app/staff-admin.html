@@ -1530,6 +1530,150 @@ async function saveBundle() {
   }
   alert(ok ? '保存成功' : '部分保存失败');
 }
+
+/* Product Picker Slide-over */
+.picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 1000;
+  display: none;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+.picker-overlay.show {
+  display: flex;
+}
+.picker-panel {
+  width: 480px;
+  max-width: 100vw;
+  height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+  animation: slideIn 0.2s ease-out;
+}
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+}
+.picker-title { font-size: 16px; font-weight: 600; color: #333; }
+.picker-close { font-size: 18px; color: #888; background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+.picker-close:hover { background: #f5f5f5; }
+.picker-toolbar {
+  padding: 12px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.picker-search {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.picker-pills {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.picker-pills::-webkit-scrollbar { height: 0; }
+.ppicker-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  background: #f0f0f0;
+  color: #666;
+}
+.ppicker-pill.active { background: #2d7d46; color: #fff; }
+.picker-results {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.picker-loading {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  font-size: 14px;
+}
+.picker-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.picker-item:hover { background: #f8f8f8; }
+.picker-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.picker-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.picker-item.disabled input { cursor: not-allowed; }
+.picker-item-info { flex: 1; min-width: 0; }
+.picker-item-name {
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.picker-item-meta {
+  font-size: 12px;
+  color: #999;
+  margin-top: 2px;
+}
+.picker-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-top: 1px solid #eee;
+  background: #fafafa;
+}
+#pickerSelectedCount { font-size: 13px; color: #666; }
 </script>
+
+<!-- Product Picker Slide-over -->
+<div id="productPicker" class="picker-overlay" onclick="closePickerOnOverlay(event)">
+  <div class="picker-panel">
+    <div class="picker-header">
+      <span class="picker-title">选择商品</span>
+      <button class="btn btn-ghost btn-icon picker-close" onclick="closeProductPicker()">✕</button>
+    </div>
+    <div class="picker-toolbar">
+      <input type="text" id="pickerSearch" class="picker-search" placeholder="搜索商品名称/条码..." oninput="onPickerSearchInput()">
+      <div id="pickerCategoryPills" class="picker-pills"></div>
+    </div>
+    <div id="pickerResults" class="picker-results">
+      <div class="picker-loading">加载中…</div>
+    </div>
+    <div class="picker-footer">
+      <span id="pickerSelectedCount">已选 0 件</span>
+      <button class="btn btn-primary" id="pickerConfirmBtn" onclick="confirmPickerSelection()" disabled>确认添加 →</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
