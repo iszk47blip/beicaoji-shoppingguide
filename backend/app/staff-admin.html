@@ -1866,6 +1866,12 @@ function confirmPickerSelection() {
   closeProductPicker();
   _pickerCallback(items);
 }
+
+// ── Init on page load ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadCategories();
+  loadProducts();
+});
 </script>
 
 <!-- Product Picker Slide-over -->
