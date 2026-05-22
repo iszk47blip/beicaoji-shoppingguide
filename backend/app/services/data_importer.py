@@ -70,3 +70,40 @@ def import_sheet(session, filepath, category):
         session.add(product)
         count += 1
     return count
+
+
+# Fields where Excel data always wins (source of truth)
+MASTER_DATA_FIELDS = {"name", "price", "category", "ingredients", "is_active", "sku_id"}
+
+# Fields where AI generation is trusted — preserve existing, fill if empty
+TAG_DATA_FIELDS = {"feature_tag", "scene_tags", "sales_script", "contraindication_tags"}
+
+
+def merge_product(existing: Product, new_data: dict) -> bool:
+    """
+    Merge new_data into existing product.
+    Returns True if any field was changed.
+    Master data fields always overwrite.
+    Tag data fields: preserve existing, only fill if empty.
+    """
+    changed = False
+    for field in MASTER_DATA_FIELDS:
+        if field in new_data and new_data[field] not in (None, ""):
+            val = new_data[field]
+            if field == "price" and val is not None:
+                val = float(val)
+            if field == "is_active":
+                val = bool(val)
+            if getattr(existing, field, None) != val:
+                setattr(existing, field, val)
+                changed = True
+
+    for field in TAG_DATA_FIELDS:
+        current = getattr(existing, field, None) or ""
+        if current.strip():
+            continue  # preserve existing
+        if field in new_data and new_data[field] not in (None, ""):
+            setattr(existing, field, new_data[field])
+            changed = True
+
+    return changed

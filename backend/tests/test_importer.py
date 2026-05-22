@@ -55,3 +55,30 @@ def test_dynamic_column_mapping():
     assert field_map["contraindication_tags"] == 8
     # "销售话术" -> sales_script (index 9)
     assert field_map["sales_script"] == 9
+
+
+def test_merge_preserves_tags_updates_master():
+    """Test that existing product's name/price are overwritten but tags preserved."""
+    from app.services.data_importer import merge_product
+    from app.models.product import Product
+    existing = Product(
+        sku_id="B001",
+        name="旧名称",
+        price=10.0,
+        category="饼干",
+        scene_tags="睡眠, 焦虑",
+        feature_tag="安神",
+        sales_script="",
+        contraindication_tags=""
+    )
+    new_data = {
+        "name": "新名称",
+        "price": 25.0,
+        "category": "饼干",
+        "ingredients": "薰衣草, 洋甘菊",
+    }
+    merge_product(existing, new_data)
+    assert existing.name == "新名称"
+    assert existing.price == 25.0
+    assert existing.scene_tags == "睡眠, 焦虑"  # preserved
+    assert existing.feature_tag == "安神"  # preserved
