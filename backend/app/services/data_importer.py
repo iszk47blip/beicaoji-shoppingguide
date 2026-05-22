@@ -107,3 +107,54 @@ def merge_product(existing: Product, new_data: dict) -> bool:
             changed = True
 
     return changed
+
+
+def import_products_from_wb(session, wb) -> dict:
+    """
+    Import products from an openpyxl Workbook object.
+    Uses dynamic column mapping, applies merge strategy.
+    Returns {imported, updated, tag_filled, skipped_garbled}.
+    """
+    ws = wb.active
+    headers = [cell.value for cell in ws[1]]
+    field_map = parse_excel_columns(headers)
+
+    imported = updated = tag_filled = skipped_garbled = 0
+
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        row_data = {}
+        for field_name, col_idx in field_map.items():
+            val = row[col_idx] if col_idx < len(row) else None
+            row_data[field_name] = val
+
+        sku = str(row_data.get("sku_id") or "").strip()
+        if not sku:
+            continue
+
+        name = str(row_data.get("name") or "").strip()
+        is_garbled = False
+        if name:
+            try:
+                name.encode("utf-8")
+            except UnicodeEncodeError:
+                is_garbled = True
+
+        if is_garbled:
+            skipped_garbled += 1
+            continue
+
+        existing = session.query(Product).filter(Product.sku_id == sku).first()
+
+        if existing:
+            merge_product(existing, row_data)
+            updated += 1
+            if not (existing.scene_tags and existing.scene_tags.strip()):
+                tag_filled += 1
+        else:
+            product = Product(sku_id=sku)
+            merge_product(product, row_data)
+            session.add(product)
+            imported += 1
+
+    session.commit()
+    return {"imported": imported, "updated": updated, "tag_filled": tag_filled, "skipped_garbled": skipped_garbled}

@@ -57,6 +57,45 @@ def test_dynamic_column_mapping():
     assert field_map["sales_script"] == 9
 
 
+def test_import_updates_master_preserves_tags():
+    """Test that re-importing updates name/price but preserves existing tags."""
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    from app.models import Base
+    from app.models.product import Product
+    from app.services.data_importer import import_products_from_wb
+    import openpyxl
+
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    # Insert existing product with tags
+    existing = Product(
+        sku_id="B001",
+        name="旧名称",
+        price=10.0,
+        category="饼干",
+        scene_tags="睡眠",
+        feature_tag="安神",
+    )
+    session.add(existing)
+    session.commit()
+
+    # Create a minimal xlsx wb with updated data for B001
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.append(["条码", "商品名称", "零售价", "一级分类", "成分"])
+    ws.append(["B001", "新名称", 25.0, "饼干", "薰衣草, 洋甘菊"])
+
+    import_products_from_wb(session, wb)
+
+    updated = session.query(Product).filter_by(sku_id="B001").first()
+    assert updated.name == "新名称"
+    assert updated.price == 25.0
+    assert updated.scene_tags == "睡眠"  # preserved
+
 def test_merge_preserves_tags_updates_master():
     """Test that existing product's name/price are overwritten but tags preserved."""
     from app.services.data_importer import merge_product
