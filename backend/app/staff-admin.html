@@ -682,10 +682,7 @@
         <div style="padding:16px">
           <p style="color:var(--color-text-secondary);font-size:13px">从商品列表添加主推产品：</p>
           <div style="display:flex;gap:8px;margin-top:8px">
-            <select id="addHotProductSelect" style="flex:1;padding:6px 10px;border:1px solid var(--color-border);border-radius:6px">
-              <option value="">— 选择商品 —</option>
-            </select>
-            <button class="btn btn-secondary" onclick="addHotProduct()">添加</button>
+            <button class="btn btn-secondary" onclick="openHotProductPicker()">+ 添加商品</button>
           </div>
         </div>
       </div>
@@ -1409,6 +1406,7 @@ let hotProducts = [];
 
 async function loadHotProducts() {
   hotProducts = await api('/hot-products');
+  window._hotProducts = hotProducts;
   // enrich with product names from the full product list
   const products = await api('/products?limit=500');
   const prodMap = {};
@@ -1418,12 +1416,8 @@ async function loadHotProducts() {
     h.name = prod ? prod.name : h.sku_id;
     h.category = prod ? prod.category : '—';
   });
+  window._hotProducts = hotProducts;
   renderHotProducts();
-  // populate the select dropdown with all products
-  const sel = document.getElementById('addHotProductSelect');
-  sel.innerHTML = '<option value="">— 选择商品 —</option>' +
-    products.products.filter(p => !hotProducts.find(h => h.sku_id === p.sku_id))
-      .map(p => `<option value="${p.sku_id}">${p.name} (${p.category})</option>`).join('');
 }
 
 function renderHotProducts() {
@@ -1437,17 +1431,24 @@ function renderHotProducts() {
     </tr>`).join('');
 }
 
-function addHotProduct() {
-  const sel = document.getElementById('addHotProductSelect');
-  const sku = sel.value;
-  if (!sku) return;
-  const products = window._allProducts || [];
-  const prod = products.find(p => p.sku_id === sku);
-  if (prod && !hotProducts.find(h => h.sku_id === sku)) {
-    hotProducts.push({ sku_id: sku, name: prod.name, category: prod.category, sort_order: hotProducts.length });
-    renderHotProducts();
-  }
-  sel.value = '';
+function openHotProductPicker() {
+  const alreadySkus = window._hotProducts ? window._hotProducts.map(p => p.sku_id) : [];
+  openProductPicker(async function(items) {
+    for (const item of items) {
+      await addHotProductItem(item);
+    }
+    loadHotProducts();
+  }, alreadySkus);
+}
+
+async function addHotProductItem(item) {
+  const current = window._hotProducts || [];
+  await api('/hot-products', {
+    method: 'PUT',
+    body: JSON.stringify({
+      products: [...current, { sku_id: item.sku_id, sort_order: current.length }].map(p => ({ sku_id: p.sku_id, sort_order: p.sort_order || 0 }))
+    })
+  });
 }
 
 function removeHotProduct(sku) {
