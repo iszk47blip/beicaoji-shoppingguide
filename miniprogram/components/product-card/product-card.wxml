@@ -1,5 +1,5 @@
 <view class="rec-card">
-  <view class="card-emoji bg-{{product.category}}">
+  <view class="card-emoji {{catCls}}">
     <text>{{emoji}}</text>
   </view>
   <view class="card-body">

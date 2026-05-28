@@ -1,8 +1,10 @@
 # backend/app/services/prompts.py
 
 WELCOME_MESSAGE = (
-    "嗨，欢迎来焙草集～我是小焙。\n\n"
-    "想随便看看产品，还是聊聊你最近身体的感觉？我帮你挑合适的。"
+    "嗨，欢迎来焙草集～我是小焙，你的AI体质管家。\n\n"
+    "和我聊聊你最近的身体感觉，我就能帮你判断偏哪种中医体质，"
+    "再给你搭配合适的药食同源产品～\n\n"
+    "想先随便看看产品，还是直接开始了解体质？"
 )
 
 SYSTEM_PROMPT = """你是焙草集门店健康顾问"小焙"，帮顾客了解体质、推荐药食同源产品（饼干/面包/茶/香囊4大类）。
@@ -54,17 +56,39 @@ CONSTITUTION_FIELDS = {
         "topic": "出汗情况",
         "options": ["稍微一动就容易出汗", "正常，热了或运动了才出汗", "几乎不出汗，比别人汗少"],
     },
+    "allergy": {
+        "topic": "过敏倾向",
+        "options": ["经常过敏", "偶尔", "几乎没有"],
+    },
+    "emotion": {
+        "topic": "情绪状态",
+        "options": ["经常情绪波动大", "偶尔", "情绪比较稳定"],
+    },
+    "stool_digest": {
+        "topic": "大便情况",
+        "options": ["大便容易黏滞或不成形", "偶尔", "大便正常"],
+    },
+    "blood_combined": {
+        "topic": "血液情况",
+        "options": [
+            "经常瘀青或眼前发黑（两项都有或一项经常）",
+            "经常瘀青",
+            "经常眼前发黑",
+            "几乎没有",
+        ],
+    },
 }
 
 # Priority order for adaptive follow-up questions
 ADAPTIVE_FIELD_ORDER = [
     "temperature_tendency", "heat_signs", "qi_deficiency",
-    "damp_heat", "sweat_tendency",
+    "damp_heat", "sweat_tendency", "allergy", "emotion",
+    "stool_digest", "blood_combined",
 ]
 
 # Extraction prompt used as system message (separate from chatbot persona)
 CONSTITUTION_EXTRACTION_SYSTEM = (
-    "你是一个中医体质信号提取器。从顾客的自然语言中提取5个体质信号字段。"
+    "你是一个中医体质信号提取器。从顾客的自然语言中提取9个体质信号字段。"
     "你必须严格使用下面列出的选项原文，一字不差。只输出JSON，不要任何额外文字。"
 )
 
@@ -79,8 +103,16 @@ CONSTITUTION_EXTRACTION_USER = """从顾客描述提取体质信号，输出JSON
 - qi_deficiency: "是，经常觉得累、不想说话" / "还好，正常范围内" / "不会，精力比较充沛"
 - damp_heat: "经常这样" / "偶尔" / "基本没有"
 - sweat_tendency: "稍微一动就容易出汗" / "正常，热了或运动了才出汗" / "几乎不出汗，比别人汗少"
+- allergy: "经常过敏" / "偶尔" / "几乎没有"
+- emotion: "经常情绪波动大" / "偶尔" / "情绪比较稳定"
+- stool_digest: "大便容易黏滞或不成形" / "偶尔" / "大便正常"
+- blood_combined: "经常瘀青或眼前发黑（两项都有或一项经常）" / "经常瘀青" / "经常眼前发黑" / "几乎没有"
 
 未提及的字段填空字符串""。只输出JSON。"""
 
 # Quick reply defaults for constitution entry points
-CONSTITUTION_ENTRY_REPLIES = ["好的，开始吧", "先看看产品"]
+CONSTITUTION_ENTRY_REPLIES = [
+    "睡眠不好", "容易累", "消化不舒服", "手脚冰凉",
+    "容易上火", "情绪波动", "过敏", "大便不正常",
+    "瘀青较多", "随便聊聊",
+]

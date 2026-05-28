@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>焙草集 - 运营后台登录</title>
+<style>
+:root {
+  --color-primary: #2d7d46;
+  --color-primary-dark: #1f5c32;
+  --color-bg: #f5f5f0;
+  --color-surface: #ffffff;
+  --color-text: #333333;
+  --color-text-secondary: #888888;
+  --color-border: #e0e0d8;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "Fira Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--color-bg);
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh;
+}
+.login-box {
+  background: var(--color-surface);
+  padding: 48px 40px;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  width: 380px;
+  max-width: 90vw;
+}
+.login-box h1 {
+  font-size: 24px; font-weight: 600; color: var(--color-primary);
+  text-align: center; margin-bottom: 8px;
+}
+.login-box .subtitle {
+  font-size: 14px; color: var(--color-text-secondary);
+  text-align: center; margin-bottom: 32px;
+}
+.form-group { margin-bottom: 20px; }
+.form-group label {
+  display: block; font-size: 13px; font-weight: 500;
+  color: var(--color-text); margin-bottom: 6px;
+}
+.form-group input {
+  width: 100%; padding: 10px 14px;
+  font-size: 15px; font-family: inherit;
+  border: 1px solid var(--color-border); border-radius: 8px;
+  outline: none; transition: border-color 0.2s;
+}
+.form-group input:focus { border-color: var(--color-primary); }
+.btn-login {
+  width: 100%; padding: 11px 0;
+  font-size: 15px; font-weight: 600; font-family: inherit;
+  background: var(--color-primary); color: #fff;
+  border: none; border-radius: 8px; cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 8px;
+}
+.btn-login:hover { background: var(--color-primary-dark); }
+.btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+.error-msg {
+  color: #d32f2f; font-size: 13px; text-align: center;
+  margin-top: 16px; display: none;
+}
+.error-msg.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="login-box">
+  <h1>焙草集</h1>
+  <p class="subtitle">运营后台</p>
+
+  <div class="form-group">
+    <label for="username">账号</label>
+    <input type="text" id="username" placeholder="请输入账号" autocomplete="username">
+  </div>
+  <div class="form-group">
+    <label for="password">密码</label>
+    <input type="password" id="password" placeholder="请输入密码" autocomplete="current-password">
+  </div>
+
+  <button class="btn-login" id="btnLogin" onclick="doLogin()">登 录</button>
+  <div class="error-msg" id="errorMsg"></div>
+</div>
+
+<script>
+const BASE = '';
+
+async function doLogin() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('btnLogin');
+  const errEl = document.getElementById('errorMsg');
+
+  if (!username || !password) {
+    errEl.textContent = '请输入账号和密码';
+    errEl.classList.add('show');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '登录中...';
+  errEl.classList.remove('show');
+
+  try {
+    const r = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    if (!r.ok) {
+      const data = await r.json();
+      throw new Error(data.detail || '登录失败');
+    }
+
+    const data = await r.json();
+    localStorage.setItem('admin_token', data.token);
+
+    // Redirect to the page that was originally requested, or staff-admin
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get('redirect') || '/staff-admin';
+    window.location.href = redirect;
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = '登 录';
+  }
+}
+
+// Enter key to submit
+document.getElementById('password').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('username').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('password').focus();
+});
+
+// Focus username on load
+document.getElementById('username').focus();
+</script>
+
+</body>
+</html>

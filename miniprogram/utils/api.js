@@ -1,4 +1,4 @@
-const BASE = 'http://localhost:8004/api';
+const BASE = 'http://localhost:8002/api';
 
 function generateSessionId() {
   let sid = wx.getStorageSync('session_id');

@@ -31,6 +31,9 @@ body {
   color: var(--ink);
   line-height: 1.8;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   max-width: 480px;
   margin: 0 auto;
   padding: 0 0 60px 0;
@@ -151,6 +154,23 @@ body {
   line-height: 1.9;
 }
 
+/* ---- Advice list ---- */
+.advice-list { display:flex; flex-direction:column; gap:12px; }
+.advice-row { }
+.advice-row dt {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 2px;
+  letter-spacing: 1px;
+}
+.advice-row dd {
+  font-size: 14px;
+  color: var(--ink-light);
+  line-height: 1.7;
+  margin-left: 0;
+}
+
 /* ---- Product Card ---- */
 .product-card {
   display: flex;
@@ -166,13 +186,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
   flex-shrink: 0;
 }
-.product-emoji.biscuit { background: #faf0e0; }
-.product-emoji.bread   { background: #fdf0ed; }
-.product-emoji.tea     { background: #eaf5ed; }
-.product-emoji.toy     { background: #f5eff8; }
+.product-emoji svg {
+  width: 26px; height: 26px;
+}
 .product-info { flex:1; min-width:0; }
 .product-name {
   font-size: 15px;
@@ -316,6 +334,73 @@ body {
 
 CATEGORY_EMOJI = {"biscuit": "🍪", "bread": "🍞", "tea": "🍵", "toy": "🎐"}
 
+# SVG category icons (same as test-chat.html)
+CATEGORY_ICONS = {
+    "tea": {
+        "bg": "#eaf5ed",
+        "svg": '<svg viewBox="0 0 24 24" fill="none" stroke="#5B8C5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>'
+    },
+    "biscuit": {
+        "bg": "#faf0e0",
+        "svg": '<svg viewBox="0 0 24 24" fill="none" stroke="#b07840" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="8" cy="10" r="1.5" fill="#b07840" stroke="none"/><circle cx="15" cy="9" r="1" fill="#b07840" stroke="none"/><circle cx="10" cy="14" r="1.2" fill="#b07840" stroke="none"/><circle cx="14" cy="14" r="1.5" fill="#b07840" stroke="none"/><circle cx="12" cy="11" r="1" fill="#b07840" stroke="none"/></svg>'
+    },
+    "bread": {
+        "bg": "#fdf0ed",
+        "svg": '<svg viewBox="0 0 24 24" fill="none" stroke="#c07050" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="10" rx="9" ry="5"/><path d="M3 10v5c0 2.76 4.03 5 9 5s9-2.24 9-5v-5"/><path d="M3 15c0 2.76 4.03 5 9 5s9-2.24 9-5"/></svg>'
+    },
+    "craft": {
+        "bg": "#f0e8f5",
+        "svg": '<svg viewBox="0 0 24 24" fill="none" stroke="#8B5A8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 1-4.5 4 1.5 6L12 17l-6 2 1.5-6L3 9l6-1z"/></svg>'
+    },
+    "default": {
+        "bg": "#f0f5f0",
+        "svg": '<svg viewBox="0 0 24 24" fill="none" stroke="#5B8C5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 22"/><path d="M2 12L22 12"/></svg>'
+    }
+}
+
+def _cat_icon(category: str) -> dict:
+    """Map category name to icon info."""
+    cat_map = {
+        "面包类": "bread", "面团类": "bread",
+        "茶饮类": "tea", "现场冲泡茶饮": "tea",
+        "零食类": "biscuit",
+        "文玩类": "craft", "香囊类": "craft", "耗材类": "craft", "礼盒套餐": "craft",
+    }
+    key = cat_map.get(category, "default")
+    return CATEGORY_ICONS.get(key, CATEGORY_ICONS["default"])
+
+def _format_food_advice(food: dict) -> str:
+    """Format food advice dict into readable HTML sections."""
+    labels = {
+        "recommend": "推荐食材",
+        "avoid": "需避免",
+        "cooking": "烹饪方式",
+        "tea": "推荐茶饮"
+    }
+    html = '<dl class="advice-list">'
+    for key, label in labels.items():
+        val = food.get(key, "")
+        if val:
+            html += f'<div class="advice-row"><dt>{label}</dt><dd>{val}</dd></div>'
+    html += '</dl>'
+    return html
+
+def _format_lifestyle_advice(life: dict) -> str:
+    """Format lifestyle advice dict into readable HTML sections."""
+    labels = {
+        "exercise": "运动建议",
+        "rest": "作息建议",
+        "emotion": "情绪调节",
+        "daily": "日常贴士"
+    }
+    html = '<dl class="advice-list">'
+    for key, label in labels.items():
+        val = life.get(key, "")
+        if val:
+            html += f'<div class="advice-row"><dt>{label}</dt><dd>{val}</dd></div>'
+    html += '</dl>'
+    return html
+
 
 @router.get("/{session_id}/data")
 def report_data(session_id: str):
@@ -331,6 +416,7 @@ def report_data(session_id: str):
         state_raw.get("scene_raw", ""),
         rec or {},
         state_raw.get("customer_name", ""),
+        constitution_type=state_raw.get("constitution_type"),
     )
     return {"report": report}
 
@@ -339,11 +425,13 @@ def report_data(session_id: str):
 def view_report(session_id: str, db=Depends(get_db)):
     state_key = f"chat:{session_id}"
     state_raw = _session_store.get(state_key)
+    _no_cache = {"Cache-Control": "no-store, must-revalidate, max-age=0", "Pragma": "no-cache", "Expires": "0"}
     if not state_raw or not state_raw.get("constitution_raw"):
         return HTMLResponse(
             "<html><body style='text-align:center;padding:60px 20px;font-family:sans-serif'>"
             "<h2>报告未找到</h2><p>会话已过期或未完成对话流程。请回到聊天页面重新开始。</p>"
-            "</body></html>"
+            "</body></html>",
+            headers=_no_cache,
         )
 
     state = state_raw
@@ -352,6 +440,7 @@ def view_report(session_id: str, db=Depends(get_db)):
         state.get("scene_raw", ""),
         state.get("recommendation", {}),
         state.get("customer_name", ""),
+        constitution_type=state.get("constitution_type"),
     )
 
     from datetime import datetime
@@ -362,19 +451,21 @@ def view_report(session_id: str, db=Depends(get_db)):
     products_html = ""
     for i, p in enumerate(report.get("bundle", [])):
         cat = p.get("category", "biscuit")
-        emoji = CATEGORY_EMOJI.get(cat, "🌿")
+        icon = _cat_icon(cat)
         price_val = p.get("price", 0) or 0
+        # Preserve decimal places for prices like 39.9
+        price_str = f"{price_val:.2f}".rstrip('0').rstrip('.') if price_val != int(price_val) else f"{price_val:.0f}"
         sku = p.get("sku_id", f"RPT-{i}")
         ingredients = p.get("ingredients", "精选药食同源食材")
         pdata = json.dumps({"sku_id":sku,"name":p.get("name",""),"price":price_val,"category":cat,"ingredients":ingredients}, ensure_ascii=False)
         products_html += f"""
         <div class="product-card rec-card" data-sku="{sku}" data-product="{pdata.replace(chr(34), '&quot;')}">
-          <div class="product-emoji {cat}">{emoji}</div>
+          <div class="product-emoji" style="background:{icon['bg']};display:flex;align-items:center;justify-content:center">{icon['svg']}</div>
           <div class="product-info">
             <div class="product-name">{p['name']}</div>
             <div class="product-ingredients">成分：{ingredients}</div>
             <div class="product-reason">{p.get('reason', '')}</div>
-            <div class="product-price">¥{price_val:.0f}</div>
+            <div class="product-price">¥{price_str}</div>
           </div>
           <div class="stepper">
             <button class="stepper-btn" onclick="stepperChange('{sku}',-1)" aria-label="减少">−</button>
@@ -414,7 +505,7 @@ def view_report(session_id: str, db=Depends(get_db)):
     <div class="section-icon food">🍽</div>
     <div class="section-title">食养方向</div>
   </div>
-  <div class="advice-text">{report['food_advice']}</div>
+  <div class="advice-text">{_format_food_advice(report['food_advice'])}</div>
 </div>
 
 <div class="section">
@@ -422,7 +513,7 @@ def view_report(session_id: str, db=Depends(get_db)):
     <div class="section-icon lifestyle">🧘</div>
     <div class="section-title">生活小贴士</div>
   </div>
-  <div class="advice-text">{report['lifestyle_advice']}</div>
+  <div class="advice-text">{_format_lifestyle_advice(report['lifestyle_advice'])}</div>
 </div>
 
 <div class="section">
@@ -466,7 +557,7 @@ def view_report(session_id: str, db=Depends(get_db)):
   <div id="order-modal" onclick="event.stopPropagation()"></div>
 </div>
 
-<button class="btn-back" onclick="window.close()">返回对话</button>
+<button class="btn-back" onclick="if(window.history.length>1)window.history.back();else location.href='/'">返回对话</button>
 
 <script>
 const Cart = {{
@@ -484,12 +575,12 @@ const Cart = {{
     if (it) {{ it.quantity = Math.min(99, q); this._notify(); }}
   }},
   count() {{ return this._items.reduce((s,i) => s + i.quantity, 0); }},
-  total() {{ return this._items.reduce((s,i) => s + (i.price||0)*i.quantity, 0); }},
+  total() {{ return this._items.reduce((s,i) => s + Math.round((i.price||0)*i.quantity*100)/100, 0); }},
   clear() {{ this._items = []; this._notify(); }},
   _notify() {{
     var c = this.count(), t = this.total();
     document.getElementById('cart-count').textContent = c;
-    document.getElementById('cart-total').textContent = '¥' + t;
+    document.getElementById('cart-total').textContent = '¥' + t.toFixed(2).replace(/\.?0+$/, '');
     var bar = document.getElementById('cart-bar');
     if (c > 0) {{ bar.classList.add('show'); document.body.style.paddingBottom = '70px'; }}
     else {{ bar.classList.remove('show'); document.body.style.paddingBottom = ''; }}
@@ -528,7 +619,7 @@ function checkout() {{
   var total = Cart.total(), count = Cart.count();
   var itemsHtml = '';
   items.forEach(function(i) {{
-    itemsHtml += '<div class="order-item"><span>' + i.name + ' ×' + i.quantity + '</span><span>¥' + (i.price*i.quantity) + '</span></div>';
+    itemsHtml += '<div class="order-item"><span>' + i.name + ' ×' + i.quantity + '</span><span>¥' + (Math.round(i.price*i.quantity*100)/100) + '</span></div>';
   }});
   var orderNo = 'BCJ' + Date.now().toString(36).toUpperCase();
   var now = new Date();
@@ -538,7 +629,7 @@ function checkout() {{
     '<div class="order-title">订单确认</div>' +
     '<div class="order-no">订单号: ' + orderNo + ' ｜ ' + ts + '</div>' +
     '<div class="order-section" style="margin-top:16px"><div style="font-size:13px;font-weight:600;color:#999;margin-bottom:8px">商品明细</div>' + itemsHtml +
-    '<div class="order-total-row"><span>合计</span><span style="color:#c0392b">' + count + ' 件 共 ¥' + total + '</span></div></div>' +
+    '<div class="order-total-row"><span>合计</span><span style="color:#c0392b">' + count + ' 件 共 ¥' + total.toFixed(2).replace(/\.?0+$/, '') + '</span></div></div>' +
     '<div class="order-section" style="font-size:13px;color:#999"><p>📍 取货方式：到店自取</p><p>🏪 门店地址：焙草集门店</p><p style="margin-top:4px;font-size:11px;color:#bbb">此为模拟订单，实际支付将对接有赞</p></div>' +
     '<div class="order-actions"><button class="btn-close" onclick="closeOrder()">继续选购</button><button class="btn-confirm" data-orderno="' + orderNo + '" onclick="confirmOrder(this.dataset.orderno)">确认下单</button></div>';
   document.getElementById('order-overlay').classList.add('show');
@@ -572,4 +663,4 @@ function showToast(msg) {{
 
 </body>
 </html>"""
-    return HTMLResponse(html)
+    return HTMLResponse(html, headers=_no_cache)

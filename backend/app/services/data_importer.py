@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from app.models.product import Product
 
-PRODUCT_DIR = Path("E:/VIBE/beicaoji/beicaoji-产品目录")
+PRODUCT_DIR = Path(__file__).parent.parent.parent.parent / "beicaoji-产品目录"
 FILE_MAP = {"biscuit": "biscuit.xlsx", "bread": "bread.xlsx", "tea": "tea.xlsx", "toy": "toy.xlsx"}
 # Default prices by category (can be overridden when Excel includes price column)
 CATEGORY_DEFAULT_PRICE = {"biscuit": 29, "bread": 25, "tea": 39, "toy": 19}

@@ -1,0 +1,12 @@
+- generic [ref=e2]:
+  - heading "焙草集" [level=1] [ref=e3]
+  - paragraph [ref=e4]: 运营后台
+  - generic [ref=e5]:
+    - generic [ref=e6]: 账号
+    - textbox "账号" [active] [ref=e7]:
+      - /placeholder: 请输入账号
+  - generic [ref=e8]:
+    - generic [ref=e9]: 密码
+    - textbox "密码" [ref=e10]:
+      - /placeholder: 请输入密码
+  - button "登 录" [ref=e11] [cursor=pointer]

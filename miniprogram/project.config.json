@@ -26,5 +26,6 @@
     "include": []
   },
   "appid": "wx2e15befdbdeedc34",
-  "editorSetting": {}
+  "editorSetting": {},
+  "testRoot": "minitest/"
 }

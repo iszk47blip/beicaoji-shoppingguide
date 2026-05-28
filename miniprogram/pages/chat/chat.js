@@ -56,7 +56,8 @@ Page({
   },
 
   addRecommendation(rec, content) {
-    const msg = { type: 'recommendation', role: 'bot', content, constitution: rec.constitution, bundle: rec.bundle };
+    const bundle = rec.bundle || [...(rec.fixed_bundle || []), ...(rec.llm_recommendations || [])];
+    const msg = { type: 'recommendation', role: 'bot', content, constitution: rec.constitution, bundle };
     const messages = [...this.data.messages, msg];
     const anchor = 'a' + Date.now();
     this.setData({ messages, scrollAnchor: anchor });
@@ -70,7 +71,7 @@ Page({
       content: content || '',
       categories: catalog.hot_products || [],
       youzanUrl: catalog.youzan_url,
-      youzanQr: catalog.youzan_qr ? (api.base + catalog.youzan_qr) : '',
+      youzanQr: catalog.youzan_qr ? (api.BASE.replace('/api', '') + catalog.youzan_qr) : '',
     };
     const messages = [...this.data.messages, msg];
     const anchor = 'a' + Date.now();
@@ -237,10 +238,7 @@ Page({
 
   onViewReport() {
     wx.navigateTo({
-      url: '/pages/report/report',
-      success: page => {
-        page.setData({ sessionId: this.data.sessionId });
-      }
+      url: '/pages/report/report?sessionId=' + encodeURIComponent(this.data.sessionId),
     });
   },
 

@@ -51,20 +51,24 @@
         <text class="loading-hint" wx:if="{{loadingHint}}">{{loadingHint}}</text>
       </view>
     </view>
-    <view id="{{scrollAnchor}}" class="scroll-spacer" style="height: {{cartCount > 0 ? '360rpx' : '260rpx'}}"></view>
+    <view id="{{scrollAnchor}}" class="scroll-spacer" style="height: {{cartCount > 0 ? '380rpx' : '280rpx'}}"></view>
   </scroll-view>
 
   <!-- Fixed bottom bar -->
   <view class="bottom-bar">
-    <view class="quick-replies" wx:if="{{quickReplies.length > 0}}">
+    <scroll-view class="quick-replies" scroll-x wx:if="{{quickReplies.length > 0}}">
       <view class="quick-btn" wx:for="{{quickReplies}}" wx:key="index" bindtap="onQuickReply" data-text="{{item}}">{{item}}</view>
-    </view>
+    </scroll-view>
     <cart-bar count="{{cartCount}}" total="{{cartTotal}}" bindtap="onCartBarTap"/>
     <view class="input-bar">
-      <input class="input" placeholder="输入你的情况..."
-             value="{{inputText}}" bindinput="onInput" confirm-type="send"
-             bindconfirm="onSend"/>
-      <button class="send-btn" bindtap="onSend">发送</button>
+      <view class="input-wrapper">
+        <input class="input" placeholder="说说你的情况..."
+               value="{{inputText}}" bindinput="onInput" confirm-type="send"
+               bindconfirm="onSend" adjust-position="{{false}}"/>
+      </view>
+      <button class="send-btn" bindtap="onSend">
+        <text class="send-icon">↑</text>
+      </button>
     </view>
   </view>
 

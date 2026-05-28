@@ -31,6 +31,9 @@
     background: var(--bg);
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    -webkit-overflow-scrolling: touch;
+    touch-action: manipulation;
     user-select: none;
   }
 
@@ -151,93 +154,55 @@
   #input-bar {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
+    gap: 12px;
+    padding: 16px 16px;
     background: var(--white);
-    border-top: 1px solid var(--border);
+    border-top: 0.5px solid rgba(0,0,0,0.06);
     flex-shrink: 0;
-    padding-bottom: max(10px, var(--safe-bottom));
+    box-shadow: 0 -2px 16px rgba(0,0,0,0.05);
+    padding-bottom: max(16px, var(--safe-bottom));
   }
 
   #input-bar input {
     flex: 1;
-    height: 42px;
-    padding: 0 14px;
-    border: 1px solid var(--border);
-    border-radius: 21px;
+    height: 44px;
+    padding: 0 20px;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 24px;
     font-size: 15px;
     outline: none;
-    background: var(--bg);
+    background: #f7f8f7;
     color: var(--text);
     min-width: 0;
+    transition: all 0.2s;
   }
-  #input-bar input:focus { border-color: var(--green); }
+  #input-bar input:focus {
+    border-color: var(--green);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(91,140,90,0.08);
+  }
 
   .icon-btn {
-    width: 42px; height: 42px;
+    width: 44px; height: 44px;
     border-radius: 50%;
     border: none;
-    background: var(--green);
+    background: linear-gradient(135deg, #5B8C5A, #4a7a49);
     color: white;
-    font-size: 20px;
+    font-size: 22px;
     cursor: pointer;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.15s;
+    box-shadow: 0 2px 8px rgba(91,140,90,0.3);
   }
-  .icon-btn:active { opacity: 0.8; transform: scale(0.95); }
-  .icon-btn.listening {
-    background: #e74c3c;
-    animation: pulse 1s infinite;
-  }
-  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.4); } 50% { box-shadow: 0 0 0 12px rgba(231,76,60,0); } }
+  .icon-btn:active { transform: scale(0.92); box-shadow: 0 1px 4px rgba(91,140,90,0.2); }
 
-  #mic-btn {
-    background: var(--bg); color: var(--text-secondary); font-size: 18px;
-    user-select: none; -webkit-user-select: none;
-    touch-action: manipulation;
-  }
-  #mic-btn.listening {
-    background: #e74c3c; color: white;
-    transform: scale(1.15);
-    box-shadow: 0 0 0 8px rgba(231,76,60,0.15);
-  }
+  #mic-btn { display: none; }
 
-  /* Voice overlay */
-  #voice-overlay {
-    display: none;
-    position: fixed;
-    bottom: 120px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.85);
-    color: white;
-    padding: 16px 28px;
-    border-radius: 24px;
-    font-size: 15px;
-    text-align: center;
-    z-index: 100;
-    pointer-events: none;
-    animation: fadeIn 0.2s;
-  }
-  #voice-overlay.show { display: block; }
-  #voice-overlay .wave {
-    display: flex; gap: 3px; justify-content: center; align-items: flex-end;
-    height: 28px; margin-bottom: 8px;
-  }
-  #voice-overlay .wave span {
-    width: 4px; border-radius: 2px; background: #7CB342;
-    animation: wave 1.2s ease-in-out infinite;
-  }
-  #voice-overlay .wave span:nth-child(1) { height:12px; animation-delay:0s; }
-  #voice-overlay .wave span:nth-child(2) { height:22px; animation-delay:0.2s; }
-  #voice-overlay .wave span:nth-child(3) { height:16px; animation-delay:0.4s; }
-  #voice-overlay .wave span:nth-child(4) { height:26px; animation-delay:0.6s; }
-  #voice-overlay .wave span:nth-child(5) { height:14px; animation-delay:0.8s; }
-  @keyframes wave { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(1.8); } }
-  @keyframes fadeIn { from { opacity:0; transform:translateX(-50%) translateY(10px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+  /* Voice overlay — hidden */
+  #voice-overlay { display: none !important; }
 
   /* ---- Report button ---- */
   .report-btn {
@@ -608,6 +573,14 @@
     letter-spacing: 1px;
   }
 
+  /* ---- Action row (stepper + buy button) ---- */
+  .rec-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
   /* ---- Quick buy button on product cards ---- */
   .rec-card .btn-buy-now {
     font-size: 11px;
@@ -645,6 +618,23 @@
   }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* ---- Responsive: narrow screen product cards ---- */
+  @media (max-width: 480px) {
+    .rec-card {
+      flex-wrap: wrap;
+    }
+    .rec-card > :nth-child(2) {
+      flex: 1 1 calc(100% - 68px);
+      min-width: 80px;
+    }
+    .rec-actions {
+      width: 100%;
+      justify-content: flex-end;
+      margin-top: 10px;
+      padding-left: 56px;
+    }
+  }
+
   /* ---- Responsive: larger screens ---- */
   @media (min-width: 481px) {
     .app { box-shadow: var(--shadow); }
@@ -662,14 +652,8 @@
 
   <div id="quick-replies"></div>
 
-  <div id="voice-overlay">
-    <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
-    <div id="voice-hint">正在聆听...</div>
-  </div>
-
   <div id="input-bar">
-    <button id="mic-btn" class="icon-btn" title="长按说话">🎤</button>
-    <input id="msg-input" placeholder="输入你想说的话..." autocomplete="off" />
+    <input id="msg-input" placeholder="说说你的情况..." autocomplete="off" />
     <button id="send-btn" class="icon-btn" onclick="send()">↑</button>
   </div>
 
@@ -716,8 +700,24 @@
 </div>
 
 <script>
-const BASE = 'http://localhost:8002/api';
+const BASE = '/api';
 const sessionId = 'mobile-' + Date.now();
+
+// ---- HTML escape helper ----
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ---- Reliable scroll-to-bottom ----
+function scrollToBottom() {
+  const chat = document.getElementById('chat');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      chat.scrollTop = chat.scrollHeight;
+    });
+  });
+}
 
 // ---- SVG Icon helper ----
 function getCategoryIcon(category) {
@@ -761,17 +761,18 @@ const CartStore = (() => {
 
   function _notify() {
     renderCart();
-    // Update all stepper UIs
+    // Update all stepper UIs — use data-sku-raw to match CartStore's raw sku_id
     document.querySelectorAll('.stepper-qty').forEach(el => {
-      const sku = el.id.replace('qty-', '');
+      const sku = el.getAttribute('data-sku-raw') || el.id.replace('qty-', '');
       const item = _items.find(i => i.sku_id === sku);
       const qty = item ? item.quantity : 0;
       el.textContent = qty;
       el.style.opacity = qty > 0 ? '1' : '0.3';
     });
     document.querySelectorAll('.rec-card').forEach(card => {
-      const sku = card.getAttribute('data-sku');
-      const item = _items.find(i => i.sku_id === sku);
+      const product = findProductOnPage(card.getAttribute('data-sku') || '');
+      const realSku = product ? product.sku_id : null;
+      const item = realSku ? _items.find(i => i.sku_id === realSku) : null;
       const minusBtn = card.querySelector('.stepper-btn:first-child');
       if (minusBtn) minusBtn.disabled = !item || item.quantity < 1;
     });
@@ -812,7 +813,7 @@ const CartStore = (() => {
     },
 
     count() { return _items.reduce((sum, i) => sum + i.quantity, 0); },
-    total() { return _items.reduce((sum, i) => sum + (i.price || 0) * i.quantity, 0); },
+    total() { return _items.reduce((sum, i) => sum + Math.round((i.price || 0) * i.quantity * 100) / 100, 0); },
     clear() { _items = []; _notify(); }
   };
 })();
@@ -924,7 +925,7 @@ function addMsg(role, text) {
   div.className = 'msg ' + role;
   div.textContent = text;
   chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
+  scrollToBottom();
 }
 
 function showLoading() {
@@ -934,7 +935,7 @@ function showLoading() {
   div.id = 'loading-msg';
   div.innerHTML = '<span></span><span></span><span></span>';
   chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
+  scrollToBottom();
 }
 
 function hideLoading() {
@@ -945,7 +946,7 @@ function hideLoading() {
 function showRecommendation(rec) {
   if (!rec || !rec.bundle || !rec.bundle.length) return;
   const constitution = rec.constitution || {};
-  const ctype = constitution.constitution_type || '平和质';
+  const ctype = escapeHtml(constitution.constitution_type || '平和质');
 
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
@@ -963,39 +964,43 @@ function showRecommendation(rec) {
   rec.bundle.forEach((p, idx) => {
     const iconInfo = getCategoryIcon(p.category);
     const price = p.price || 0;
-    const ingredients = p.ingredients || '';
-    const cartItem = CartStore.get(p.sku_id);
+    const ingredients = escapeHtml(p.ingredients || '');
+    const name = escapeHtml(p.name || '');
+    const skuRaw = p.sku_id || '';
+    const sku = escapeHtml(skuRaw);
+    const cartItem = CartStore.get(skuRaw);
     const qty = cartItem ? cartItem.quantity : 0;
-    const pData = encodeURIComponent(JSON.stringify({sku_id:p.sku_id,name:p.name,price:p.price||0,category:p.category||'',ingredients:p.ingredients||''}));
-    html += '<div class="rec-card" data-sku="' + p.sku_id + '" data-product="' + pData + '" style="display:flex;align-items:center;gap:12px;padding:14px;margin:8px;background:white;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.04)">';
+    const pData = encodeURIComponent(JSON.stringify({sku_id:skuRaw,name:p.name,price:p.price||0,category:p.category||'',ingredients:p.ingredients||''}));
+    html += '<div class="rec-card" data-sku="' + sku + '" data-product="' + pData + '" style="display:flex;align-items:center;gap:12px;padding:14px;margin:8px;background:white;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.04)">';
     html += '<div style="width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:' + iconInfo.bg + '">' + iconInfo.svg.replace('width="22"','width="24"').replace('height="22"','height="24"') + '</div>';
     html += '<div style="flex:1;min-width:0">';
-    html += '<div style="font-size:15px;font-weight:600;color:#3d3226;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4" title="' + p.name + '">' + p.name + '</div>';
+    html += '<div style="font-size:15px;font-weight:600;color:#3d3226;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4" title="' + name + '">' + name + '</div>';
     if (ingredients) html += '<div style="font-size:11px;color:#999;margin-bottom:2px">成分：' + ingredients + '</div>';
     html += '<div style="font-weight:700;color:#c0392b;font-size:14px">¥' + price + '</div>';
     html += '</div>';
-    // Stepper
+    // Stepper + buy button — wrap for mobile two-row layout
+    html += '<div class="rec-actions">';
     html += '<div class="stepper">';
-    html += '<button class="stepper-btn" onclick="event.stopPropagation();stepperChange(this,\'' + p.sku_id + '\',-1)"' + (qty < 1 ? ' disabled' : '') + ' aria-label="减少">−</button>';
-    html += '<span class="stepper-qty" id="qty-' + p.sku_id + '">' + qty + '</span>';
-    html += '<button class="stepper-btn plus" onclick="event.stopPropagation();stepperChange(this,\'' + p.sku_id + '\',1)" aria-label="增加">+</button>';
+    html += '<button class="stepper-btn" data-action="dec" data-sku="' + sku + '"' + (qty < 1 ? ' disabled' : '') + ' aria-label="减少">−</button>';
+    html += '<span class="stepper-qty" id="qty-' + sku + '" data-sku-raw="' + escapeHtml(skuRaw) + '">' + qty + '</span>';
+    html += '<button class="stepper-btn plus" data-action="inc" data-sku="' + sku + '" aria-label="增加">+</button>';
     html += '</div>';
     if (qty < 1) {
-      html += '<button class="btn-buy-now" onclick="event.stopPropagation();quickBuy(\'' + p.sku_id + '\')">立即购买</button>';
+      html += '<button class="btn-buy-now" data-action="quickbuy" data-sku="' + sku + '">立即购买</button>';
     }
+    html += '</div>';
     html += '</div>';
   });
 
   // Report button
   html += '<div style="padding:8px 14px 14px">';
-  html += '<button class="report-btn" onclick="window.open(\'' + BASE.replace('/api','') +
-    '/api/report/' + sessionId + '\', \'_blank\')">查看完整调理报告</button>';
+  html += '<button class="report-btn" data-action="report">查看完整调理报告</button>';
   html += '</div></div>';
 
   div.innerHTML = html;
   div.setAttribute('data-rec', 'true');
   chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
+  scrollToBottom();
   renderCart();
 }
 
@@ -1010,29 +1015,33 @@ function showCatalog(catalog) {
 
   catalog.forEach(c => {
     html += '<div style="padding:10px 14px 4px">';
-    html += '<span style="display:inline-block;background:linear-gradient(135deg,#5a4a3a,#8B4513);color:#faf7f2;padding:4px 14px;border-radius:16px;font-size:13px;font-weight:600;letter-spacing:1px">' + c.constitution + '</span>';
-    html += '<p style="font-size:12px;color:#999;margin:6px 0 2px">' + c.description + '</p>';
+    html += '<span style="display:inline-block;background:linear-gradient(135deg,#5a4a3a,#8B4513);color:#faf7f2;padding:4px 14px;border-radius:16px;font-size:13px;font-weight:600;letter-spacing:1px">' + escapeHtml(c.constitution) + '</span>';
+    html += '<p style="font-size:12px;color:#999;margin:6px 0 2px">' + escapeHtml(c.description) + '</p>';
     html += '</div>';
 
     c.products.forEach(p => {
       const iconInfo = getCategoryIcon(p.category);
       const price = p.price ? '¥' + p.price : '到店询价';
-      const ingredients = p.ingredients || '';
-      const cartItem = CartStore.get(p.sku_id || p.name);
+      const ingredients = escapeHtml(p.ingredients || '');
+      const name = escapeHtml(p.name || '');
+      const skuRaw = p.sku_id || p.name;
+      const cartItem = CartStore.get(skuRaw);
       const qty = cartItem ? cartItem.quantity : 0;
-      const sku = p.sku_id || p.name;
-      const pData = encodeURIComponent(JSON.stringify({sku_id:sku,name:p.name,price:p.price||0,category:p.category||'',ingredients:p.ingredients||''}));
+      const sku = escapeHtml(skuRaw);
+      const pData = encodeURIComponent(JSON.stringify({sku_id:skuRaw,name:p.name,price:p.price||0,category:p.category||'',ingredients:p.ingredients||''}));
       html += '<div class="rec-card" data-sku="' + sku + '" data-product="' + pData + '" style="display:flex;align-items:center;gap:12px;padding:14px;margin:8px;background:white;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.04)">';
       html += '<div style="width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:' + iconInfo.bg + '">' + iconInfo.svg.replace('width="22"','width="24"').replace('height="22"','height="24"') + '</div>';
       html += '<div style="flex:1;min-width:0">';
-      html += '<div style="font-size:15px;font-weight:600;color:#3d3226;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4" title="' + p.name + '">' + p.name + '</div>';
+      html += '<div style="font-size:15px;font-weight:600;color:#3d3226;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4" title="' + name + '">' + name + '</div>';
       if (ingredients) html += '<div style="font-size:11px;color:#999;margin-bottom:2px">成分：' + ingredients + '</div>';
       html += '<div style="font-weight:700;color:#c0392b;font-size:14px">' + price + '</div>';
       html += '</div>';
+      html += '<div class="rec-actions">';
       html += '<div class="stepper">';
-      html += '<button class="stepper-btn" onclick="event.stopPropagation();stepperChange(this,\'' + sku + '\',-1)"' + (qty < 1 ? ' disabled' : '') + ' aria-label="减少">−</button>';
-      html += '<span class="stepper-qty" id="qty-' + sku + '">' + qty + '</span>';
-      html += '<button class="stepper-btn plus" onclick="event.stopPropagation();stepperChange(this,\'' + sku + '\',1)" aria-label="增加">+</button>';
+      html += '<button class="stepper-btn" data-action="dec" data-sku="' + sku + '"' + (qty < 1 ? ' disabled' : '') + ' aria-label="减少">−</button>';
+      html += '<span class="stepper-qty" id="qty-' + sku + '" data-sku-raw="' + escapeHtml(skuRaw) + '">' + qty + '</span>';
+      html += '<button class="stepper-btn plus" data-action="inc" data-sku="' + sku + '" aria-label="增加">+</button>';
+      html += '</div>';
       html += '</div>';
       html += '</div>';
     });
@@ -1041,7 +1050,7 @@ function showCatalog(catalog) {
   html += '</div>';
   div.innerHTML = html;
   chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
+  scrollToBottom();
   renderCart();
 }
 
@@ -1058,7 +1067,11 @@ async function sendMessage(message) {
     hideLoading();
     addMsg('bot', data.message);
     if (data.recommendation) showRecommendation(data.recommendation);
-    if (data.catalog) showCatalog(data.catalog);
+    // catalog can be an array (stage-based) or object with .constitution_catalog (show_catalog intent)
+    if (data.catalog) {
+      const catData = Array.isArray(data.catalog) ? data.catalog : data.catalog.constitution_catalog;
+      if (catData) showCatalog(catData);
+    }
     setQuickReplies(data.quick_replies);
   } catch(e) {
     hideLoading();
@@ -1081,23 +1094,24 @@ function send() {
 function stepperChange(btn, skuId, delta) {
   const product = findProductOnPage(skuId);
   if (!product) return;
-  const item = CartStore.get(skuId);
+  const realSku = product.sku_id;
+  const item = CartStore.get(realSku);
   const curQty = item ? item.quantity : 0;
   const newQty = curQty + delta;
   if (newQty < 1) {
-    CartStore.remove(skuId);
+    CartStore.remove(realSku);
   } else if (newQty <= 99) {
     if (curQty === 0) {
       CartStore.add(product);
     } else {
-      CartStore.setQuantity(skuId, newQty);
+      CartStore.setQuantity(realSku, newQty);
     }
   }
   // CartStore._notify() handles ALL stepper UI updates including duplicates
 }
 
 function findProductOnPage(skuId) {
-  const card = document.querySelector('.rec-card[data-sku="' + skuId + '"]');
+  const card = document.querySelector('.rec-card[data-sku="' + CSS.escape(skuId) + '"]');
   if (!card) return null;
   try {
     return JSON.parse(decodeURIComponent(card.getAttribute('data-product')));
@@ -1114,12 +1128,12 @@ function renderCart() {
   const totalEl = document.getElementById('cart-total');
 
   countBadge.textContent = count;
-  totalEl.textContent = '¥' + total;
+  totalEl.textContent = '¥' + total.toFixed(2).replace(/\.?0+$/, '');
 
   // Update checkout button with total
   var checkoutBtn = document.getElementById('btn-checkout-text');
   if (checkoutBtn) {
-    checkoutBtn.textContent = count > 0 ? '去结算 ¥' + total : '去结算';
+    checkoutBtn.textContent = count > 0 ? '去结算 ¥' + total.toFixed(2).replace(/\.?0+$/, '') : '去结算';
   }
 
   if (count > 0 && !bar.classList.contains('panel-open')) {
@@ -1162,20 +1176,22 @@ function renderCartPanel() {
   } else {
     list.innerHTML = items.map(i => {
       const iconInfo = getCategoryIcon(i.category);
+      const sku = escapeHtml(i.sku_id);
+      const name = escapeHtml(i.name);
       return '<div class="cart-item">' +
         '<div class="cart-item-icon" style="background:' + iconInfo.bg + '">' +
         iconInfo.svg +
         '</div>' +
         '<div class="cart-item-info">' +
-        '<div class="cart-item-name" title="' + i.name + '">' + i.name + '</div>' +
+        '<div class="cart-item-name" title="' + name + '">' + name + '</div>' +
         '<div class="cart-item-price">¥' + i.price + '</div>' +
         '</div>' +
         '<div class="stepper">' +
-        '<button class="stepper-btn" onclick="cartPanelQty(\'' + i.sku_id + '\',' + (i.quantity - 1) + ')"' + (i.quantity < 2 ? ' disabled' : '') + ' aria-label="减少">−</button>' +
+        '<button class="stepper-btn" data-action="cart-dec" data-sku="' + sku + '"' + (i.quantity < 2 ? ' disabled' : '') + ' aria-label="减少">−</button>' +
         '<span class="stepper-qty">' + i.quantity + '</span>' +
-        '<button class="stepper-btn plus" onclick="cartPanelQty(\'' + i.sku_id + '\',' + (i.quantity + 1) + ')" aria-label="增加">+</button>' +
+        '<button class="stepper-btn plus" data-action="cart-inc" data-sku="' + sku + '" aria-label="增加">+</button>' +
         '</div>' +
-        '<button class="cart-item-del" onclick="cartPanelQty(\'' + i.sku_id + '\',0)" aria-label="删除"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>' +
+        '<button class="cart-item-del" data-action="cart-del" data-sku="' + sku + '" aria-label="删除"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>' +
         '</div>';
     }).join('');
   }
@@ -1205,13 +1221,13 @@ function copyOrderText() {
   let total = 0;
   let count = 0;
   items.forEach(i => {
-    const lineTotal = i.price * i.quantity;
+    const lineTotal = Math.round(i.price * i.quantity * 100) / 100;
     text += i.name + ' x' + i.quantity + '  ¥' + i.price + '  ¥' + lineTotal + '\n';
     total += lineTotal;
     count += i.quantity;
   });
   text += '---\n';
-  text += '合计: ' + count + ' 件  ¥' + total;
+  text += '合计: ' + count + ' 件  ¥' + Math.round(total * 100) / 100;
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(() => showToast('已复制选购清单 ✓')).catch(() => fallbackCopy(text));
@@ -1223,8 +1239,10 @@ function copyOrderText() {
 function fallbackCopy(text) {
   const ta = document.createElement('textarea');
   ta.value = text;
-  ta.style.position = 'fixed'; ta.style.left = '-9999px';
+  // WeChat requires the element to be in-viewport for execCommand('copy')
+  ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1';
   document.body.appendChild(ta);
+  ta.focus();
   ta.select();
   try { document.execCommand('copy'); showToast('已复制选购清单 ✓'); } catch(e) { showToast('复制失败，请截图'); }
   document.body.removeChild(ta);
@@ -1240,7 +1258,7 @@ function showOrders() {
       let itemsHtml = o.items.map(i =>
         '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13px">' +
         '<span>' + i.name + ' ×' + i.quantity + '</span>' +
-        '<span style="color:#999">¥' + (i.price * i.quantity) + '</span></div>'
+        '<span style="color:#999">¥' + (Math.round(i.price * i.quantity * 100) / 100) + '</span></div>'
       ).join('');
       return '<div style="background:#faf7f2;border-radius:12px;padding:14px;margin-bottom:10px">' +
         '<div style="display:flex;justify-content:space-between;margin-bottom:8px">' +
@@ -1287,7 +1305,7 @@ function checkout() {
   let total = 0, count = 0;
   let itemsHtml = '';
   items.forEach(i => {
-    const lineTotal = i.price * i.quantity;
+    const lineTotal = Math.round(i.price * i.quantity * 100) / 100;
     itemsHtml += '<div class="order-item"><span>' + i.name + ' × ' + i.quantity + '</span><span>¥' + lineTotal + '</span></div>';
     total += lineTotal;
     count += i.quantity;
@@ -1339,9 +1357,9 @@ function confirmOrder(orderNo) {
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
   div.className = 'msg system';
-  div.innerHTML = '✅ 下单成功！<br>订单号: ' + orderNo + '<br><span style="font-size:11px;color:#999">请到店出示订单号取货</span>';
+  div.innerHTML = '✅ 下单成功！<br>订单号: ' + escapeHtml(orderNo) + '<br><span style="font-size:11px;color:#999">请到店出示订单号取货</span>';
   chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
+  scrollToBottom();
 
   showToast('下单成功 ✓');
 }
@@ -1351,8 +1369,36 @@ document.getElementById('send-btn').addEventListener('click', send);
 document.getElementById('msg-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') send();
 });
-initVoice();
 
+// Event delegation for dynamically-created product card buttons
+document.getElementById('chat').addEventListener('click', e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  e.stopPropagation();
+  const action = btn.getAttribute('data-action');
+  const sku = btn.getAttribute('data-sku');
+  if (action === 'dec') stepperChange(btn, sku, -1);
+  else if (action === 'inc') stepperChange(btn, sku, 1);
+  else if (action === 'quickbuy') { quickBuy(sku); }
+  else if (action === 'report') { location.href = BASE.replace('/api','') + '/api/report/' + sessionId; }
+});
+
+// Event delegation for cart panel buttons
+document.getElementById('cart-list').addEventListener('click', e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  e.stopPropagation();
+  const action = btn.getAttribute('data-action');
+  const sku = btn.getAttribute('data-sku');
+  // Find real sku_id from the CartStore item
+  const items = CartStore.getAll();
+  const item = items.find(i => escapeHtml(i.sku_id) === sku);
+  if (!item) return;
+  const realSku = item.sku_id;
+  if (action === 'cart-dec') cartPanelQty(realSku, item.quantity - 1);
+  else if (action === 'cart-inc') cartPanelQty(realSku, item.quantity + 1);
+  else if (action === 'cart-del') cartPanelQty(realSku, 0);
+});
 // ---- OrderStore (in-memory, clears on refresh) ----
 const OrderStore = {
   _orders: [],

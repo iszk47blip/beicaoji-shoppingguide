@@ -174,6 +174,25 @@
     .kpi-card.danger .kpi-value { color: var(--color-danger); }
     .kpi-card.warning .kpi-value { color: var(--color-warning); }
     .kpi-card.success .kpi-value { color: var(--color-success); }
+    .kpi-card.accent .kpi-value { color: var(--color-accent); }
+    .kpi-card.accent { border-color: rgb(5 150 105 / 0.2); }
+
+    /* ── Chart cards ── */
+    .chart-card {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg); padding: 14px 16px; box-shadow: var(--shadow-sm);
+    }
+    .chart-title { font-size: 13px; font-weight: 600; color: var(--color-fg); margin-bottom: 10px; }
+
+    /* ── Time filter pills ── */
+    .time-filters { display: flex; gap: 4px; }
+    .time-pill {
+      height: 30px; padding: 0 12px; border-radius: 20px; border: 1px solid var(--color-border);
+      background: none; cursor: pointer; font-size: 12px; font-family: var(--font-sans);
+      color: var(--color-text-secondary); transition: all var(--transition);
+    }
+    .time-pill.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .time-pill:hover:not(.active) { border-color: var(--color-primary); color: var(--color-primary); }
 
     /* ── Table ── */
     .table-wrap {
@@ -323,6 +342,96 @@
       transform: translateY(16px); transition: transform 200ms;
     }
     .modal-overlay.show .modal { transform: translateY(0); }
+    /* ── Drawer (right slide-over) ── */
+    .drawer-overlay {
+      position: fixed; inset: 0; background: rgba(15,23,42,0.35);
+      z-index: 1000; opacity: 0; pointer-events: none;
+      transition: opacity 250ms;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: all; }
+    .drawer {
+      position: absolute; top: 0; right: 0; bottom: 0;
+      width: 520px; max-width: 100vw; background: var(--color-surface);
+      box-shadow: -8px 0 30px rgba(0,0,0,0.12);
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 250ms ease;
+    }
+    .drawer-overlay.open .drawer { transform: translateX(0); }
+    .drawer-header {
+      padding: 18px 20px 14px; border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .drawer-header h3 { font-size: 15px; font-weight: 600; }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+    .drawer-footer {
+      padding: 14px 20px; border-top: 1px solid var(--color-border);
+      display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0;
+    }
+    /* ── Review Report: master-detail layout ── */
+    .review-layout {
+      display: flex; height: 100%; overflow: hidden;
+    }
+    .review-sidebar {
+      width: 260px; min-width: 260px;
+      border-right: 1px solid var(--color-border);
+      display: flex; flex-direction: column;
+      background: var(--color-surface);
+    }
+    .review-sidebar-header {
+      padding: 14px 16px; font-size: 13px; font-weight: 600;
+      border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; gap: 8px;
+      flex-shrink: 0;
+    }
+    .review-timeline {
+      flex: 1; overflow-y: auto; padding: 8px;
+    }
+    .review-timeline-item {
+      padding: 10px 12px; border-radius: var(--radius-sm);
+      cursor: pointer; transition: background 120ms;
+      border-left: 3px solid transparent; margin-bottom: 2px;
+    }
+    .review-timeline-item:hover { background: var(--color-muted); }
+    .review-timeline-item.active {
+      background: rgb(45 125 70 / 0.06);
+      border-left-color: var(--color-primary);
+    }
+    .review-timeline-item .rti-date { font-size: 12px; color: var(--color-text-secondary); }
+    .review-timeline-item .rti-meta { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+    .review-timeline-item .rti-score {
+      display: inline-block; padding: 1px 8px; border-radius: 10px;
+      font-size: 12px; font-weight: 600; margin-top: 4px;
+    }
+    .review-detail {
+      flex: 1; overflow-y: auto; padding: 24px 28px;
+      background: var(--color-bg);
+    }
+    .review-empty {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; height: 100%; color: var(--color-text-secondary);
+      font-size: 13px;
+    }
+    .review-empty-icon { margin-bottom: 12px; }
+    .review-score-ring {
+      width: 72px; height: 72px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 700; flex-shrink: 0;
+    }
+    .review-problem-card {
+      padding: 12px 14px; border-radius: 6px; margin-bottom: 8px;
+      border-left: 3px solid; font-size: 13px;
+    }
+    .review-suggestion-card {
+      padding: 10px 14px; border-radius: 6px; margin-bottom: 6px;
+      font-size: 13px; background: #ecfdf5;
+    }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @media (max-width: 768px) {
+      .review-layout { flex-direction: column; }
+      .review-sidebar { width: 100%; min-width: 0; max-height: 200px; border-right: none; border-bottom: 1px solid var(--color-border); }
+    }
     .modal-header {
       padding: 18px 20px 14px; border-bottom: 1px solid var(--color-border);
       display: flex; align-items: center; justify-content: space-between;
@@ -340,7 +449,20 @@
       outline: none; transition: border-color var(--transition), box-shadow var(--transition);
     }
     .form-field input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgb(45 125 70 / 0.12); }
+    .form-field textarea {
+      width: 100%; padding: 8px 12px; border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); font-size: 13px; font-family: var(--font-sans);
+      outline: none; transition: border-color var(--transition), box-shadow var(--transition);
+      resize: vertical; min-height: 80px; line-height: 1.6;
+    }
+    .form-field textarea:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgb(45 125 70 / 0.12); }
     .form-hint { font-size: 11px; color: var(--color-text-secondary); margin-top: 4px; }
+    .field-badge {
+      font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 20px;
+      background: rgb(45 125 70 / 0.12); color: var(--color-primary);
+      vertical-align: middle; margin-left: 4px; letter-spacing: 0.02em;
+    }
+    .field-badge--warn { background: rgb(217 119 6 / 0.12); color: var(--color-warning); }
     .radio-group { display: flex; gap: 8px; }
     .radio-item {
       display: flex; align-items: center; gap: 6px; cursor: pointer;
@@ -440,6 +562,7 @@
     .chat-msg.user .chat-bubble { background: var(--color-primary); color: #fff; border-bottom-right-radius: 4px; }
     .chat-msg.assistant .chat-bubble { background: var(--color-muted); color: var(--color-fg); border-bottom-left-radius: 4px; }
     .chat-time { font-size: 10px; color: var(--color-text-secondary); margin-top: 3px; font-family: var(--font-mono); }
+    .chat-meta { font-size: 10px; color: var(--color-text-secondary); margin-bottom: 2px; padding: 0 4px; }
 
     /* ── Recommendation ── */
     .rec-products { display: flex; flex-direction: column; gap: 8px; }
@@ -448,9 +571,14 @@
       padding: 10px 12px; display: flex; gap: 10px; align-items: center;
       background: var(--color-bg);
     }
+    .rec-rank {
+      width: 22px; height: 22px; border-radius: 50%; background: var(--color-primary);
+      color: #fff; font-size: 11px; font-weight: 600; display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0;
+    }
     .rec-card .rec-name { font-weight: 500; font-size: 13px; }
     .rec-card .rec-cat { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
-    .rec-card .rec-price { font-family: var(--font-mono); font-weight: 600; font-size: 13px; color: var(--color-primary); margin-left: auto; }
+    .rec-card .rec-price { font-family: var(--font-mono); font-weight: 600; font-size: 13px; color: var(--color-primary); }
 
     /* ── Constitution ── */
     .constitution-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
@@ -521,6 +649,20 @@
       </svg>
       <span>体质套餐</span>
     </div>
+    <div class="nav-item" data-view="conversations" onclick="switchView('conversations')" title="对话审核">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      <span>对话</span>
+    </div>
+    <div class="nav-item" data-view="reports" onclick="switchView('reports')" title="统计报表">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      <span>报表</span>
+    </div>
   </nav>
 
   <div class="main-wrap">
@@ -583,11 +725,13 @@
               <tr>
                 <th style="width:36px"><input type="checkbox" class="row-checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
                 <th>商品</th>
+                <th>SKU-ID</th>
                 <th>状态</th>
                 <th>分类</th>
                 <th>价格</th>
                 <th>成分</th>
                 <th>库存</th>
+                <th style="width:70px">操作</th>
               </tr>
             </thead>
             <tbody id="productTableBody"></tbody>
@@ -682,7 +826,7 @@
         <div style="padding:16px">
           <p style="color:var(--color-text-secondary);font-size:13px">从商品列表添加主推产品：</p>
           <div style="display:flex;gap:8px;margin-top:8px">
-            <button class="btn btn-secondary" onclick="openHotProductPicker()">+ 添加商品</button>
+            <button class="btn btn-primary" onclick="openHotProductPicker()">+ 添加商品</button>
           </div>
         </div>
       </div>
@@ -701,9 +845,168 @@
       </div>
       <div class="main">
         <div style="padding:12px 20px;border-bottom:1px solid var(--color-border)">
-          <div id="bundleTabBar" style="display:flex;gap:4px"></div>
+          <div id="bundleTabBar" style="display:flex;gap:4px;flex-wrap:wrap"></div>
         </div>
         <div id="bundleContent"></div>
+      </div>
+    </div>
+
+    <!-- ═══ Conversations View ═══ -->
+    <div id="conversationsView" class="view">
+      <div class="toolbar" style="gap:12px;flex-wrap:wrap">
+        <strong>对话审核</strong>
+        <div style="display:flex;gap:4px;margin-left:16px">
+          <button class="pill" id="convTabList" style="background:var(--color-primary);color:#fff" onclick="switchConvTab('list')">对话列表</button>
+          <button class="pill" id="convTabReport" onclick="switchConvTab('report')">审核报告</button>
+        </div>
+        <div style="flex:1"></div>
+        <span id="convListToolbar">
+          <button class="pill" id="convFilterAll" style="background:var(--color-primary);color:#fff" onclick="setConvFilter('all')">全部</button>
+          <button class="pill" id="convFilterFlagged" onclick="setConvFilter('flagged')">已标记</button>
+          <button class="btn btn-secondary" onclick="loadConversations()" title="刷新">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          </button>
+        </span>
+      </div>
+      <div id="convListView">
+        <div class="main" style="overflow-y:auto;padding:16px 20px;max-height:calc(100vh - 180px)">
+        <div class="table-wrap">
+          <table class="data-table" role="grid">
+            <thead>
+              <tr>
+                <th style="width:60px">ID</th>
+                <th style="width:100px">时间</th>
+                <th style="width:80px">渠道</th>
+                <th style="width:80px">阶段</th>
+                <th>最近消息</th>
+                <th style="width:80px">标记</th>
+                <th style="width:100px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="convTableBody">
+              <tr><td colspan="7" style="text-align:center;color:var(--color-text-secondary);padding:40px">加载中…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px" id="convPagination"></div>
+      </div>
+    </div>
+
+    <div id="convReportView" style="display:none;flex-direction:column;height:100%">
+      <div class="review-layout">
+        <div class="review-sidebar">
+          <div class="review-sidebar-header">
+            历史审核
+            <button class="btn btn-primary" onclick="runReviewReport()" style="margin-left:auto;font-size:11px;padding:4px 10px">+ 运行审核</button>
+          </div>
+          <div class="review-timeline" id="reviewTimeline">
+            <div style="text-align:center;color:var(--color-text-secondary);padding:40px 16px;font-size:13px">加载中...</div>
+          </div>
+        </div>
+        <div class="review-detail" id="reviewReportContent">
+          <div class="review-empty">
+            <div class="review-empty-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.3"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+            </div>
+            <div>选择左侧历史报告查看详情</div>
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">或点击「运行审核」生成新报告</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- ═══ Conversation Detail Drawer ═══ -->
+    <div class="drawer-overlay" id="convDetailOverlay" onclick="closeConvDetail()">
+      <div class="drawer" id="convDetailDrawer" onclick="event.stopPropagation()">
+        <div class="drawer-header">
+          <h3>对话详情</h3>
+          <button class="btn btn-ghost btn-icon" onclick="closeConvDetail()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="drawer-body" id="convDetailBody"></div>
+        <div class="drawer-footer">
+          <div class="form-field" style="flex:1">
+            <label>店员备注</label>
+            <input type="text" id="convNotesInput" placeholder="添加备注..." style="width:100%">
+          </div>
+          <div class="form-field" style="flex:1">
+            <label>标签</label>
+            <input type="text" id="convTagsInput" placeholder="用逗号分隔" style="width:100%">
+          </div>
+          <button class="btn btn-primary" onclick="saveConvNotes()">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Reports View ═══ -->
+    <div id="reportsView" class="view">
+      <div class="toolbar" style="gap:12px;flex-wrap:wrap">
+        <strong>统计报表</strong>
+        <div style="flex:1"></div>
+        <div class="time-filters" id="timeFilters">
+          <button class="pill time-pill active" data-days="7" onclick="setReportRange(7)">近7天</button>
+          <button class="pill time-pill" data-days="30" onclick="setReportRange(30)">近30天</button>
+          <button class="pill time-pill" data-days="90" onclick="setReportRange(90)">近90天</button>
+        </div>
+        <button class="btn btn-secondary" onclick="loadReportData()" title="刷新">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        </button>
+      </div>
+      <div class="main" style="overflow-y:auto;padding:16px 20px;gap:16px;display:flex;flex-direction:column">
+        <!-- KPI row -->
+        <div class="kpi-row" id="reportKpiRow">
+          <div class="kpi-card">
+            <div class="kpi-label">总收入</div>
+            <div class="kpi-value" id="r-kpi-revenue">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">订单数</div>
+            <div class="kpi-value" id="r-kpi-orders">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">客单价</div>
+            <div class="kpi-value" id="r-kpi-avg">—</div>
+          </div>
+          <div class="kpi-card accent">
+            <div class="kpi-label">AI转化率</div>
+            <div class="kpi-value" id="r-kpi-ai">—</div>
+          </div>
+        </div>
+        <!-- Charts row 1: revenue trend + order trend -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">收入趋势</div>
+            <div id="chart-revenue" style="height:200px"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">订单量趋势</div>
+            <div id="chart-orders" style="height:200px"></div>
+          </div>
+        </div>
+        <!-- Charts row 2: product ranking + conversion funnel -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">商品动销 TOP10</div>
+            <div id="chart-ranking" style="height:200px"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">AI 转化漏斗</div>
+            <div id="chart-funnel" style="height:200px"></div>
+          </div>
+        </div>
+        <!-- Charts row 3: category + constitution -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">分类销售占比</div>
+            <div id="chart-category" style="height:200px"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">顾客体质分布</div>
+            <div id="chart-constitution" style="height:200px"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -747,6 +1050,61 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeBatchModal()">取消</button>
       <button class="btn btn-primary" id="batchConfirmBtn" onclick="executeBatchUpdate()">确认修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Edit Product Modal ── -->
+<div class="modal-overlay" id="editProductModal">
+  <div class="modal" style="width:520px">
+    <div class="modal-header">
+      <h3 id="editProductTitle">编辑商品</h3>
+      <button class="btn btn-ghost btn-icon" onclick="closeEditProductModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label>商品名称</label>
+        <input type="text" id="edit-name" placeholder="商品名称">
+      </div>
+      <div class="form-row">
+        <div class="form-field" style="flex:1">
+          <label>分类</label>
+          <input type="text" id="edit-category" placeholder="如 面包、茶、饼干">
+        </div>
+        <div class="form-field" style="flex:1">
+          <label>价格</label>
+          <input type="number" id="edit-price" min="0" step="0.1" placeholder="如 29">
+        </div>
+        <div class="form-field" style="flex:1">
+          <label>库存</label>
+          <input type="number" id="edit-stock" min="0" step="1" placeholder="如 999">
+        </div>
+      </div>
+      <div class="form-field">
+        <label>成分</label>
+        <input type="text" id="edit-ingredients" placeholder="主要成分">
+      </div>
+      <div class="form-field">
+        <label>场景标签 <span class="field-badge">AI推荐核心</span></label>
+        <textarea id="edit-scene_tags" rows="4" placeholder="如 熬夜加班、考试复习、产后调理"></textarea>
+        <p class="form-hint">LLM 根据这些标签推荐商品，逗号分隔</p>
+      </div>
+      <div class="form-field">
+        <label>禁忌标签 <span class="field-badge field-badge--warn">AI避让</span></label>
+        <textarea id="edit-contraindication_tags" rows="4" placeholder="如 糖尿病、孕妇、婴幼儿"></textarea>
+        <p class="form-hint">LLM 根据这些标签避免推荐</p>
+      </div>
+      <div class="form-field">
+        <label class="checkbox-label">
+          <input type="checkbox" id="edit-is_active"> 上架状态（启用）
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeEditProductModal()">取消</button>
+      <button class="btn btn-primary" id="editConfirmBtn" onclick="saveEditProduct()">保存</button>
     </div>
   </div>
 </div>
@@ -804,6 +1162,36 @@
 </div>
 
 <script>
+// ── Auth check ──────────────────────────────────────────────────────
+(function() {
+  const token = localStorage.getItem('admin_token');
+  if (!token) {
+    window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+    return;
+  }
+
+  // Verify token is still valid
+  fetch('/api/auth/verify', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => { if (!r.ok) throw new Error('invalid'); })
+    .catch(() => {
+      localStorage.removeItem('admin_token');
+      window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+    });
+})();
+
+// ── Auto-inject auth token into all same-origin fetch calls ─────────
+const _origFetch = window.fetch;
+window.fetch = function(url, opts = {}) {
+  const token = localStorage.getItem('admin_token');
+  if (token) {
+    opts.headers = new Headers(opts.headers || {});
+    if (!opts.headers.has('Authorization')) {
+      opts.headers.set('Authorization', 'Bearer ' + token);
+    }
+  }
+  return _origFetch.call(window, url, opts);
+};
+
 const API = '/api/staff';
 let currentView = 'products';
 
@@ -859,6 +1247,8 @@ function switchView(view) {
   if (view === 'orders') loadOrders();
   if (view === 'hotProducts') loadHotProducts();
   if (view === 'bundle') loadBundles();
+  if (view === 'reports') { loadReportData(); }
+  if (view === 'conversations') { loadConversations(); }
 }
 
 // ── Products ─────────────────────────────────────────────────────
@@ -872,18 +1262,18 @@ async function loadCategories() {
 
 function renderCategoryPills() {
   const pills = document.getElementById('categoryPills');
-  const allCount = products.length;
-  pills.innerHTML = `<button class="pill active" data-cat="" onclick="filterCategory('')">全部</button>` +
+  const allCount = totalCount;
+  pills.innerHTML = `<button class="pill active" data-cat="" onclick="filterCategory('', this)">全部${allCount > 0 ? `<span class="count">${allCount}</span>` : ''}</button>` +
     categories.map(c => {
-      const count = products.filter(p => p.category === c).length;
-      return `<button class="pill" data-cat="${c}" onclick="filterCategory('${c}')">${c}${count > 0 ? `<span class="count">${count}</span>` : ''}</button>`;
+      return `<button class="pill" data-cat="${c.name}" onclick="filterCategory('${c.name}', this)">${c.name}<span class="count">${c.count}</span></button>`;
     }).join('');
 }
 
-function filterCategory(cat) {
+function filterCategory(cat, btn) {
   currentCategory = cat;
   currentPage = 1;
-  document.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.cat === cat));
+  document.querySelectorAll('#categoryPills .pill').forEach(p => p.classList.remove('active'));
+  if (btn) btn.classList.add('active');
   loadProducts();
 }
 
@@ -894,12 +1284,12 @@ async function loadProducts() {
   if (searchQuery) params.set('q', searchQuery);
   try {
     const data = await api('/products?' + params.toString());
+    console.log('loadProducts raw response keys:', Object.keys(data.products?.[0] || {}));
     products = data.products || [];
     totalCount = data.total || 0;
     renderKpis();
     renderTable();
     renderPagination();
-    renderCategoryPills();
   } catch(e) { console.error(e); }
 }
 
@@ -916,7 +1306,7 @@ function renderKpis() {
 function renderTable() {
   const tbody = document.getElementById('productTableBody');
   if (!products.length) {
-    tbody.innerHTML = `<tr><td colspan="7">
+    tbody.innerHTML = `<tr><td colspan="9">
       <div class="state-box">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <p>${searchQuery ? '未找到匹配商品' : '暂无商品'}</p>
@@ -938,9 +1328,10 @@ function renderTable() {
     return `<tr class="${isSelected ? 'selected' : ''}" data-id="${p.id}">
       <td><input type="checkbox" class="row-checkbox" ${isSelected ? 'checked' : ''} onclick="toggleRow(this,${p.id})"></td>
       <td class="cell-name">
-        <div class="name" title="${p.name}">${p.name}</div>
+        <div class="name" title="${p.name}" onclick="openEditProductModal(${p.id})" style="cursor:pointer">${p.name}</div>
         <div class="sku">${p.sku_id}</div>
       </td>
+      <td style="font-family:var(--font-mono);font-size:12px">${p.sku_id}</td>
       <td>${statusBadge}</td>
       <td>${p.category || '—'}</td>
       <td style="font-family:var(--font-mono);font-weight:500">¥${(p.price || 0).toFixed(1)}</td>
@@ -952,6 +1343,7 @@ function renderTable() {
             onchange="onStockChange(this,${p.id})" aria-label="商品 ${p.name} 库存">
         </div>
       </td>
+      <td><button class="btn btn-secondary" style="padding:4px 10px;font-size:12px" onclick="openEditProductModal(${p.id})">编辑</button></td>
     </tr>`;
   }).join('');
 }
@@ -1030,6 +1422,58 @@ async function saveAllChanges() {
       loadProducts();
     }
   } catch(e) { showToast('保存失败，请重试'); }
+}
+
+/* ── Edit Product Modal ── */
+let _editProductSkuId = null;
+
+function openEditProductModal(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) { console.warn('product not found for id', id); return; }
+  console.log('openEditProductModal', { id, name: p.name, scene_tags: p.scene_tags, contra: p.contraindication_tags });
+  _editProductSkuId = p.sku_id;
+  document.getElementById('editProductTitle').textContent = '编辑商品：' + p.name;
+  document.getElementById('edit-name').value = p.name || '';
+  document.getElementById('edit-category').value = p.category || '';
+  document.getElementById('edit-price').value = p.price || '';
+  document.getElementById('edit-stock').value = p.stock ?? '';
+  document.getElementById('edit-ingredients').value = p.ingredients || '';
+  document.getElementById('edit-scene_tags').value = p.scene_tags || '';
+  document.getElementById('edit-contraindication_tags').value = p.contraindication_tags || '';
+  document.getElementById('edit-is_active').checked = !!p.is_active;
+  document.getElementById('editProductModal').classList.add('show');
+}
+
+function closeEditProductModal() {
+  document.getElementById('editProductModal').classList.remove('show');
+  _editProductSkuId = null;
+}
+
+async function saveEditProduct() {
+  if (!_editProductSkuId) return;
+  const payload = {
+    name: document.getElementById('edit-name').value.trim(),
+    category: document.getElementById('edit-category').value.trim(),
+    price: parseFloat(document.getElementById('edit-price').value) || 0,
+    stock: parseInt(document.getElementById('edit-stock').value) || 0,
+    ingredients: document.getElementById('edit-ingredients').value.trim(),
+    scene_tags: document.getElementById('edit-scene_tags').value.trim(),
+    contraindication_tags: document.getElementById('edit-contraindication_tags').value.trim(),
+    is_active: document.getElementById('edit-is_active').checked,
+  };
+  try {
+    const res = await fetch(API + '/products/' + _editProductSkuId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error();
+    closeEditProductModal();
+    showToast('保存成功');
+    loadProducts();
+  } catch(e) {
+    showToast('保存失败，请重试');
+  }
 }
 
 /* ── Batch Modal ── */
@@ -1343,12 +1787,24 @@ function renderPanel(o) {
   `;
 }
 
-function renderConversation(msgs) {
-  if (!Array.isArray(msgs) || !msgs.length) return '<p style="color:var(--color-text-secondary);font-size:13px">无对话记录</p>';
-  return `<div class="chat-list">${msgs.map(m => {
-    const role = m.role === 'user' ? 'user' : 'assistant';
+function renderConversation(snapshot) {
+  // Handle both formats: raw array or {messages_history: [...]}
+  let msgs = [];
+  if (Array.isArray(snapshot)) msgs = snapshot;
+  else if (snapshot && typeof snapshot === 'object') {
+    msgs = snapshot.messages_history || snapshot.messages || [];
+  }
+  if (!msgs.length) return '<p style="color:var(--color-text-secondary);font-size:13px;padding:12px 0">无对话记录</p>';
+
+  const stagePath = snapshot.stage_history ? snapshot.stage_history.join(' → ') : '';
+  const header = stagePath ? `<div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:8px">阶段: ${stagePath}</div>` : '';
+
+  return header + `<div class="chat-list">${msgs.map(m => {
+    const isUser = m.role === 'user';
     const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content);
-    return `<div class="chat-msg ${role}">
+    const time = m.timestamp ? m.timestamp.substring(11, 19) : '';
+    return `<div class="chat-msg ${isUser ? 'user' : 'assistant'}">
+      <div class="chat-meta">${isUser ? '顾客' : 'AI'} ${time ? '· ' + time : ''}</div>
       <div class="chat-bubble">${escapeHTML(content)}</div>
     </div>`;
   }).join('')}</div>`;
@@ -1356,24 +1812,59 @@ function renderConversation(msgs) {
 
 function renderRecommendations(rec) {
   let products = [];
+  let total = 0;
+  let ctype = '';
   if (Array.isArray(rec)) products = rec;
-  else if (rec && typeof rec === 'object') products = rec.products || rec.recommended || [];
-  if (!products.length) return '<p style="color:var(--color-text-secondary);font-size:13px">无推荐记录</p>';
-  return `<div class="rec-products">${products.map(p => `
+  else if (rec && typeof rec === 'object') {
+    products = rec.products || rec.recommended || [];
+    total = rec.total || 0;
+    ctype = rec.constitution_type || '';
+  }
+  if (!products.length) return '<p style="color:var(--color-text-secondary);font-size:13px;padding:12px 0">无推荐记录</p>';
+
+  const header = ctype ? `<div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:8px">体质: ${ctype}${total ? ' · 合计 ¥' + total.toFixed(2) : ''}</div>` : '';
+
+  return header + `<div class="rec-products">${products.map((p, i) => `
     <div class="rec-card">
-      <div>
+      <span class="rec-rank">${i+1}</span>
+      <div style="flex:1">
         <div class="rec-name">${p.name || '—'}</div>
         <div class="rec-cat">${p.category || ''} ${p.sku_id ? '· ' + p.sku_id : ''}</div>
       </div>
-      ${p.price ? `<div class="rec-price">¥${p.price.toFixed(2)}</div>` : ''}
+      <div style="text-align:right">
+        ${p.price ? `<div class="rec-price">¥${p.price.toFixed(2)}</div>` : ''}
+        ${p.quantity ? `<div style="font-size:11px;color:var(--color-text-secondary)">×${p.quantity}</div>` : ''}
+      </div>
     </div>
   `).join('')}</div>`;
 }
 
 function renderConstitution(cons) {
-  if (!cons || typeof cons !== 'object') return '<p style="color:var(--color-text-secondary);font-size:13px">无体质分析</p>';
+  if (!cons || typeof cons !== 'object') return '<p style="color:var(--color-text-secondary);font-size:13px;padding:12px 0">无体质分析</p>';
+
+  const ctype = cons.type || cons.constitution_type || '';
+  const conf = cons.confidence || 0;
+  const desc = cons.description || '';
+
+  const typeColors = {
+    '气虚质':'#059669','阳虚质':'#d97706','阴虚质':'#7c3aed','血虚质':'#dc2626',
+    '痰湿质':'#0891b2','湿热质':'#ea580c','血瘀质':'#4f46e5','气郁质':'#b91c1c',
+    '特禀质':'#0d9488','平和质':'#6366f1'
+  };
+
+  if (ctype) {
+    const c = typeColors[ctype] || '#6366f1';
+    let html = `<div style="display:flex;align-items:center;gap:12px;padding:12px 0">
+      <span style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:600;background:${c}15;color:${c};border:1px solid ${c}30">${ctype}</span>`;
+    if (conf) html += `<span style="font-size:12px;color:var(--color-text-secondary)">AI 置信度: ${conf}%</span>`;
+    html += `</div>`;
+    if (desc) html += `<p style="font-size:13px;color:var(--color-text-secondary);line-height:1.6">${desc}</p>`;
+    return html;
+  }
+
+  // Fallback: show all key-value pairs
   const entries = Object.entries(cons).filter(([k]) => k && !k.startsWith('_'));
-  if (!entries.length) return '<p style="color:var(--color-text-secondary);font-size:13px">无体质分析</p>';
+  if (!entries.length) return '<p style="color:var(--color-text-secondary);font-size:13px;padding:12px 0">无体质分析</p>';
   return `<div class="constitution-grid">${entries.map(([k, v]) => `
     <div class="constitution-item">
       <div class="ci-label">${k}</div>
@@ -1459,16 +1950,6 @@ let hotProducts = [];
 async function loadHotProducts() {
   hotProducts = await api('/hot-products');
   window._hotProducts = hotProducts;
-  // enrich with product names from the full product list
-  const products = await api('/products?limit=500');
-  const prodMap = {};
-  products.products.forEach(p => { prodMap[p.sku_id] = p; });
-  hotProducts.forEach(h => {
-    const prod = prodMap[h.sku_id];
-    h.name = prod ? prod.name : h.sku_id;
-    h.category = prod ? prod.category : '—';
-  });
-  window._hotProducts = hotProducts;
   renderHotProducts();
 }
 
@@ -1486,21 +1967,28 @@ function renderHotProducts() {
 function openHotProductPicker() {
   const alreadySkus = window._hotProducts ? window._hotProducts.map(p => p.sku_id) : [];
   openProductPicker(async function(items) {
-    for (const item of items) {
-      await addHotProductItem(item);
-    }
-    loadHotProducts();
+    const payload = { products: items.map((p, i) => ({ sku_id: p.sku_id, sort_order: i })) };
+    const res = await fetch(API + '/hot-products', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (res.ok) { loadHotProducts(); } else { console.error('[hot-products] PUT failed:', data); }
   }, alreadySkus);
 }
 
 async function addHotProductItem(item) {
   const current = window._hotProducts || [];
-  await api('/hot-products', {
+  const payload = { products: [...current, { sku_id: item.sku_id, sort_order: current.length }].map(p => ({ sku_id: p.sku_id, sort_order: p.sort_order || 0 })) };
+  const res = await fetch(API + '/hot-products', {
     method: 'PUT',
-    body: JSON.stringify({
-      products: [...current, { sku_id: item.sku_id, sort_order: current.length }].map(p => ({ sku_id: p.sku_id, sort_order: p.sort_order || 0 }))
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
   });
+  const data = await res.json();
+  console.log('[DEBUG] addHotProductItem status:', res.status, 'data:', data);
+  return data;
 }
 
 function removeHotProduct(sku) {
@@ -1516,8 +2004,10 @@ async function saveHotProducts() {
 }
 
 // ── Constitution Bundle ─────────────────────────────────────────
-const BUNDLE_TYPES = ['气虚质', '阳虚质', '阴虚质', '湿热质', '平和质'];
+const BUNDLE_TYPES = ['气虚质', '阳虚质', '阴虚质', '血虚质', '痰湿质', '湿热质', '血瘀质', '气郁质', '特禀质', '平和质'];
 let bundleData = {};
+
+let _currentBundleType = '气虚质';
 
 async function loadBundles() {
   bundleData = await api('/constitution-bundles');
@@ -1526,10 +2016,11 @@ async function loadBundles() {
   tabBar.innerHTML = BUNDLE_TYPES.map(t =>
     `<button class="pill" id="bundleTab-${t}" onclick="showBundleTab('${t}')" style="padding:6px 14px;border-radius:20px;border:1px solid var(--color-border);background:none;cursor:pointer">${t}</button>`
   ).join('');
-  showBundleTab('气虚质');
+  showBundleTab(_currentBundleType);
 }
 
 function showBundleTab(type) {
+  _currentBundleType = type;
   BUNDLE_TYPES.forEach(t => {
     const btn = document.getElementById('bundleTab-' + t);
     btn.style.background = t === type ? 'var(--color-primary)' : '';
@@ -1543,11 +2034,11 @@ function showBundleTab(type) {
       <table class="data-table" role="grid">
         <thead><tr><th>商品</th><th>分类</th><th>操作</th></tr></thead>
         <tbody id="bundleTableBody">
-          ${items.map(p => `<tr><td>${p.name || p.sku_id}</td><td>—</td><td><button class="btn btn-secondary" style="padding:4px 10px;font-size:12px" onclick="removeBundleItem('${type}','${p.sku_id}')">移除</button></td></tr>`).join('')}
+          ${items.map(p => `<tr><td>${p.name || p.sku_id}</td><td>${p.category || '—'}</td><td><button class="btn btn-secondary" style="padding:4px 10px;font-size:12px" onclick="removeBundleItem('${type}','${p.sku_id}')">移除</button></td></tr>`).join('')}
         </tbody>
       </table>
       <div style="margin-top:12px;display:flex;gap:8px">
-        <button class="btn btn-secondary" onclick="openBundlePicker('${type}')">+ 添加商品</button>
+        <button class="btn btn-primary" onclick="openBundlePicker('${type}')">+ 添加商品</button>
       </div>
     </div>`;
 }
@@ -1556,21 +2047,15 @@ function openBundlePicker(type) {
   const existing = window._bundles && window._bundles[type] ? window._bundles[type] : [];
   const alreadySkus = existing.map(p => p.sku_id);
   openProductPicker(async function(items) {
-    for (const item of items) {
-      await addBundleItemToType(type, item);
-    }
-    loadBundles();
+    const payload = { products: items.map((p, i) => ({ sku_id: p.sku_id, sort_order: i })) };
+    const res = await fetch(API + '/constitution-bundles/' + type, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (res.ok) { loadBundles(); } else { console.error('[bundle] PUT failed:', data); }
   }, alreadySkus);
-}
-
-async function addBundleItemToType(type, item) {
-  const current = window._bundles && window._bundles[type] ? [...window._bundles[type]] : [];
-  current.push({ sku_id: item.sku_id, sort_order: current.length });
-  await fetch(API + '/constitution-bundles/' + type, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items: current.map(p => ({ sku_id: p.sku_id, sort_order: p.sort_order || 0 })) })
-  });
 }
 
 function removeBundleItem(type, sku) {
@@ -1579,7 +2064,7 @@ function removeBundleItem(type, sku) {
     fetch(API + '/constitution-bundles/' + type, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: window._bundles[type].map(p => ({ sku_id: p.sku_id, sort_order: p.sort_order || 0 })) })
+      body: JSON.stringify({ products: window._bundles[type].map((p, i) => ({ sku_id: p.sku_id, sort_order: i })) })
     }).then(() => showBundleTab(type));
   }
 }
@@ -1589,7 +2074,7 @@ async function saveBundle() {
   let ok = true;
   for (const type of BUNDLE_TYPES) {
     const items = (bundleData[type] || []);
-    const res = await api(`/staff/constitution-bundles/${encodeURIComponent(type)}`, {
+    const res = await api(`/constitution-bundles/${encodeURIComponent(type)}`, {
       method: 'PUT', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ products: items.map((p, i) => ({ sku_id: p.sku_id, sort_order: i })) })
     });
@@ -1598,6 +2083,199 @@ async function saveBundle() {
   alert(ok ? '保存成功' : '部分保存失败');
 }
 
+// ── Product Picker ──────────────────────────────────────────
+
+async function openProductPicker(callback, alreadySelectedSkuIds) {
+  _pickerCallback = callback;
+  _pickerSelected = (alreadySelectedSkuIds || []).map(sku => ({ sku_id: sku }));
+  document.getElementById('pickerSearch').value = '';
+  document.getElementById('pickerResults').innerHTML = '<div class="picker-loading">加载中…</div>';
+  document.getElementById('pickerSelectedCount').textContent = '已选 0 件';
+  document.getElementById('pickerConfirmBtn').disabled = true;
+  document.getElementById('pickerCategoryPills').innerHTML = '';
+  _pickerSearch = '';
+  _pickerCategory = '';
+  _pickerPage = 1;
+  _pickerHasMore = true;
+  loadPickerCategories();
+  await loadPickerProducts(true);
+  // Fetch pre-selected products not in first page and prepend them
+  if (alreadySelectedSkuIds && alreadySelectedSkuIds.length) {
+    const loadedSkus = new Set(_pickerAllProducts.map(p => p.sku_id));
+    const missing = alreadySelectedSkuIds.filter(s => !loadedSkus.has(s));
+    if (missing.length) {
+      try {
+        const data = await api('/products/by-skus?skus=' + encodeURIComponent(missing.join(',')));
+        _pickerAllProducts = [...(data.products || []), ..._pickerAllProducts];
+        renderPickerItems();
+      } catch (e) { /* ignore */ }
+    }
+  }
+  document.getElementById('productPicker').classList.add('show');
+}
+
+function closeProductPicker() {
+  document.getElementById('productPicker').classList.remove('show');
+  _pickerCallback = null;
+  _pickerSelected = [];
+}
+
+function closePickerOnOverlay(e) {
+  if (e.target.id === 'productPicker') closeProductPicker();
+}
+
+async function loadPickerCategories() {
+  const data = await api('/categories');
+  const pills = document.getElementById('pickerCategoryPills');
+  pills.innerHTML = '<span class="ppicker-pill active" onclick="setPickerCategory(\'\')">全部</span>';
+  (data.categories || []).forEach(cat => {
+    const catName = typeof cat === 'object' ? (cat.name || '') : cat;
+    pills.innerHTML += `<span class="ppicker-pill" onclick="setPickerCategory(\'${catName}\')">${catName}</span>`;
+  });
+}
+
+function setPickerCategory(cat) {
+  _pickerCategory = cat;
+  _pickerPage = 1;
+  _pickerHasMore = true;
+  document.querySelectorAll('.ppicker-pill').forEach(el => {
+    el.classList.toggle('active', el.textContent === (cat || '全部'));
+  });
+  loadPickerProducts(true);
+}
+
+function onPickerSearchInput() {
+  clearTimeout(_pickerDebounceTimer);
+  _pickerDebounceTimer = setTimeout(() => {
+    _pickerSearch = document.getElementById('pickerSearch').value.trim();
+    _pickerPage = 1;
+    _pickerHasMore = true;
+    loadPickerProducts(true);
+  }, 300);
+}
+
+async function loadPickerProducts(reset) {
+  if (_pickerLoading) return;
+  if (!reset && !_pickerHasMore) return;
+  if (reset) {
+    _pickerAllProducts = [];
+    _pickerPage = 1;
+  }
+  _pickerLoading = true;
+  const params = new URLSearchParams({ page: _pickerPage, page_size: 50 });
+  if (_pickerSearch) params.set('q', _pickerSearch);
+  if (_pickerCategory) params.set('category', _pickerCategory);
+  const data = await api('/products?' + params.toString());
+  const products = data.products || [];
+  if (reset) {
+    _pickerAllProducts = products;
+    document.getElementById('pickerResults').innerHTML = '';
+  } else {
+    _pickerAllProducts.push(...products);
+  }
+  _pickerHasMore = products.length === 50;
+  _pickerPage++;
+  _pickerLoading = false;
+  renderPickerItems();
+  setupPickerScroll();
+}
+
+function renderPickerItems() {
+  const container = document.getElementById('pickerResults');
+  const selectedSkus = new Set(_pickerSelected.map(i => i.sku_id));
+  const sorted = [..._pickerAllProducts].sort((a, b) => {
+    const aSel = selectedSkus.has(a.sku_id) ? 0 : 1;
+    const bSel = selectedSkus.has(b.sku_id) ? 0 : 1;
+    return aSel - bSel;
+  });
+  container.innerHTML = sorted.map(p => {
+    const isSelected = selectedSkus.has(p.sku_id);
+    return `<div class="picker-item${isSelected ? ' selected' : ''}" data-sku="${p.sku_id}" onclick="togglePickerItem('${p.sku_id}')">
+      <input type="checkbox"${isSelected ? ' checked' : ''} onclick="event.stopPropagation();togglePickerItem('${p.sku_id}')">
+      <div class="picker-item-info">
+        <div class="picker-item-name">${p.name || p.sku_id}</div>
+        <div class="picker-item-meta">${p.sku_id} · ${p.category || ''} ${p.price ? '· ¥' + p.price : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+  if (!_pickerAllProducts.length) {
+    container.innerHTML = '<div class="picker-loading">未找到商品</div>';
+  }
+}
+
+function togglePickerItem(sku) {
+  const product = _pickerAllProducts.find(p => p.sku_id === sku);
+  if (!product) return;
+  const idx = _pickerSelected.findIndex(i => i.sku_id === sku);
+  if (idx >= 0) {
+    _pickerSelected.splice(idx, 1);
+  } else {
+    _pickerSelected.push({ sku_id: product.sku_id, name: product.name, category: product.category, price: product.price });
+  }
+  updatePickerUI();
+}
+
+function updatePickerUI() {
+  const count = _pickerSelected.length;
+  document.getElementById('pickerSelectedCount').textContent = `已选 ${count} 件`;
+  document.getElementById('pickerConfirmBtn').disabled = count === 0;
+  document.querySelectorAll('.picker-item').forEach(row => {
+    const sku = row.dataset.sku;
+    const checked = _pickerSelected.some(i => i.sku_id === sku);
+    row.querySelector('input').checked = checked;
+    row.classList.toggle('selected', checked);
+  });
+}
+
+function setupPickerScroll() {
+  const el = document.getElementById('pickerResults');
+  if (el.dataset.bound) return;
+  el.dataset.bound = '1';
+  el.addEventListener('scroll', () => {
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
+      if (!_pickerLoading && _pickerHasMore) loadPickerProducts(false);
+    }
+  });
+}
+
+function confirmPickerSelection() {
+  if (!_pickerCallback || !_pickerSelected.length) return;
+  const items = _pickerSelected.map(i => ({ ...i }));
+  const cb = _pickerCallback;
+  _pickerCallback = null;
+  document.getElementById('productPicker').classList.remove('show');
+  _pickerSelected = [];
+  cb(items);
+}
+
+// ── Init on page load ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadCategories();
+  loadProducts();
+});
+</script>
+
+<!-- Product Picker Slide-over -->
+<div id="productPicker" class="picker-overlay" onclick="closePickerOnOverlay(event)">
+  <div class="picker-panel">
+    <div class="picker-header">
+      <span class="picker-title">选择商品</span>
+      <button class="btn btn-ghost btn-icon picker-close" onclick="closeProductPicker()">✕</button>
+    </div>
+    <div class="picker-toolbar">
+      <input type="text" id="pickerSearch" class="picker-search" placeholder="搜索商品名称/条码..." oninput="onPickerSearchInput()">
+      <div id="pickerCategoryPills" class="picker-pills"></div>
+    </div>
+    <div id="pickerResults" class="picker-results">
+      <div class="picker-loading">加载中…</div>
+    </div>
+    <div class="picker-footer">
+      <span id="pickerSelectedCount">已选 0 件</span>
+      <button class="btn btn-primary" id="pickerConfirmBtn" onclick="confirmPickerSelection()" disabled>完成</button>
+    </div>
+  </div>
+</div>
+<style>
 /* Product Picker Slide-over */
 .picker-overlay {
   position: fixed;
@@ -1653,10 +2331,9 @@ async function saveBundle() {
 .picker-pills {
   display: flex;
   gap: 6px;
-  overflow-x: auto;
+  flex-wrap: wrap;
   padding-bottom: 4px;
 }
-.picker-pills::-webkit-scrollbar { height: 0; }
 .ppicker-pill {
   display: inline-block;
   padding: 3px 10px;
@@ -1693,11 +2370,9 @@ async function saveBundle() {
   height: 16px;
   flex-shrink: 0;
 }
-.picker-item.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.picker-item.selected {
+  background: #f0f7ff;
 }
-.picker-item.disabled input { cursor: not-allowed; }
 .picker-item-info { flex: 1; min-width: 0; }
 .picker-item-name {
   font-size: 14px;
@@ -1720,179 +2395,421 @@ async function saveBundle() {
   background: #fafafa;
 }
 #pickerSelectedCount { font-size: 13px; color: #666; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script>
+// ── Reports Dashboard ─────────────────────────────────────────────
+let reportCharts = {};
+let _reportDays = 7;
 
-// ── Product Picker ──────────────────────────────────────────
-
-async function openProductPicker(callback, alreadySelectedSkuIds) {
-  _pickerCallback = callback;
-  _pickerSelected = (alreadySelectedSkuIds || []).map(sku => ({ sku_id: sku }));
-  document.getElementById('pickerSearch').value = '';
-  document.getElementById('pickerResults').innerHTML = '<div class="picker-loading">加载中…</div>';
-  document.getElementById('pickerSelectedCount').textContent = '已选 0 件';
-  document.getElementById('pickerConfirmBtn').disabled = true;
-  document.getElementById('pickerCategoryPills').innerHTML = '';
-  _pickerSearch = '';
-  _pickerCategory = '';
-  _pickerPage = 1;
-  _pickerHasMore = true;
-  loadPickerCategories();
-  await loadPickerProducts(true);
-  document.getElementById('productPicker').classList.add('show');
-}
-
-function closeProductPicker() {
-  document.getElementById('productPicker').classList.remove('show');
-  _pickerCallback = null;
-  _pickerSelected = [];
-}
-
-function closePickerOnOverlay(e) {
-  if (e.target.id === 'productPicker') closeProductPicker();
-}
-
-async function loadPickerCategories() {
-  const data = await api('/categories');
-  const pills = document.getElementById('pickerCategoryPills');
-  pills.innerHTML = '<span class="ppicker-pill active" onclick="setPickerCategory(\'\')">全部</span>';
-  (data.categories || []).forEach(cat => {
-    pills.innerHTML += `<span class="ppicker-pill" onclick="setPickerCategory(\'${cat}\')">${cat}</span>`;
+function setReportRange(days) {
+  _reportDays = days;
+  document.querySelectorAll('.time-pill').forEach(p => {
+    p.classList.toggle('active', parseInt(p.dataset.days) === days);
   });
+  loadReportData();
 }
 
-function setPickerCategory(cat) {
-  _pickerCategory = cat;
-  _pickerPage = 1;
-  _pickerHasMore = true;
-  document.querySelectorAll('.ppicker-pill').forEach(el => {
-    el.classList.toggle('active', el.textContent === (cat || '全部'));
-  });
-  loadPickerProducts(true);
-}
+async function loadReportData() {
+  const now = new Date();
+  const end = now.toISOString().slice(0, 10);
+  const start = new Date(now - (_reportDays - 1) * 86400000).toISOString().slice(0, 10);
 
-function onPickerSearchInput() {
-  clearTimeout(_pickerDebounceTimer);
-  _pickerDebounceTimer = setTimeout(() => {
-    _pickerSearch = document.getElementById('pickerSearch').value.trim();
-    _pickerPage = 1;
-    _pickerHasMore = true;
-    loadPickerProducts(true);
-  }, 300);
-}
+  const [overview, revenueTrend, productRanking, conversionFunnel, categoryDist, constitutionDist] = await Promise.all([
+    api(`/reports/overview?start=${start}&end=${end}`),
+    api(`/reports/revenue-trend?start=${start}&end=${end}&granularity=day`),
+    api(`/reports/product-ranking?start=${start}&end=${end}&limit=10`),
+    api(`/reports/conversion-funnel?start=${start}&end=${end}`),
+    api(`/reports/category-distribution?start=${start}&end=${end}`),
+    api(`/reports/constitution-distribution?start=${start}&end=${end}`),
+  ]);
 
-async function loadPickerProducts(reset) {
-  if (_pickerLoading) return;
-  if (!reset && !_pickerHasMore) return;
-  if (reset) {
-    _pickerAllProducts = [];
-    _pickerPage = 1;
+  // KPI cards
+  document.getElementById('r-kpi-revenue').textContent = '¥' + (overview.total_revenue || 0).toLocaleString('zh-CN', {minimumFractionDigits: 2});
+  document.getElementById('r-kpi-orders').textContent = (overview.order_count || 0) + ' 单';
+  document.getElementById('r-kpi-avg').textContent = '¥' + (overview.avg_order_value || 0).toLocaleString('zh-CN', {minimumFractionDigits: 2});
+  document.getElementById('r-kpi-ai').textContent = (overview.ai_conversion_rate || 0) + '%';
+
+  // Revenue trend chart
+  if (!reportCharts.revenue) {
+    reportCharts.revenue = echarts.init(document.getElementById('chart-revenue'));
   }
-  _pickerLoading = true;
-  const params = new URLSearchParams({ page: _pickerPage, page_size: 50 });
-  if (_pickerSearch) params.set('q', _pickerSearch);
-  if (_pickerCategory) params.set('category', _pickerCategory);
-  const data = await api('/products?' + params.toString());
-  const products = data.products || [];
-  if (reset) {
-    _pickerAllProducts = products;
-    document.getElementById('pickerResults').innerHTML = '';
-  } else {
-    _pickerAllProducts.push(...products);
+  reportCharts.revenue.setOption({
+    tooltip: { trigger: 'axis' },
+    grid: { left: 50, right: 20, top: 10, bottom: 30 },
+    xAxis: { type: 'category', data: revenueTrend.map(d => d.date.slice(5)), axisLabel: { fontSize: 10 } },
+    yAxis: { type: 'value', axisLabel: { fontSize: 10, formatter: v => '¥' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) } },
+    series: [{ name: '收入', type: 'line', smooth: true, data: revenueTrend.map(d => d.revenue),
+        lineStyle: { color: '#2d7d46', width: 2 }, areaStyle: { color: 'rgba(45,125,70,0.08)' },
+        itemStyle: { color: '#2d7d46' } }]
+  }, false);
+
+  // Orders trend chart
+  if (!reportCharts.orders) {
+    reportCharts.orders = echarts.init(document.getElementById('chart-orders'));
   }
-  _pickerHasMore = products.length === 50;
-  _pickerPage++;
-  _pickerLoading = false;
-  renderPickerItems();
-  setupPickerScroll();
-}
+  reportCharts.orders.setOption({
+    tooltip: { trigger: 'axis' },
+    grid: { left: 40, right: 20, top: 10, bottom: 30 },
+    xAxis: { type: 'category', data: revenueTrend.map(d => d.date.slice(5)), axisLabel: { fontSize: 10 } },
+    yAxis: { type: 'value', axisLabel: { fontSize: 10 } },
+    series: [{ name: '订单', type: 'bar', data: revenueTrend.map(d => d.order_count),
+        itemStyle: { color: '#059669' } }]
+  }, false);
 
-function renderPickerItems() {
-  const container = document.getElementById('pickerResults');
-  const selectedSkus = new Set(_pickerSelected.map(i => i.sku_id));
-  container.innerHTML = _pickerAllProducts.map(p => {
-    const isSelected = selectedSkus.has(p.sku_id);
-    return `<div class="picker-item${isSelected ? ' disabled' : ''}" data-sku="${p.sku_id}" onclick="togglePickerItem('${p.sku_id}')">
-      <input type="checkbox"${isSelected ? ' checked' : ''}${isSelected ? ' disabled' : ''} onclick="event.stopPropagation();togglePickerItem('${p.sku_id}')">
-      <div class="picker-item-info">
-        <div class="picker-item-name">${p.name || p.sku_id}</div>
-        <div class="picker-item-meta">${p.category || ''} ${p.price ? '· ¥' + p.price : ''}</div>
-      </div>
-    </div>`;
-  }).join('');
-  if (!_pickerAllProducts.length) {
-    container.innerHTML = '<div class="picker-loading">未找到商品</div>';
+  // Product ranking horizontal bar
+  if (!reportCharts.ranking) {
+    reportCharts.ranking = echarts.init(document.getElementById('chart-ranking'));
   }
-}
+  const topProducts = (productRanking || []).slice(0, 10);
+  reportCharts.ranking.setOption({
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    grid: { left: 120, right: 20, top: 5, bottom: 5 },
+    xAxis: { type: 'value' },
+    yAxis: { type: 'category', data: topProducts.map(p => p.name.substring(0, 12)), axisLabel: { fontSize: 10 } },
+    series: [
+      { name: '推荐次数', type: 'bar', data: topProducts.map(p => p.times_recommended || 0),
+        itemStyle: { color: '#93c5fd' } },
+      { name: '成交次数', type: 'bar', data: topProducts.map(p => p.times_purchased || 0),
+        itemStyle: { color: '#059669' } }
+    ]
+  }, false);
 
-function togglePickerItem(sku) {
-  const product = _pickerAllProducts.find(p => p.sku_id === sku);
-  if (!product) return;
-  const idx = _pickerSelected.findIndex(i => i.sku_id === sku);
-  if (idx >= 0) {
-    _pickerSelected.splice(idx, 1);
-  } else {
-    _pickerSelected.push({ sku_id: product.sku_id, name: product.name, category: product.category, price: product.price });
+  // Conversion funnel
+  if (!reportCharts.funnel) {
+    reportCharts.funnel = echarts.init(document.getElementById('chart-funnel'));
   }
-  updatePickerUI();
+  const funnel = conversionFunnel || {};
+  reportCharts.funnel.setOption({
+    tooltip: { trigger: 'item', formatter: p => p.name + ': ' + p.value + ' (' + p.data.rate + ')' },
+    series: [{
+      name: '转化漏斗', type: 'funnel', left: '10%', width: '80%',
+      data: [
+        { value: funnel.conversations || 0, name: '对话', rate: '100%', itemStyle: { color: '#2d7d46' } },
+        { value: funnel.recommendations || 0, name: '推荐', rate: ((funnel.rates || {}).recommendation_rate || 0) + '%', itemStyle: { color: '#059669' } },
+        { value: funnel.add_to_cart || 0, name: '加购', rate: ((funnel.rates || {}).cart_rate || 0) + '%', itemStyle: { color: '#34d399' } },
+        { value: funnel.purchases || 0, name: '成交', rate: ((funnel.rates || {}).purchase_rate || 0) + '%', itemStyle: { color: '#6ee7b7' } }
+      ],
+      label: { show: true, position: 'inside', formatter: p => p.name + '\n' + p.value, fontSize: 11 }
+    }]
+  }, false);
+
+  // Category pie
+  if (!reportCharts.category) {
+    reportCharts.category = echarts.init(document.getElementById('chart-category'));
+  }
+  const catColors = ['#2d7d46','#059669','#34d399','#6ee7b7','#a7f3d0','#d1fae5','#ecfdf5','#f0fdf4'];
+  reportCharts.category.setOption({
+    tooltip: { trigger: 'item', formatter: p => p.name + ': ¥' + p.value.toLocaleString() + ' (' + p.percent + '%)' },
+    series: [{ type: 'pie', radius: ['35%', '65%'], data: (categoryDist || []).map((c, i) => ({
+        name: c.category, value: c.revenue, itemStyle: { color: catColors[i % catColors.length] }
+      })), label: { fontSize: 10, formatter: p => p.name.substring(0, 6) } }]
+  }, false);
+
+  // Constitution pie
+  if (!reportCharts.constitution) {
+    reportCharts.constitution = echarts.init(document.getElementById('chart-constitution'));
+  }
+  reportCharts.constitution.setOption({
+    tooltip: { trigger: 'item', formatter: p => p.name + ': ' + p.value + '人 (' + p.percent + '%)' },
+    series: [{ type: 'pie', radius: ['35%', '65%'], data: (constitutionDist || []).map(c => ({
+        name: c.constitution_type, value: c.customer_count
+      })), label: { fontSize: 10, formatter: p => p.name } }]
+  }, false);
 }
 
-function updatePickerUI() {
-  const count = _pickerSelected.length;
-  document.getElementById('pickerSelectedCount').textContent = `已选 ${count} 件`;
-  document.getElementById('pickerConfirmBtn').disabled = count === 0;
-  _pickerSelected.forEach(item => {
-    const row = document.querySelector(`.picker-item[data-sku="${item.sku_id}"]`);
-    if (row) {
-      row.querySelector('input').checked = true;
-      row.classList.add('disabled');
-      row.querySelector('input').disabled = true;
-    }
-  });
-}
-
-function setupPickerScroll() {
-  const el = document.getElementById('pickerResults');
-  if (el.dataset.bound) return;
-  el.dataset.bound = '1';
-  el.addEventListener('scroll', () => {
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
-      if (!_pickerLoading && _pickerHasMore) loadPickerProducts(false);
-    }
-  });
-}
-
-function confirmPickerSelection() {
-  if (!_pickerCallback || !_pickerSelected.length) return;
-  const items = _pickerSelected.map(i => ({ ...i }));
-  closeProductPicker();
-  _pickerCallback(items);
-}
-
-// ── Init on page load ──────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  loadCategories();
-  loadProducts();
+// Resize charts when window resizes
+window.addEventListener('resize', () => {
+  Object.values(reportCharts).forEach(chart => chart && chart.resize());
 });
-</script>
 
-<!-- Product Picker Slide-over -->
-<div id="productPicker" class="picker-overlay" onclick="closePickerOnOverlay(event)">
-  <div class="picker-panel">
-    <div class="picker-header">
-      <span class="picker-title">选择商品</span>
-      <button class="btn btn-ghost btn-icon picker-close" onclick="closeProductPicker()">✕</button>
-    </div>
-    <div class="picker-toolbar">
-      <input type="text" id="pickerSearch" class="picker-search" placeholder="搜索商品名称/条码..." oninput="onPickerSearchInput()">
-      <div id="pickerCategoryPills" class="picker-pills"></div>
-    </div>
-    <div id="pickerResults" class="picker-results">
-      <div class="picker-loading">加载中…</div>
-    </div>
-    <div class="picker-footer">
-      <span id="pickerSelectedCount">已选 0 件</span>
-      <button class="btn btn-primary" id="pickerConfirmBtn" onclick="confirmPickerSelection()" disabled>确认添加 →</button>
-    </div>
-  </div>
-</div>
+// ── Conversations View ─────────────────────────────────────────────────────
+
+let convFilter = 'all';
+let convPage = 1;
+let convDetailId = null;
+let _reviewHistory = [];
+
+async function loadReviewReport() {
+  try {
+    const r = await fetch(API + '/reviews/runs');
+    const data = await r.json();
+    const runs = data.runs || [];
+    _reviewHistory = runs;
+
+    // Render timeline
+    const timeline = document.getElementById('reviewTimeline');
+    if (!runs.length) {
+      timeline.innerHTML = '<div style="text-align:center;color:var(--color-text-secondary);padding:40px 16px;font-size:13px">暂无审核记录</div>';
+      document.getElementById('reviewReportContent').innerHTML =
+        '<div class="review-empty"><div class="review-empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.3"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg></div><div>点击「运行审核」生成报告</div></div>';
+      return;
+    }
+
+    timeline.innerHTML = runs.map((rv, i) => {
+      const score = rv.quality_score || 0;
+      const sc = score >= 7 ? '#059669' : score >= 4 ? '#d97706' : '#dc2626';
+      return '<div class="review-timeline-item' + (i === 0 ? ' active' : '') + '" onclick="selectReview(' + i + ')">' +
+        '<div class="rti-date">' + (rv.batch || '') + '</div>' +
+        '<div class="rti-meta">' + rv.conversation_count + ' 条对话 · ' + (rv.problems_found || []).length + ' 个问题</div>' +
+        '<span class="rti-score" style="background:' + sc + '15;color:' + sc + '">' + score + '/10</span>' +
+      '</div>';
+    }).join('');
+
+    // Auto-select latest
+    selectReview(0);
+  } catch (e) {
+    document.getElementById('reviewTimeline').innerHTML = '<div style="text-align:center;color:var(--color-danger);padding:40px 16px;font-size:13px">加载失败</div>';
+  }
+}
+
+function selectReview(idx) {
+  if (!_reviewHistory || !_reviewHistory[idx]) return;
+  // Highlight
+  document.querySelectorAll('.review-timeline-item').forEach((el, i) => el.classList.toggle('active', i === idx));
+  renderReviewReport(_reviewHistory[idx]);
+}
+
+function renderReviewReport(rv) {
+  const problems = rv.problems_found || [];
+  const suggestions = rv.suggestions || [];
+  const score = rv.quality_score || 0;
+  const sc = score >= 7 ? '#059669' : score >= 4 ? '#d97706' : '#dc2626';
+  const sevColors = { high: '#dc2626', medium: '#d97706', low: '#6b7280' };
+  const sevBg = { high: '#fef2f2', medium: '#fffbeb', low: '#f9fafb' };
+  const time = rv.reviewed_at || rv.batch || '';
+
+  document.getElementById('reviewReportContent').innerHTML =
+    '<div style="display:flex;align-items:flex-start;gap:20px;margin-bottom:24px">' +
+      '<div class="review-score-ring" style="background:' + sc + '12;color:' + sc + ';border:3px solid ' + sc + '30">' + score + '</div>' +
+      '<div style="flex:1">' +
+        '<div style="font-size:15px;font-weight:600">审核报告</div>' +
+        '<div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">' + time.substring(0,16) + ' · 审核 ' + (rv.conversation_count || 0) + ' 条对话</div>' +
+        '<div style="display:flex;gap:16px;margin-top:8px;font-size:13px">' +
+          '<span style="color:#dc2626"><b>' + problems.length + '</b> 个问题</span>' +
+          '<span style="color:#059669"><b>' + suggestions.length + '</b> 条建议</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div style="font-size:13px;font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--color-text-secondary)">发现的问题</div>' +
+    (problems.length ? problems.map(p =>
+      '<div class="review-problem-card" style="background:' + (sevBg[p.severity] || '#f9fafb') + ';border-left-color:' + (sevColors[p.severity] || '#6b7280') + '">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
+          '<span style="font-size:11px;font-weight:600;padding:1px 6px;border-radius:4px;color:#fff;background:' + (sevColors[p.severity] || '#6b7280') + '">' + (p.severity === 'high' ? '高危' : p.severity === 'medium' ? '中危' : '低危') + '</span>' +
+          '<span style="font-size:11px;color:var(--color-text-secondary)">' + (p.category || '') + '</span>' +
+        '</div>' +
+        '<div style="font-size:13px;line-height:1.6">' + (p.description || '') + '</div>' +
+      '</div>').join('')
+    : '<div style="color:var(--color-text-secondary);font-size:13px;padding:12px 0">未发现明显问题</div>') +
+
+    '<div style="font-size:13px;font-weight:600;margin:24px 0 10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--color-text-secondary)">改进建议</div>' +
+    (suggestions.length ? suggestions.map(s =>
+      '<div class="review-suggestion-card">' +
+        '<span style="font-size:11px;font-weight:600;color:var(--color-primary);margin-right:8px">' + (s.category || '') + '</span>' +
+        '<span style="line-height:1.6">' + (s.description || '') + '</span>' +
+      '</div>').join('')
+    : '<div style="color:var(--color-text-secondary);font-size:13px;padding:12px 0">暂无建议</div>');
+}
+
+function showHistoryReview(idx) {
+  selectReview(idx);
+}
+
+async function runReviewReport() {
+  document.getElementById('reviewReportContent').innerHTML =
+    '<div class="review-empty"><div style="font-size:32px;margin-bottom:12px;animation:spin 2s linear infinite">&#9881;</div><div>AI 正在审核最近 7 天的对话...</div></div>';
+  try {
+    const r = await fetch(API + '/reviews/run?days=7', { method: 'POST' });
+    const data = await r.json();
+    if (data.error) { document.getElementById('reviewReportContent').innerHTML = '<div class="review-empty"><div style="color:var(--color-danger)">审核出错: ' + data.error + '</div></div>'; return; }
+    showToast('审核完成!');
+    loadReviewReport(); // refresh sidebar + auto-select latest
+  } catch (e) { document.getElementById('reviewReportContent').innerHTML = '<div class="review-empty"><div style="color:var(--color-danger)">审核失败: ' + e.message + '</div></div>'; }
+}
+
+function switchConvTab(tab) {
+  document.getElementById('convTabList').style.background = tab === 'list' ? 'var(--color-primary)' : '';
+  document.getElementById('convTabList').style.color = tab === 'list' ? '#fff' : '';
+  document.getElementById('convTabReport').style.background = tab === 'report' ? 'var(--color-primary)' : '';
+  document.getElementById('convTabReport').style.color = tab === 'report' ? '#fff' : '';
+  document.getElementById('convListView').style.display = tab === 'list' ? '' : 'none';
+  document.getElementById('convReportView').style.display = tab === 'report' ? 'flex' : 'none';
+  document.getElementById('convListToolbar').style.display = tab === 'list' ? '' : 'none';
+  if (tab === 'report') { loadReviewReport(); }
+}
+
+function setConvFilter(f) {
+  convFilter = f; convPage = 1;
+  document.getElementById('convFilterAll').style.background = f === 'all' ? 'var(--color-primary)' : '';
+  document.getElementById('convFilterAll').style.color = f === 'all' ? '#fff' : '';
+  document.getElementById('convFilterFlagged').style.background = f === 'flagged' ? 'var(--color-primary)' : '';
+  document.getElementById('convFilterFlagged').style.color = f === 'flagged' ? '#fff' : '';
+  loadConversations();
+}
+
+async function loadConversations() {
+  const body = document.getElementById('convTableBody');
+  body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px">加载中…</td></tr>';
+  try {
+    const params = new URLSearchParams({ page: convPage, page_size: 20 });
+    if (convFilter === 'flagged') params.set('flagged_only', 'true');
+    const r = await fetch(API + '/conversations?' + params);
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    if (!data.conversations.length) {
+      body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--color-text-secondary);padding:40px">暂无对话记录</td></tr>';
+      return;
+    }
+    body.innerHTML = data.conversations.map(c => {
+      const lastMsgs = (c.messages_history || []).slice(-2);
+      const preview = lastMsgs.map(m => (m.role === 'user' ? '顾客' : 'AI') + ': ' + (m.content || '').substring(0, 60)).join(' | ');
+      // Use first message timestamp as start time (created_at is server time, first msg timestamp is the customer's actual chat start time)
+      const firstMsg = (c.messages_history || [])[0];
+      let time = firstMsg && firstMsg.timestamp
+        ? firstMsg.timestamp.substring(0, 16).replace('T', ' ')
+        : (c.created_at || '').substring(0, 16).replace('T', ' ');
+      return `<tr style="cursor:pointer" onclick="openConvDetail(${c.id})">
+        <td>${c.id}</td>
+        <td style="font-size:12px;color:var(--color-text-secondary)">${time}</td>
+        <td>${c.channel || '直接'}</td>
+        <td>${c.stage || ''}</td>
+        <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${preview || c.messages || ''}</td>
+        <td>${c.is_flagged ? '<span style="color:var(--color-danger)">已标记</span>' : '—'}</td>
+        <td>
+          <button class="btn btn-ghost" style="font-size:12px;padding:2px 8px" onclick="openConvDetail(${c.id})">详情</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:2px 8px;color:${c.is_flagged ? 'var(--color-success)' : 'var(--color-warning)'}" onclick="toggleFlag(${c.id})">${c.is_flagged ? '取消标记' : '标记'}</button>
+        </td>
+      </tr>`;
+    }).join('');
+    // Pagination
+    const totalPages = Math.ceil(data.total / 20);
+    document.getElementById('convPagination').innerHTML = totalPages > 1
+      ? `<span style="font-size:12px;color:var(--color-text-secondary)">共 ${data.total} 条</span>
+         <button class="btn btn-ghost" style="font-size:12px" ${convPage <= 1 ? 'disabled' : ''} onclick="convPage--;loadConversations()">上一页</button>
+         <span style="font-size:12px">${convPage}/${totalPages}</span>
+         <button class="btn btn-ghost" style="font-size:12px" ${convPage >= totalPages ? 'disabled' : ''} onclick="convPage++;loadConversations()">下一页</button>`
+      : '';
+  } catch (e) { body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--color-danger);padding:40px">加载失败: ' + e.message + '</td></tr>'; }
+}
+
+async function toggleFlag(id) {
+  try {
+    const r = await fetch(API + '/conversations/' + id + '/flag', { method: 'PATCH' });
+    if (!r.ok) throw new Error(r.status);
+    loadConversations();
+  } catch (e) { showToast('操作失败: ' + e.message); }
+}
+
+async function openConvDetail(id) {
+  convDetailId = id;
+  try {
+    const r = await fetch(API + '/conversations/' + id);
+    if (!r.ok) { showToast('对话未找到'); return; }
+    const conv = await r.json();
+    const body = document.getElementById('convDetailBody');
+    const msgs = conv.messages_history || [];
+    body.innerHTML = `
+      <div style="margin-bottom:8px;font-size:12px;color:var(--color-text-secondary)">
+        渠道: ${conv.channel || '直接'} | 阶段: ${(conv.stage_history || []).join(' → ')} | ${conv.created_at}
+      </div>
+      ${conv.constitution_type ? `
+        <div style="margin-bottom:12px;padding:10px 14px;background:#ecfdf5;border-radius:8px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <span style="font-size:11px;color:var(--color-text-secondary)">体质</span>
+            <span style="font-weight:600;margin-left:8px">${conv.constitution_type}</span>
+            ${conv.constitution_ai && conv.constitution_ai !== conv.constitution_type ? '<span style="font-size:11px;color:var(--color-text-secondary);margin-left:4px">(AI: '+conv.constitution_ai+'  '+conv.constitution_confidence+'%)</span>' : ''}
+          </div>
+          <select onchange="overrideConstitution(${conv.id}, this.value)" style="font-size:11px;padding:3px 8px;border-radius:4px;border:1px solid var(--color-border)">
+            <option value="">修正体质</option>
+            ${['气虚质','阳虚质','阴虚质','血虚质','痰湿质','湿热质','血瘀质','气郁质','特禀质','平和质'].map(t => '<option value="'+t+'">'+t+'</option>').join('')}
+          </select>
+        </div>
+      ` : ''}
+      <div style="background:var(--color-muted);border-radius:var(--radius-sm);padding:12px;overflow-y:auto;flex:1;min-height:0">
+        ${msgs.map(m => {
+          const qr = m.quick_replies;
+          const qrHTML = qr && qr.length ? `<div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">${qr.map(q => `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#e8f5e9;color:#2d7d46;border:1px solid #c8e6c9">${q}</span>`).join('')}</div>` : '';
+          return `<div style="margin-bottom:8px">
+            <strong style="color:${m.role === 'user' ? 'var(--color-primary)' : 'var(--color-text-secondary)'}">${m.role === 'user' ? '顾客' : 'AI'}:</strong>
+            <span style="font-size:13px">${m.content || ''}</span>
+            ${qrHTML}
+          </div>`;
+        }).join('') || '<span style="color:var(--color-text-secondary)">无消息记录</span>'}
+      </div>`;
+    document.getElementById('convNotesInput').value = conv.staff_notes || '';
+    document.getElementById('convTagsInput').value = conv.staff_tags || '';
+    document.getElementById('convDetailOverlay').classList.add('open');
+  } catch (e) { showToast('加载详情失败: ' + e.message); }
+}
+
+async function overrideConstitution(convId, ctype) {
+  if (!ctype) return;
+  try {
+    const r = await fetch(API + '/conversations/' + convId + '/constitution', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ constitution_type: ctype })
+    });
+    if (r.ok) { showToast('体质已修正为 ' + ctype); loadConversations(); }
+    else { showToast('修正失败'); }
+  } catch (e) { showToast('修正失败: ' + e.message); }
+}
+
+function closeConvDetail() {
+  document.getElementById('convDetailOverlay').classList.remove('open');
+  convDetailId = null;
+}
+
+async function saveConvNotes() {
+  if (!convDetailId) return;
+  try {
+    const notes = document.getElementById('convNotesInput').value;
+    const tags = document.getElementById('convTagsInput').value;
+    const r = await fetch(API + '/conversations/' + convDetailId + '/notes', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ staff_notes: notes, staff_tags: tags })
+    });
+    if (!r.ok) throw new Error(r.status);
+    showToast('备注已保存');
+    closeConvDetail();
+    loadConversations();
+  } catch (e) { showToast('保存失败: ' + e.message); }
+}
+
+async function runReview() {
+  showToast('LLM审核中...');
+  try {
+    const r = await fetch(API + '/reviews/run?days=7', { method: 'POST' });
+    const data = await r.json();
+    if (data.error) { showToast('审核出错: ' + data.error); return; }
+    const problems = data.problems_found || [];
+    const suggestions = data.suggestions || [];
+    const score = data.quality_score || 0;
+
+    // Show review panel
+    const panel = document.getElementById('reviewPanel');
+    panel.style.display = 'block';
+    document.getElementById('reviewMeta').textContent =
+      '审核 ' + data.reviewed + ' 条对话 | 评分 ' + score + '/10 | 发现 ' + problems.length + ' 个问题';
+
+    document.getElementById('reviewProblems').innerHTML =
+      '<div style="font-size:13px;font-weight:600;margin-bottom:4px;color:#b91c1c">问题</div>' +
+      problems.map(p => '<div style="font-size:12px;padding:4px 0;border-bottom:1px solid #e5e7eb">' +
+        '<span style="font-weight:600">[' + (p.severity || '?') + ']</span> ' +
+        '<span style="color:#6b7280">' + (p.category || '') + '</span>: ' +
+        (p.description || '').substring(0, 120) + '</div>').join('');
+
+    document.getElementById('reviewSuggestions').innerHTML =
+      '<div style="font-size:13px;font-weight:600;margin-bottom:4px;color:#059669">建议</div>' +
+      suggestions.map(s => '<div style="font-size:12px;padding:4px 0;border-bottom:1px solid #e5e7eb">' +
+        '<span style="color:#6b7280">[' + (s.category || '') + ']</span> ' +
+        (s.description || '').substring(0, 120) + '</div>').join('');
+
+    showToast('审核完成!');
+  } catch (e) { showToast('审核失败: ' + e.message); }
+}
+</script>
 </body>
 </html>

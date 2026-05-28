@@ -24,6 +24,13 @@
 .bg-bread   { background: #fdf0ed; }
 .bg-tea     { background: #eaf5ed; }
 .bg-toy     { background: #f5eff8; }
+.bg-snack   { background: #faf0e0; }
+.bg-sachet  { background: #f5eff8; }
+.bg-play    { background: #fef7ed; }
+.bg-supply  { background: #f5f5f4; }
+.bg-dough   { background: #fef9f0; }
+.bg-gift    { background: #fef2f2; }
+.bg-brew    { background: #eaf5ed; }
 
 .card-body {
   flex: 1;

@@ -9,10 +9,10 @@ from app.models.customer import Customer
 from app.models.conversation import Conversation
 from app.models.product import Product
 from app.models.order import Order
-from app.api.deps import get_db
+from app.api.deps import get_db, get_current_admin
 from app.services.data_importer import parse_excel_columns, merge_product, import_products_from_wb
 
-router = APIRouter(prefix="/api/staff", tags=["staff"])
+router = APIRouter(prefix="/api/staff", tags=["staff"], dependencies=[Depends(get_current_admin)])
 
 
 @router.get("/products")
@@ -40,27 +40,29 @@ def list_products(
         )
     total = stmt.count()
     offset = (page - 1) * page_size
-    products = stmt.order_by(Product.category, Product.name).offset(offset).limit(page_size).all()
+    products = stmt.order_by(Product.name).offset(offset).limit(page_size).all()
     return {
         "total": total,
         "products": [
             {"id": p.id, "sku_id": p.sku_id, "name": p.name, "category": p.category,
              "price": p.price, "stock": p.stock, "is_active": p.is_active,
-             "ingredients": p.ingredients}
+             "ingredients": p.ingredients,
+             "scene_tags": p.scene_tags or "", "contraindication_tags": p.contraindication_tags or ""}
             for p in products
         ]
     }
 
 
-@router.get("/products/selected")
-def get_selected_products(ids: str, db=Depends(get_db)):
-    """根据逗号分隔的 id 列表查询商品，用于批量操作前确认"""
-    id_list = [int(x) for x in ids.split(",") if x.isdigit()]
-    products = db.query(Product).filter(Product.id.in_(id_list)).all()
+@router.get("/products/by-skus")
+def get_products_by_skus(skus: str, db=Depends(get_db)):
+    """根据逗号分隔的 sku_id 列表查询商品"""
+    sku_list = [s.strip() for s in skus.split(",") if s.strip()]
+    products = db.query(Product).filter(Product.sku_id.in_(sku_list)).all()
     return {
         "products": [
             {"id": p.id, "sku_id": p.sku_id, "name": p.name, "category": p.category,
-             "price": p.price, "stock": p.stock, "is_active": p.is_active}
+             "price": p.price, "stock": p.stock, "is_active": p.is_active,
+             "scene_tags": p.scene_tags or "", "contraindication_tags": p.contraindication_tags or ""}
             for p in products
         ]
     }
@@ -88,10 +90,39 @@ def batch_update_stock_relative(updates: list[dict], db=Depends(get_db)):
     return {"updated": len(updated), "items": updated}
 
 
+@router.patch("/products/{sku_id}")
+def update_product(sku_id: str, data: dict = Body(...), db=Depends(get_db)):
+    """更新单个商品的所有字段"""
+    product = db.query(Product).filter(Product.sku_id == sku_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="商品不存在")
+    updatable = ["name", "category", "price", "stock", "ingredients", "is_active",
+                  "scene_tags", "contraindication_tags", "feature_tag", "sales_script"]
+    for field in updatable:
+        if field in data:
+            val = data[field]
+            if field == "price":
+                val = float(val) if val is not None else 0
+            elif field == "stock":
+                val = int(val) if val is not None else 0
+            elif field == "is_active":
+                val = bool(val)
+            setattr(product, field, val)
+    db.commit()
+    return {"status": "ok", "sku_id": sku_id}
+
+
 @router.get("/categories")
 def list_categories(db=Depends(get_db)):
-    cats = db.query(Product.category).distinct().all()
-    return {"categories": [c[0] for c in cats if c[0]]}
+    from sqlalchemy import func
+    rows = db.query(Product.category, func.count(Product.id)).group_by(Product.category).all()
+    return {
+        "categories": [
+            {"name": cat, "count": cnt}
+            for cat, cnt in sorted(rows, key=lambda r: r[0] or "")
+            if cat
+        ]
+    }
 
 
 @router.post("/products/preview")
@@ -330,6 +361,7 @@ def put_constitution_bundle(ctype: str, data: dict = Body(...), db=Depends(get_d
     """整体替换某体质类型的套餐"""
     from app.models.constitution_bundle import ConstitutionBundle
     db.query(ConstitutionBundle).filter(ConstitutionBundle.constitution_type == ctype).delete()
+    db.flush()
     for i, p in enumerate(data.get("products", [])):
         item = ConstitutionBundle(
             constitution_type=ctype,
@@ -348,10 +380,13 @@ def get_hot_products(db=Depends(get_db)):
     from app.models.constitution_bundle import HotProduct
     from app.models.product import Product
     items = db.query(HotProduct).order_by(HotProduct.sort_order).all()
+    # Pre-fetch all needed products in one query to avoid N+1
+    sku_ids = [h.sku_id for h in items]
+    product_map = {p.sku_id: p for p in db.query(Product).filter(Product.sku_id.in_(sku_ids)).all()}
     return [
         {"sku_id": h.sku_id, "sort_order": h.sort_order,
-         "name": db.query(Product).filter_by(sku_id=h.sku_id).first().name if db.query(Product).filter_by(sku_id=h.sku_id).first() else h.sku_id,
-         "category": db.query(Product).filter_by(sku_id=h.sku_id).first().category if db.query(Product).filter_by(sku_id=h.sku_id).first() else "—"}
+         "name": product_map[h.sku_id].name if h.sku_id in product_map else h.sku_id,
+         "category": product_map[h.sku_id].category if h.sku_id in product_map else "—"}
         for h in items
     ]
 
@@ -361,8 +396,240 @@ def put_hot_products(data: dict = Body(...), db=Depends(get_db)):
     """整体替换主推产品列表"""
     from app.models.constitution_bundle import HotProduct
     db.query(HotProduct).delete()
+    db.flush()
     for i, p in enumerate(data.get("products", [])):
         item = HotProduct(sku_id=p["sku_id"], sort_order=p.get("sort_order", i))
         db.add(item)
     db.commit()
     return {"status": "ok", "count": len(data.get("products", []))}
+
+
+# ── Channel tracking ────────────────────────────────────────────────────────
+
+@router.get("/channels")
+def list_channels(db=Depends(get_db)):
+    """按渠道统计对话数量和转化"""
+    from sqlalchemy import func as sqlfunc
+    rows = db.query(
+        Conversation.channel,
+        sqlfunc.count(Conversation.id)
+    ).group_by(Conversation.channel).all()
+    channels = []
+    for channel, count in rows:
+        ch = channel or "直接"
+        total_orders = db.query(Order).filter(
+            Order.conversation_snapshot.isnot(None)
+        ).count() if ch != "直接" else 0
+        channels.append({
+            "channel": ch,
+            "conversation_count": count,
+            "order_count": 0,  # requires order-to-conversation linking
+        })
+    return {"channels": channels}
+
+
+# ── Conversation list & staff marking ───────────────────────────────────────
+
+@router.get("/conversations")
+def list_conversations(
+    page: int = 1,
+    page_size: int = 20,
+    flagged_only: bool = False,
+    channel: str = None,
+    db=Depends(get_db)
+):
+    """列出对话记录，支持按标记和渠道筛选"""
+    stmt = db.query(Conversation)
+    if flagged_only:
+        stmt = stmt.filter(Conversation.is_flagged == True)
+    if channel:
+        stmt = stmt.filter(Conversation.channel == channel)
+    total = stmt.count()
+    offset = (page - 1) * page_size
+    convs = stmt.order_by(Conversation.created_at.desc()).offset(offset).limit(page_size).all()
+    return {
+        "total": total,
+        "conversations": [
+            {
+                "id": c.id,
+                "customer_id": c.customer_id,
+                "stage": c.stage,
+                "messages": c.messages,
+                "messages_history": json.loads(c.messages_history) if c.messages_history else [],
+                "stage_history": json.loads(c.stage_history) if c.stage_history else [],
+                "channel": c.channel or "",
+                "screening_result": c.screening_result,
+                "staff_notes": c.staff_notes or "",
+                "staff_tags": c.staff_tags or "",
+                "is_flagged": c.is_flagged,
+                "created_at": str(c.created_at),
+            }
+            for c in convs
+        ]
+    }
+
+
+@router.get("/conversations/{conv_id}")
+def get_conversation(conv_id: int, db=Depends(get_db)):
+    """获取单条对话详情"""
+    conv = db.query(Conversation).filter(Conversation.id == conv_id).first()
+    if not conv:
+        raise HTTPException(status_code=404, detail="对话不存在")
+    return {
+        "id": conv.id,
+        "customer_id": conv.customer_id,
+        "stage": conv.stage,
+        "messages": conv.messages,
+        "messages_history": json.loads(conv.messages_history) if conv.messages_history else [],
+        "stage_history": json.loads(conv.stage_history) if conv.stage_history else [],
+        "channel": conv.channel or "",
+        "screening_result": conv.screening_result,
+        "constitution_type": conv.constitution_override or conv.constitution_type or "",
+        "constitution_ai": conv.constitution_type or "",
+        "constitution_confidence": conv.constitution_confidence or 0,
+        "staff_notes": conv.staff_notes or "",
+        "staff_tags": conv.staff_tags or "",
+        "is_flagged": conv.is_flagged,
+        "created_at": str(conv.created_at),
+    }
+
+
+@router.patch("/conversations/{conv_id}/constitution")
+def override_constitution(conv_id: int, data: dict = Body(...), db=Depends(get_db)):
+    """店员手动修正体质类型"""
+    conv = db.query(Conversation).filter(Conversation.id == conv_id).first()
+    if not conv:
+        raise HTTPException(status_code=404, detail="对话不存在")
+    ctype = data.get("constitution_type", "")
+    if ctype:
+        conv.constitution_override = ctype
+    db.commit()
+    return {
+        "id": conv_id,
+        "constitution_type": conv.constitution_type,
+        "constitution_override": conv.constitution_override,
+    }
+
+
+@router.get("/reports/constitution-performance")
+def constitution_performance(db=Depends(get_db)):
+    """各体质转化率：对话数 → 订单数 → 转化率"""
+    from sqlalchemy import func as sqlfunc
+    # Count conversations by constitution (AI or override)
+    rows = db.query(
+        Conversation.constitution_type,
+        sqlfunc.count(Conversation.id)
+    ).filter(Conversation.constitution_type.isnot(None)).group_by(
+        Conversation.constitution_type
+    ).all()
+
+    result = []
+    for ctype, count in rows:
+        # Count orders for customers with this constitution
+        cust_ids = db.query(Conversation.customer_id).filter(
+            Conversation.constitution_type == ctype
+        ).distinct().all()
+        cust_id_list = [c[0] for c in cust_ids]
+        order_count = db.query(Order).filter(
+            Order.customer_id.in_(cust_id_list),
+            Order.status == "paid"
+        ).count() if cust_id_list else 0
+
+        result.append({
+            "constitution_type": ctype,
+            "conversation_count": count,
+            "order_count": order_count,
+            "conversion_rate": round(order_count / count * 100, 1) if count else 0,
+        })
+
+    result.sort(key=lambda x: -x["conversation_count"])
+    return {"data": result}
+
+
+@router.patch("/conversations/{conv_id}/flag")
+def flag_conversation(conv_id: int, db=Depends(get_db)):
+    """切换对话的标记状态"""
+    conv = db.query(Conversation).filter(Conversation.id == conv_id).first()
+    if not conv:
+        raise HTTPException(status_code=404, detail="对话不存在")
+    conv.is_flagged = not conv.is_flagged
+    db.commit()
+    return {"id": conv_id, "is_flagged": conv.is_flagged}
+
+
+@router.patch("/conversations/{conv_id}/notes")
+def update_conversation_notes(conv_id: int, data: dict = Body(...), db=Depends(get_db)):
+    """更新店员备注和标签"""
+    conv = db.query(Conversation).filter(Conversation.id == conv_id).first()
+    if not conv:
+        raise HTTPException(status_code=404, detail="对话不存在")
+    if "staff_notes" in data:
+        conv.staff_notes = data["staff_notes"]
+    if "staff_tags" in data:
+        conv.staff_tags = data["staff_tags"]
+    db.commit()
+    return {"id": conv_id, "staff_notes": conv.staff_notes, "staff_tags": conv.staff_tags}
+
+
+# ── LLM Review ──────────────────────────────────────────────────────────────
+
+@router.post("/reviews/run")
+def run_review(days: int = 1, db=Depends(get_db)):
+    """触发LLM审核近N天对话"""
+    from app.services.review_service import ReviewService
+    svc = ReviewService()
+    result = svc.review_conversations(db, days=days)
+    return result
+
+
+@router.get("/reviews")
+def list_reviews(page: int = 1, page_size: int = 20, db=Depends(get_db)):
+    """列出审核记录"""
+    from app.models.review_result import ReviewResult
+    total = db.query(ReviewResult).count()
+    offset = (page - 1) * page_size
+    reviews = db.query(ReviewResult).order_by(
+        ReviewResult.reviewed_at.desc()
+    ).offset(offset).limit(page_size).all()
+    return {
+        "total": total,
+        "reviews": [
+            {
+                "id": r.id,
+                "conversation_id": r.conversation_id,
+                "problems_found": json.loads(r.problems_found) if r.problems_found else [],
+                "suggestions": json.loads(r.suggestions) if r.suggestions else [],
+                "quality_score": r.quality_score,
+                "reviewed_at": str(r.reviewed_at),
+            }
+            for r in reviews
+        ]
+    }
+
+
+@router.get("/reviews/runs")
+def list_review_runs(db=Depends(get_db)):
+    """列出审核批次（按时间分组，去重）"""
+    from app.models.review_result import ReviewResult
+    from sqlalchemy import func as sqlfunc, desc
+    # Get unique review timestamps (group by minute)
+    rows = db.query(
+        sqlfunc.substr(ReviewResult.reviewed_at, 1, 16).label('batch'),
+        sqlfunc.count(ReviewResult.id).label('count'),
+        sqlfunc.max(ReviewResult.quality_score).label('score'),
+    ).group_by('batch').order_by(desc('batch')).limit(20).all()
+
+    runs = []
+    for batch, count, score in rows:
+        # Get one record from this batch to extract problems/suggestions
+        sample = db.query(ReviewResult).filter(
+            ReviewResult.reviewed_at.like(batch + '%')
+        ).first()
+        runs.append({
+            "batch": batch,
+            "conversation_count": count,
+            "quality_score": score,
+            "problems_found": json.loads(sample.problems_found) if sample and sample.problems_found else [],
+            "suggestions": json.loads(sample.suggestions) if sample and sample.suggestions else [],
+        })
+    return {"runs": runs}

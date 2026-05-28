@@ -1,50 +1,38 @@
 # backend/app/services/recommend_engine.py
-import random
 import re
 import json
-from datetime import datetime
 from app.services.product_service import ProductService
 from app.services.constitution_analyzer import analyze
 
-SCENE_TAG_MAP = {
-    "睡": ["睡眠", "安神", "助眠"],
-    "消化": ["消食", "健脾", "肠胃"],
-    "胃": ["消食", "健脾", "肠胃"],
-    "累": ["补气", "抗疲劳", "精力"],
-    "疲劳": ["补气", "抗疲劳", "精力"],
-    "皮肤": ["养颜", "润肤", "安神", "清热"],
-    "上火": ["清热", "降火"],
-    "心情": ["安神", "舒缓", "助眠"],
-    "压力": ["安神", "舒缓", "补气"],
-    "调理": ["补气", "健脾", "滋阴", "温补"],
-    "湿": ["利湿", "健脾", "清热"],
-    "寒": ["温补", "暖身", "补气"],
-    "免疫": ["补气", "抗疲劳", "温补"],
-    "头发": ["养颜", "补气", "滋阴"],
-    "气色": ["养颜", "补气", "滋阴"],
-    "经期": ["温补", "暖身", "舒缓"],
-}
 
 class RecommendEngine:
-    def __init__(self, product_service: ProductService, client=None):
+    def __init__(self, product_service: ProductService, client=None, screening_result: str = ""):
         self.product_service = product_service
-        self.client = client  # LLM client, injected from chat.py
+        self.client = client
+        self.screening_result = screening_result or ""
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
-    def recommend(self, constitution_raw: str, scene_input: str) -> dict:
-        constitution = analyze(constitution_raw)
-        scene_tags = self._extract_scene_tags(scene_input)
-        constitution_type = constitution.get("constitution_type", "平和质")
+    def recommend(self, constitution_raw: str, scene_input: str, constitution_type: str = None) -> dict:
+        if constitution_type:
+            constitution = {"constitution_type": constitution_type, "description": "", "avoid_tags": [], "prefer_tags": [], "score": 0, "all_scores": {}}
+        else:
+            constitution = analyze(constitution_raw)
+        ctype = constitution.get("constitution_type", "平和质")
 
-        # Get fixed bundle from DB
-        fixed_bundle = self._get_fixed_bundle(constitution_type)
+        # Step 1: Fixed bundle from DB (all items, no limit)
+        fixed_bundle = self._get_fixed_bundle(ctype)
         fixed_skus = {p.sku_id for p in fixed_bundle}
 
-        # Get LLM supplement (excluding fixed_skus)
-        llm_products = self._llm_supplement(list(fixed_skus), constitution_type, scene_input)
+        # Step 2: Tag-based matching (direct + AI)
+        tag_matched = self._match_by_tags(scene_input, fixed_skus)
+
+        # Step 3: Contraindication filter
+        fixed_bundle, tag_matched = self._filter_contraindications(
+            fixed_bundle, tag_matched, self.screening_result
+        )
 
         def _to_dict(p):
             if isinstance(p, dict):
@@ -52,33 +40,24 @@ class RecommendEngine:
             return {"name": p.name, "sku_id": p.sku_id, "category": p.category,
                     "ingredients": p.ingredients or "", "price": p.price or 0}
 
-        no_match = len(fixed_bundle) == 0 and len(llm_products) == 0
+        fixed_dicts = [_to_dict(p) for p in fixed_bundle]
+        llm_dicts = [_to_dict(p) for p in tag_matched]
+        no_match = len(fixed_bundle) == 0 and len(tag_matched) == 0
 
         return {
             "constitution": constitution,
-            "scene_tags": scene_tags,
-            "fixed_bundle": [_to_dict(p) for p in fixed_bundle],
-            "llm_recommendations": [_to_dict(p) for p in llm_products],
+            "bundle": fixed_dicts + llm_dicts,
+            "fixed_bundle": fixed_dicts,
+            "llm_recommendations": llm_dicts,
             "no_match": no_match,
         }
-
-    # ------------------------------------------------------------------
-    # Scene tags
-    # ------------------------------------------------------------------
-
-    def _extract_scene_tags(self, scene_input):
-        tags = []
-        for keyword, mapped_tags in SCENE_TAG_MAP.items():
-            if keyword in scene_input:
-                tags.extend(mapped_tags)
-        return list(set(tags)) if tags else ["调理"]
 
     # ------------------------------------------------------------------
     # Fixed bundle (from DB)
     # ------------------------------------------------------------------
 
     def _get_fixed_bundle(self, constitution_type: str) -> list:
-        """Load fixed bundle from DB for this constitution type."""
+        """Load all fixed bundle products for this constitution type."""
         from app.models.constitution_bundle import ConstitutionBundle
         items = self.product_service.session.query(ConstitutionBundle).filter(
             ConstitutionBundle.constitution_type == constitution_type
@@ -91,33 +70,77 @@ class RecommendEngine:
         return products
 
     # ------------------------------------------------------------------
-    # LLM supplement
+    # Two-layer tag matching
     # ------------------------------------------------------------------
 
-    def _llm_supplement(self, fixed_skus: list, constitution_type: str, scene_input: str) -> list:
-        """Use LLM to suggest supplementary products based on customer context, excluding fixed_skus."""
-        if not self.client:
+    def _match_by_tags(self, scene_input: str, exclude_skus: set) -> list:
+        """Layer 1: direct keyword match + Layer 2: AI semantic match."""
+        if not scene_input:
             return []
 
-        from app.config import settings
-        fixed_names = []
-        for s in fixed_skus:
-            p = self.product_service.get_by_sku(s)
-            if p:
-                fixed_names.append(p.name)
+        from app.models.product import Product
+        EDIBLE_CATEGORIES = {"面包类", "茶饮类", "零食类", "面团类", "香囊类", "现场冲泡茶饮"}
+        all_products = self.product_service.session.query(Product).filter(
+            Product.is_active == True, Product.stock > 0,
+            Product.category.in_(EDIBLE_CATEGORIES)
+        ).all()
 
-        prompt = (
-            f"顾客体质：{constitution_type}。\n"
-            f"当前困扰：{scene_input}\n"
-            f"固定套餐已有：{', '.join(fixed_names) if fixed_names else '无'}\n\n"
-            "请根据顾客体质和困扰，推荐2~4款店里可能有的产品（只推荐食品类，不要手串/香囊/玩具）。\n"
-            "返回JSON数组，每项格式：{\"name\": \"产品名\", \"sku_id\": \"条码\", \"reason\": \"推荐原因\"}\n"
-            "只推荐你确定店里有的产品，不要编造。"
-        )
+        exclude_skus = set(exclude_skus)
+        matched = []  # (score, product, source)
+        seen = set()
+
+        # Layer 1: direct word match from customer's own words
+        direct_words = self._extract_words(scene_input)
+        for p in all_products:
+            if p.sku_id in exclude_skus:
+                continue
+            tags = (p.scene_tags or "").replace("，", ",")
+            score = sum(1 for w in direct_words if w in tags)
+            if score > 0 and p.sku_id not in seen:
+                matched.append((score + 10, p, "direct"))  # +10 bonus for direct match
+                seen.add(p.sku_id)
+
+        # Layer 2: AI semantic expansion
+        if self.client and len(matched) < 4:
+            ai_keywords = self._ai_extract_keywords(scene_input)
+            for p in all_products:
+                if p.sku_id in exclude_skus or p.sku_id in seen:
+                    continue
+                tags = (p.scene_tags or "").replace("，", ",")
+                score = sum(1 for kw in ai_keywords if kw in tags)
+                if score > 0:
+                    matched.append((score, p, "ai"))
+                    seen.add(p.sku_id)
+
+        # Sort by score desc, take up to 4
+        matched.sort(key=lambda x: -x[0])
+        return [p for _, p, _ in matched[:4]]
+
+    def _extract_words(self, text: str) -> list:
+        """Extract meaningful 2-char+ words from customer text."""
+        stops = {"的", "了", "是", "我", "不", "也", "都", "就", "有", "在", "和", "很", "要", "会", "吗", "呢", "吧"}
+        words = []
+        for i in range(len(text) - 1):
+            for j in range(i + 2, min(i + 5, len(text) + 1)):
+                w = text[i:j]
+                if w not in stops and w not in words:
+                    words.append(w)
+        return words
+
+    def _ai_extract_keywords(self, scene_input: str) -> list:
+        """LLM: extract both colloquial and TCM keywords from customer concern."""
+        if not self.client:
+            return []
+        from app.config import settings
         try:
+            prompt = (
+                f"顾客困扰：「{scene_input}」\n\n"
+                "请提取3-5个关键词用于匹配产品标签。同时输出口语和术语。\n"
+                "只输出关键词，用逗号分隔，不要解释。\n\n"
+                "示例：顾客说\"睡眠不好\" → 睡眠,失眠,安神,助眠,盗汗"
+            )
             resp = self.client.messages.create(
-                model=settings.llm_model,
-                max_tokens=512,
+                model=settings.llm_model, max_tokens=100,
                 messages=[{"role": "user", "content": prompt}]
             )
             text = ""
@@ -125,21 +148,41 @@ class RecommendEngine:
                 if hasattr(block, "text") and block.text.strip():
                     text = block.text.strip()
                     break
-            if not text:
-                return []
-            m = re.search(r'\[.*\]', text, re.DOTALL)
-            if not m:
-                return []
-            items = json.loads(m.group(0))
+            return [kw.strip() for kw in text.replace("，", ",").split(",") if kw.strip()]
         except Exception:
             return []
 
-        # Fetch full product objects, exclude fixed_skus
-        result = []
-        for item in items[:4]:
-            sku = item.get("sku_id", "")
-            if sku and sku not in fixed_skus:
-                product = self.product_service.get_by_sku(sku)
-                if product and product.is_active and product.stock > 0:
-                    result.append(product)
-        return result
+    # ------------------------------------------------------------------
+    # Contraindication filter
+    # ------------------------------------------------------------------
+
+    def _filter_contraindications(self, fixed_bundle: list, tag_matched: list, screening: str) -> tuple:
+        """Filter out products whose contraindication_tags match screening risks."""
+        if not screening or screening == "cleared":
+            return fixed_bundle, tag_matched
+
+        risk_map = {
+            "备孕": ["孕妇", "备孕", "怀孕"],
+            "怀孕": ["孕妇", "备孕", "怀孕"],
+            "哺乳": ["哺乳", "孕妇"],
+            "处方药": ["药物", "处方"],
+            "blocked": ["孕妇", "备孕", "哺乳", "药物", "处方"],
+            "downgraded": ["孕妇", "备孕"],
+        }
+
+        risks = set()
+        for key, values in risk_map.items():
+            if key in screening:
+                risks.update(values)
+
+        if not risks:
+            return fixed_bundle, tag_matched
+
+        def is_safe(product):
+            contra = (product.contraindication_tags or "").replace("，", ",")
+            for risk in risks:
+                if risk in contra:
+                    return False
+            return True
+
+        return [p for p in fixed_bundle if is_safe(p)], [p for p in tag_matched if is_safe(p)]

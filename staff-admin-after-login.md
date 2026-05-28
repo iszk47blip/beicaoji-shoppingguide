@@ -1,0 +1,688 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - img [ref=e4]
+      - heading "焙草集 运营后台" [level=1] [ref=e7]
+    - generic [ref=e8]: 后端正常
+  - generic [ref=e9]:
+    - navigation [ref=e10]:
+      - generic "商品管理" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+        - generic [ref=e15]: 商品
+      - generic "订单管理" [ref=e16] [cursor=pointer]:
+        - img [ref=e17]
+        - generic [ref=e20]: 订单
+      - generic "主推管理" [ref=e21] [cursor=pointer]:
+        - img [ref=e22]
+        - generic [ref=e24]: 主推
+      - generic "体质套餐" [ref=e25] [cursor=pointer]:
+        - img [ref=e26]
+        - generic [ref=e30]: 体质套餐
+      - generic "对话审核" [ref=e31] [cursor=pointer]:
+        - img [ref=e32]
+        - generic [ref=e34]: 对话
+      - generic "统计报表" [ref=e35] [cursor=pointer]:
+        - img [ref=e36]
+        - generic [ref=e37]: 报表
+    - generic [ref=e38]:
+      - generic [ref=e39]:
+        - generic [ref=e40]:
+          - generic [ref=e41]:
+            - img
+            - textbox "搜索商品" [ref=e42]:
+              - /placeholder: 搜索商品名称、条码、成分…
+          - group "分类筛选" [ref=e43]:
+            - button "全部 221" [ref=e87] [cursor=pointer]:
+              - text: 全部
+              - generic [ref=e88]: "221"
+            - button "文玩类 65" [ref=e89] [cursor=pointer]:
+              - text: 文玩类
+              - generic [ref=e90]: "65"
+            - button "现场冲泡茶饮 1" [ref=e91] [cursor=pointer]:
+              - text: 现场冲泡茶饮
+              - generic [ref=e92]: "1"
+            - button "礼盒套餐 6" [ref=e93] [cursor=pointer]:
+              - text: 礼盒套餐
+              - generic [ref=e94]: "6"
+            - button "耗材类 12" [ref=e95] [cursor=pointer]:
+              - text: 耗材类
+              - generic [ref=e96]: "12"
+            - button "茶饮类 25" [ref=e97] [cursor=pointer]:
+              - text: 茶饮类
+              - generic [ref=e98]: "25"
+            - button "零食类 16" [ref=e99] [cursor=pointer]:
+              - text: 零食类
+              - generic [ref=e100]: "16"
+            - button "面包类 45" [ref=e101] [cursor=pointer]:
+              - text: 面包类
+              - generic [ref=e102]: "45"
+            - button "面团类 42" [ref=e103] [cursor=pointer]:
+              - text: 面团类
+              - generic [ref=e104]: "42"
+            - button "香囊类 9" [ref=e105] [cursor=pointer]:
+              - text: 香囊类
+              - generic [ref=e106]: "9"
+          - generic [ref=e45] [cursor=pointer]:
+            - checkbox "无库存" [ref=e46]
+            - text: 无库存
+          - button "刷新" [ref=e49] [cursor=pointer]:
+            - img [ref=e50]
+          - button "保存" [disabled] [ref=e54]
+          - button "导入" [ref=e55] [cursor=pointer]:
+            - img [ref=e56]
+            - text: 导入
+        - generic [ref=e59]:
+          - generic [ref=e60]:
+            - generic [ref=e61]:
+              - generic [ref=e62]: 当前显示
+              - generic [ref=e63]: "30"
+            - generic [ref=e64]:
+              - generic [ref=e65]: 无库存
+              - generic [ref=e66]: "0"
+            - generic [ref=e67]:
+              - generic [ref=e68]: 库存 < 5
+              - generic [ref=e69]: "0"
+            - generic [ref=e70]:
+              - generic [ref=e71]: 有货合计
+              - generic [ref=e72]: "30"
+          - grid [ref=e74]:
+            - rowgroup [ref=e75]:
+              - row "商品 SKU-ID 状态 分类 价格 成分 库存 操作" [ref=e76]:
+                - columnheader [ref=e77]:
+                  - checkbox [ref=e78] [cursor=pointer]
+                - columnheader "商品" [ref=e79]
+                - columnheader "SKU-ID" [ref=e80]
+                - columnheader "状态" [ref=e81]
+                - columnheader "分类" [ref=e82]
+                - columnheader "价格" [ref=e83]
+                - columnheader "成分" [ref=e84]
+                - columnheader "库存" [ref=e85]
+                - columnheader "操作" [ref=e86]
+            - rowgroup [ref=e107]:
+              - row "18*28 透明面包袋 P260316062737380 P260316062737380 上架 耗材类 ¥88.9 — 9999 编辑" [ref=e108] [cursor=pointer]:
+                - gridcell [ref=e109]:
+                  - checkbox [ref=e110]
+                - gridcell "18*28 透明面包袋 P260316062737380" [ref=e111]:
+                  - generic "18*28 透明面包袋" [ref=e112]
+                  - generic [ref=e113]: P260316062737380
+                - gridcell "P260316062737380" [ref=e114]
+                - gridcell "上架" [ref=e115]:
+                  - generic [ref=e116]: 上架
+                - gridcell "耗材类" [ref=e117]
+                - gridcell "¥88.9" [ref=e118]
+                - gridcell "—" [ref=e119]
+                - gridcell "9999" [ref=e120]:
+                  - spinbutton "商品 18*28 透明面包袋 库存" [ref=e122]: "9999"
+                - gridcell "编辑" [ref=e123]:
+                  - button "编辑" [ref=e124]
+              - row "20*22透明面包袋 P260316690065024 P260316690065024 上架 耗材类 ¥0.0 — 9999 编辑" [ref=e125] [cursor=pointer]:
+                - gridcell [ref=e126]:
+                  - checkbox [ref=e127]
+                - gridcell "20*22透明面包袋 P260316690065024" [ref=e128]:
+                  - generic "20*22透明面包袋" [ref=e129]
+                  - generic [ref=e130]: P260316690065024
+                - gridcell "P260316690065024" [ref=e131]
+                - gridcell "上架" [ref=e132]:
+                  - generic [ref=e133]: 上架
+                - gridcell "耗材类" [ref=e134]
+                - gridcell "¥0.0" [ref=e135]
+                - gridcell "—" [ref=e136]
+                - gridcell "9999" [ref=e137]:
+                  - spinbutton "商品 20*22透明面包袋 库存" [ref=e139]: "9999"
+                - gridcell "编辑" [ref=e140]:
+                  - button "编辑" [ref=e141]
+              - row "268礼盒-金色 P260227316026592 P260227316026592 上架 礼盒套餐 ¥268.0 — 9999 编辑" [ref=e142] [cursor=pointer]:
+                - gridcell [ref=e143]:
+                  - checkbox [ref=e144]
+                - gridcell "268礼盒-金色 P260227316026592" [ref=e145]:
+                  - generic "268礼盒-金色" [ref=e146]
+                  - generic [ref=e147]: P260227316026592
+                - gridcell "P260227316026592" [ref=e148]
+                - gridcell "上架" [ref=e149]:
+                  - generic [ref=e150]: 上架
+                - gridcell "礼盒套餐" [ref=e151]
+                - gridcell "¥268.0" [ref=e152]
+                - gridcell "—" [ref=e153]
+                - gridcell "9999" [ref=e154]:
+                  - spinbutton "商品 268礼盒-金色 库存" [ref=e156]: "9999"
+                - gridcell "编辑" [ref=e157]:
+                  - button "编辑" [ref=e158]
+              - row "498礼盒 P260227309120632 P260227309120632 上架 礼盒套餐 ¥498.0 — 9999 编辑" [ref=e159] [cursor=pointer]:
+                - gridcell [ref=e160]:
+                  - checkbox [ref=e161]
+                - gridcell "498礼盒 P260227309120632" [ref=e162]:
+                  - generic "498礼盒" [ref=e163]
+                  - generic [ref=e164]: P260227309120632
+                - gridcell "P260227309120632" [ref=e165]
+                - gridcell "上架" [ref=e166]:
+                  - generic [ref=e167]: 上架
+                - gridcell "礼盒套餐" [ref=e168]
+                - gridcell "¥498.0" [ref=e169]
+                - gridcell "—" [ref=e170]
+                - gridcell "9999" [ref=e171]:
+                  - spinbutton "商品 498礼盒 库存" [ref=e173]: "9999"
+                - gridcell "编辑" [ref=e174]:
+                  - button "编辑" [ref=e175]
+              - row "【花蕊夫人】马上有钱 P260417144861275 P260417144861275 上架 文玩类 ¥129.0 — 9999 编辑" [ref=e176] [cursor=pointer]:
+                - gridcell [ref=e177]:
+                  - checkbox [ref=e178]
+                - gridcell "【花蕊夫人】马上有钱 P260417144861275" [ref=e179]:
+                  - generic "【花蕊夫人】马上有钱" [ref=e180]
+                  - generic [ref=e181]: P260417144861275
+                - gridcell "P260417144861275" [ref=e182]
+                - gridcell "上架" [ref=e183]:
+                  - generic [ref=e184]: 上架
+                - gridcell "文玩类" [ref=e185]
+                - gridcell "¥129.0" [ref=e186]
+                - gridcell "—" [ref=e187]
+                - gridcell "9999" [ref=e188]:
+                  - spinbutton "商品 【花蕊夫人】马上有钱 库存" [ref=e190]: "9999"
+                - gridcell "编辑" [ref=e191]:
+                  - button "编辑" [ref=e192]
+              - row "丁香暖姜囊方 6979839930151 6979839930151 上架 香囊类 ¥19.9 — 9999 编辑" [ref=e193] [cursor=pointer]:
+                - gridcell [ref=e194]:
+                  - checkbox [ref=e195]
+                - gridcell "丁香暖姜囊方 6979839930151" [ref=e196]:
+                  - generic "丁香暖姜囊方" [ref=e197]
+                  - generic [ref=e198]: "6979839930151"
+                - gridcell "6979839930151" [ref=e199]
+                - gridcell "上架" [ref=e200]:
+                  - generic [ref=e201]: 上架
+                - gridcell "香囊类" [ref=e202]
+                - gridcell "¥19.9" [ref=e203]
+                - gridcell "—" [ref=e204]
+                - gridcell "9999" [ref=e205]:
+                  - spinbutton "商品 丁香暖姜囊方 库存" [ref=e207]: "9999"
+                - gridcell "编辑" [ref=e208]:
+                  - button "编辑" [ref=e209]
+              - row "七白饼干(无蔗糖) P260304835737599 P260304835737599 上架 零食类 ¥28.0 — 9999 编辑" [ref=e210] [cursor=pointer]:
+                - gridcell [ref=e211]:
+                  - checkbox [ref=e212]
+                - gridcell "七白饼干(无蔗糖) P260304835737599" [ref=e213]:
+                  - generic "七白饼干(无蔗糖)" [ref=e214]
+                  - generic [ref=e215]: P260304835737599
+                - gridcell "P260304835737599" [ref=e216]
+                - gridcell "上架" [ref=e217]:
+                  - generic [ref=e218]: 上架
+                - gridcell "零食类" [ref=e219]
+                - gridcell "¥28.0" [ref=e220]
+                - gridcell "—" [ref=e221]
+                - gridcell "9999" [ref=e222]:
+                  - spinbutton "商品 七白饼干(无蔗糖) 库存" [ref=e224]: "9999"
+                - gridcell "编辑" [ref=e225]:
+                  - button "编辑" [ref=e226]
+              - row "万福牌 P260210671456508 P260210671456508 上架 文玩类 ¥119.0 — 9999 编辑" [ref=e227] [cursor=pointer]:
+                - gridcell [ref=e228]:
+                  - checkbox [ref=e229]
+                - gridcell "万福牌 P260210671456508" [ref=e230]:
+                  - generic "万福牌" [ref=e231]
+                  - generic [ref=e232]: P260210671456508
+                - gridcell "P260210671456508" [ref=e233]
+                - gridcell "上架" [ref=e234]:
+                  - generic [ref=e235]: 上架
+                - gridcell "文玩类" [ref=e236]
+                - gridcell "¥119.0" [ref=e237]
+                - gridcell "—" [ref=e238]
+                - gridcell "9999" [ref=e239]:
+                  - spinbutton "商品 万福牌 库存" [ref=e241]: "9999"
+                - gridcell "编辑" [ref=e242]:
+                  - button "编辑" [ref=e243]
+              - row "三花软欧 6978753091246 6978753091246 上架 面包类 ¥18.0 — 9999 编辑" [ref=e244] [cursor=pointer]:
+                - gridcell [ref=e245]:
+                  - checkbox [ref=e246]
+                - gridcell "三花软欧 6978753091246" [ref=e247]:
+                  - generic "三花软欧" [ref=e248]
+                  - generic [ref=e249]: "6978753091246"
+                - gridcell "6978753091246" [ref=e250]
+                - gridcell "上架" [ref=e251]:
+                  - generic [ref=e252]: 上架
+                - gridcell "面包类" [ref=e253]
+                - gridcell "¥18.0" [ref=e254]
+                - gridcell "—" [ref=e255]
+                - gridcell "9999" [ref=e256]:
+                  - spinbutton "商品 三花软欧 库存" [ref=e258]: "9999"
+                - gridcell "编辑" [ref=e259]:
+                  - button "编辑" [ref=e260]
+              - row "三花软欧面团 P260305618046224 P260305618046224 上架 面团类 ¥0.0 — 9999 编辑" [ref=e261] [cursor=pointer]:
+                - gridcell [ref=e262]:
+                  - checkbox [ref=e263]
+                - gridcell "三花软欧面团 P260305618046224" [ref=e264]:
+                  - generic "三花软欧面团" [ref=e265]
+                  - generic [ref=e266]: P260305618046224
+                - gridcell "P260305618046224" [ref=e267]
+                - gridcell "上架" [ref=e268]:
+                  - generic [ref=e269]: 上架
+                - gridcell "面团类" [ref=e270]
+                - gridcell "¥0.0" [ref=e271]
+                - gridcell "—" [ref=e272]
+                - gridcell "9999" [ref=e273]:
+                  - spinbutton "商品 三花软欧面团 库存" [ref=e275]: "9999"
+                - gridcell "编辑" [ref=e276]:
+                  - button "编辑" [ref=e277]
+              - row "丹皮梳 P260211513117549 P260211513117549 上架 文玩类 ¥79.0 — 9999 编辑" [ref=e278] [cursor=pointer]:
+                - gridcell [ref=e279]:
+                  - checkbox [ref=e280]
+                - gridcell "丹皮梳 P260211513117549" [ref=e281]:
+                  - generic "丹皮梳" [ref=e282]
+                  - generic [ref=e283]: P260211513117549
+                - gridcell "P260211513117549" [ref=e284]
+                - gridcell "上架" [ref=e285]:
+                  - generic [ref=e286]: 上架
+                - gridcell "文玩类" [ref=e287]
+                - gridcell "¥79.0" [ref=e288]
+                - gridcell "—" [ref=e289]
+                - gridcell "9999" [ref=e290]:
+                  - spinbutton "商品 丹皮梳 库存" [ref=e292]: "9999"
+                - gridcell "编辑" [ref=e293]:
+                  - button "编辑" [ref=e294]
+              - row "九蒸九制地黄 6979839930021 6979839930021 上架 零食类 ¥39.9 — 9999 编辑" [ref=e295] [cursor=pointer]:
+                - gridcell [ref=e296]:
+                  - checkbox [ref=e297]
+                - gridcell "九蒸九制地黄 6979839930021" [ref=e298]:
+                  - generic "九蒸九制地黄" [ref=e299]
+                  - generic [ref=e300]: "6979839930021"
+                - gridcell "6979839930021" [ref=e301]
+                - gridcell "上架" [ref=e302]:
+                  - generic [ref=e303]: 上架
+                - gridcell "零食类" [ref=e304]
+                - gridcell "¥39.9" [ref=e305]
+                - gridcell "—" [ref=e306]
+                - gridcell "9999" [ref=e307]:
+                  - spinbutton "商品 九蒸九制地黄 库存" [ref=e309]: "9999"
+                - gridcell "编辑" [ref=e310]:
+                  - button "编辑" [ref=e311]
+              - row "九转黄精膏 P260227087818368 P260227087818368 上架 零食类 ¥59.9 — 9999 编辑" [ref=e312] [cursor=pointer]:
+                - gridcell [ref=e313]:
+                  - checkbox [ref=e314]
+                - gridcell "九转黄精膏 P260227087818368" [ref=e315]:
+                  - generic "九转黄精膏" [ref=e316]
+                  - generic [ref=e317]: P260227087818368
+                - gridcell "P260227087818368" [ref=e318]
+                - gridcell "上架" [ref=e319]:
+                  - generic [ref=e320]: 上架
+                - gridcell "零食类" [ref=e321]
+                - gridcell "¥59.9" [ref=e322]
+                - gridcell "—" [ref=e323]
+                - gridcell "9999" [ref=e324]:
+                  - spinbutton "商品 九转黄精膏 库存" [ref=e326]: "9999"
+                - gridcell "编辑" [ref=e327]:
+                  - button "编辑" [ref=e328]
+              - row "云岫艾桂1.0 P260210854266371 P260210854266371 上架 文玩类 ¥179.0 — 9999 编辑" [ref=e329] [cursor=pointer]:
+                - gridcell [ref=e330]:
+                  - checkbox [ref=e331]
+                - gridcell "云岫艾桂1.0 P260210854266371" [ref=e332]:
+                  - generic "云岫艾桂1.0" [ref=e333]
+                  - generic [ref=e334]: P260210854266371
+                - gridcell "P260210854266371" [ref=e335]
+                - gridcell "上架" [ref=e336]:
+                  - generic [ref=e337]: 上架
+                - gridcell "文玩类" [ref=e338]
+                - gridcell "¥179.0" [ref=e339]
+                - gridcell "—" [ref=e340]
+                - gridcell "9999" [ref=e341]:
+                  - spinbutton "商品 云岫艾桂1.0 库存" [ref=e343]: "9999"
+                - gridcell "编辑" [ref=e344]:
+                  - button "编辑" [ref=e345]
+              - row "云岫艾桂香0.8cm38颗+配饰 6979839930656 6979839930656 上架 文玩类 ¥189.0 — 9999 编辑" [ref=e346] [cursor=pointer]:
+                - gridcell [ref=e347]:
+                  - checkbox [ref=e348]
+                - gridcell "云岫艾桂香0.8cm38颗+配饰 6979839930656" [ref=e349]:
+                  - generic "云岫艾桂香0.8cm38颗+配饰" [ref=e350]
+                  - generic [ref=e351]: "6979839930656"
+                - gridcell "6979839930656" [ref=e352]
+                - gridcell "上架" [ref=e353]:
+                  - generic [ref=e354]: 上架
+                - gridcell "文玩类" [ref=e355]
+                - gridcell "¥189.0" [ref=e356]
+                - gridcell "—" [ref=e357]
+                - gridcell "9999" [ref=e358]:
+                  - spinbutton "商品 云岫艾桂香0.8cm38颗+配饰 库存" [ref=e360]: "9999"
+                - gridcell "编辑" [ref=e361]:
+                  - button "编辑" [ref=e362]
+              - row "云岫艾桂香1.0cm18颗+配饰 P260310935789005 P260310935789005 上架 文玩类 ¥179.0 — 9999 编辑" [ref=e363] [cursor=pointer]:
+                - gridcell [ref=e364]:
+                  - checkbox [ref=e365]
+                - gridcell "云岫艾桂香1.0cm18颗+配饰 P260310935789005" [ref=e366]:
+                  - generic "云岫艾桂香1.0cm18颗+配饰" [ref=e367]
+                  - generic [ref=e368]: P260310935789005
+                - gridcell "P260310935789005" [ref=e369]
+                - gridcell "上架" [ref=e370]:
+                  - generic [ref=e371]: 上架
+                - gridcell "文玩类" [ref=e372]
+                - gridcell "¥179.0" [ref=e373]
+                - gridcell "—" [ref=e374]
+                - gridcell "9999" [ref=e375]:
+                  - spinbutton "商品 云岫艾桂香1.0cm18颗+配饰 库存" [ref=e377]: "9999"
+                - gridcell "编辑" [ref=e378]:
+                  - button "编辑" [ref=e379]
+              - row "五指毛桃茯苓茶 6973710449732 6973710449732 上架 茶饮类 ¥39.9 — 9999 编辑" [ref=e380] [cursor=pointer]:
+                - gridcell [ref=e381]:
+                  - checkbox [ref=e382]
+                - gridcell "五指毛桃茯苓茶 6973710449732" [ref=e383]:
+                  - generic "五指毛桃茯苓茶" [ref=e384]
+                  - generic [ref=e385]: "6973710449732"
+                - gridcell "6973710449732" [ref=e386]
+                - gridcell "上架" [ref=e387]:
+                  - generic [ref=e388]: 上架
+                - gridcell "茶饮类" [ref=e389]
+                - gridcell "¥39.9" [ref=e390]
+                - gridcell "—" [ref=e391]
+                - gridcell "9999" [ref=e392]:
+                  - spinbutton "商品 五指毛桃茯苓茶 库存" [ref=e394]: "9999"
+                - gridcell "编辑" [ref=e395]:
+                  - button "编辑" [ref=e396]
+              - row "五指毛桃薏仁茶 P260417653499733 P260417653499733 上架 茶饮类 ¥29.9 — 9999 编辑" [ref=e397] [cursor=pointer]:
+                - gridcell [ref=e398]:
+                  - checkbox [ref=e399]
+                - gridcell "五指毛桃薏仁茶 P260417653499733" [ref=e400]:
+                  - generic "五指毛桃薏仁茶" [ref=e401]
+                  - generic [ref=e402]: P260417653499733
+                - gridcell "P260417653499733" [ref=e403]
+                - gridcell "上架" [ref=e404]:
+                  - generic [ref=e405]: 上架
+                - gridcell "茶饮类" [ref=e406]
+                - gridcell "¥29.9" [ref=e407]
+                - gridcell "—" [ref=e408]
+                - gridcell "9999" [ref=e409]:
+                  - spinbutton "商品 五指毛桃薏仁茶 库存" [ref=e411]: "9999"
+                - gridcell "编辑" [ref=e412]:
+                  - button "编辑" [ref=e413]
+              - row "五气安和珍养礼-单礼盒 P260227257917929 P260227257917929 上架 礼盒套餐 ¥25.0 — 9999 编辑" [ref=e414] [cursor=pointer]:
+                - gridcell [ref=e415]:
+                  - checkbox [ref=e416]
+                - gridcell "五气安和珍养礼-单礼盒 P260227257917929" [ref=e417]:
+                  - generic "五气安和珍养礼-单礼盒" [ref=e418]
+                  - generic [ref=e419]: P260227257917929
+                - gridcell "P260227257917929" [ref=e420]
+                - gridcell "上架" [ref=e421]:
+                  - generic [ref=e422]: 上架
+                - gridcell "礼盒套餐" [ref=e423]
+                - gridcell "¥25.0" [ref=e424]
+                - gridcell "—" [ref=e425]
+                - gridcell "9999" [ref=e426]:
+                  - spinbutton "商品 五气安和珍养礼-单礼盒 库存" [ref=e428]: "9999"
+                - gridcell "编辑" [ref=e429]:
+                  - button "编辑" [ref=e430]
+              - row "五红焕彩包 6979839930922 6979839930922 上架 面包类 ¥20.0 — 9999 编辑" [ref=e431] [cursor=pointer]:
+                - gridcell [ref=e432]:
+                  - checkbox [ref=e433]
+                - gridcell "五红焕彩包 6979839930922" [ref=e434]:
+                  - generic "五红焕彩包" [ref=e435]
+                  - generic [ref=e436]: "6979839930922"
+                - gridcell "6979839930922" [ref=e437]
+                - gridcell "上架" [ref=e438]:
+                  - generic [ref=e439]: 上架
+                - gridcell "面包类" [ref=e440]
+                - gridcell "¥20.0" [ref=e441]
+                - gridcell "—" [ref=e442]
+                - gridcell "9999" [ref=e443]:
+                  - spinbutton "商品 五红焕彩包 库存" [ref=e445]: "9999"
+                - gridcell "编辑" [ref=e446]:
+                  - button "编辑" [ref=e447]
+              - row "五红焕彩包食材 P260329684867268 P260329684867268 上架 面团类 ¥0.0 — 9999 编辑" [ref=e448] [cursor=pointer]:
+                - gridcell [ref=e449]:
+                  - checkbox [ref=e450]
+                - gridcell "五红焕彩包食材 P260329684867268" [ref=e451]:
+                  - generic "五红焕彩包食材" [ref=e452]
+                  - generic [ref=e453]: P260329684867268
+                - gridcell "P260329684867268" [ref=e454]
+                - gridcell "上架" [ref=e455]:
+                  - generic [ref=e456]: 上架
+                - gridcell "面团类" [ref=e457]
+                - gridcell "¥0.0" [ref=e458]
+                - gridcell "—" [ref=e459]
+                - gridcell "9999" [ref=e460]:
+                  - spinbutton "商品 五红焕彩包食材 库存" [ref=e462]: "9999"
+                - gridcell "编辑" [ref=e463]:
+                  - button "编辑" [ref=e464]
+              - row "五行珠1.0 P260507374201523 P260507374201523 上架 文玩类 ¥129.0 — 9999 编辑" [ref=e465] [cursor=pointer]:
+                - gridcell [ref=e466]:
+                  - checkbox [ref=e467]
+                - gridcell "五行珠1.0 P260507374201523" [ref=e468]:
+                  - generic "五行珠1.0" [ref=e469]
+                  - generic [ref=e470]: P260507374201523
+                - gridcell "P260507374201523" [ref=e471]
+                - gridcell "上架" [ref=e472]:
+                  - generic [ref=e473]: 上架
+                - gridcell "文玩类" [ref=e474]
+                - gridcell "¥129.0" [ref=e475]
+                - gridcell "—" [ref=e476]
+                - gridcell "9999" [ref=e477]:
+                  - spinbutton "商品 五行珠1.0 库存" [ref=e479]: "9999"
+                - gridcell "编辑" [ref=e480]:
+                  - button "编辑" [ref=e481]
+              - row "五行珠1.2 P260507592971332 P260507592971332 上架 文玩类 ¥59.0 — 9999 编辑" [ref=e482] [cursor=pointer]:
+                - gridcell [ref=e483]:
+                  - checkbox [ref=e484]
+                - gridcell "五行珠1.2 P260507592971332" [ref=e485]:
+                  - generic "五行珠1.2" [ref=e486]
+                  - generic [ref=e487]: P260507592971332
+                - gridcell "P260507592971332" [ref=e488]
+                - gridcell "上架" [ref=e489]:
+                  - generic [ref=e490]: 上架
+                - gridcell "文玩类" [ref=e491]
+                - gridcell "¥59.0" [ref=e492]
+                - gridcell "—" [ref=e493]
+                - gridcell "9999" [ref=e494]:
+                  - spinbutton "商品 五行珠1.2 库存" [ref=e496]: "9999"
+                - gridcell "编辑" [ref=e497]:
+                  - button "编辑" [ref=e498]
+              - row "五行珠1.5 P260507839029430 P260507839029430 上架 文玩类 ¥169.0 — 9999 编辑" [ref=e499] [cursor=pointer]:
+                - gridcell [ref=e500]:
+                  - checkbox [ref=e501]
+                - gridcell "五行珠1.5 P260507839029430" [ref=e502]:
+                  - generic "五行珠1.5" [ref=e503]
+                  - generic [ref=e504]: P260507839029430
+                - gridcell "P260507839029430" [ref=e505]
+                - gridcell "上架" [ref=e506]:
+                  - generic [ref=e507]: 上架
+                - gridcell "文玩类" [ref=e508]
+                - gridcell "¥169.0" [ref=e509]
+                - gridcell "—" [ref=e510]
+                - gridcell "9999" [ref=e511]:
+                  - spinbutton "商品 五行珠1.5 库存" [ref=e513]: "9999"
+                - gridcell "编辑" [ref=e514]:
+                  - button "编辑" [ref=e515]
+              - row "五行珠手持0.8+1.0 P260210459968715 P260210459968715 上架 文玩类 ¥239.0 — 9999 编辑" [ref=e516] [cursor=pointer]:
+                - gridcell [ref=e517]:
+                  - checkbox [ref=e518]
+                - gridcell "五行珠手持0.8+1.0 P260210459968715" [ref=e519]:
+                  - generic "五行珠手持0.8+1.0" [ref=e520]
+                  - generic [ref=e521]: P260210459968715
+                - gridcell "P260210459968715" [ref=e522]
+                - gridcell "上架" [ref=e523]:
+                  - generic [ref=e524]: 上架
+                - gridcell "文玩类" [ref=e525]
+                - gridcell "¥239.0" [ref=e526]
+                - gridcell "—" [ref=e527]
+                - gridcell "9999" [ref=e528]:
+                  - spinbutton "商品 五行珠手持0.8+1.0 库存" [ref=e530]: "9999"
+                - gridcell "编辑" [ref=e531]:
+                  - button "编辑" [ref=e532]
+              - row "五行珠手持1.2*17 P260417289745490 P260417289745490 上架 文玩类 ¥139.0 — 9999 编辑" [ref=e533] [cursor=pointer]:
+                - gridcell [ref=e534]:
+                  - checkbox [ref=e535]
+                - gridcell "五行珠手持1.2*17 P260417289745490" [ref=e536]:
+                  - generic "五行珠手持1.2*17" [ref=e537]
+                  - generic [ref=e538]: P260417289745490
+                - gridcell "P260417289745490" [ref=e539]
+                - gridcell "上架" [ref=e540]:
+                  - generic [ref=e541]: 上架
+                - gridcell "文玩类" [ref=e542]
+                - gridcell "¥139.0" [ref=e543]
+                - gridcell "—" [ref=e544]
+                - gridcell "9999" [ref=e545]:
+                  - spinbutton "商品 五行珠手持1.2*17 库存" [ref=e547]: "9999"
+                - gridcell "编辑" [ref=e548]:
+                  - button "编辑" [ref=e549]
+              - row "五黑归元包 6973053983026 6973053983026 上架 面包类 ¥20.0 — 9999 编辑" [ref=e550] [cursor=pointer]:
+                - gridcell [ref=e551]:
+                  - checkbox [ref=e552]
+                - gridcell "五黑归元包 6973053983026" [ref=e553]:
+                  - generic "五黑归元包" [ref=e554]
+                  - generic [ref=e555]: "6973053983026"
+                - gridcell "6973053983026" [ref=e556]
+                - gridcell "上架" [ref=e557]:
+                  - generic [ref=e558]: 上架
+                - gridcell "面包类" [ref=e559]
+                - gridcell "¥20.0" [ref=e560]
+                - gridcell "—" [ref=e561]
+                - gridcell "9999" [ref=e562]:
+                  - spinbutton "商品 五黑归元包 库存" [ref=e564]: "9999"
+                - gridcell "编辑" [ref=e565]:
+                  - button "编辑" [ref=e566]
+              - row "五黑归元包面团 P260305006165603 P260305006165603 上架 面团类 ¥0.0 — 9999 编辑" [ref=e567] [cursor=pointer]:
+                - gridcell [ref=e568]:
+                  - checkbox [ref=e569]
+                - gridcell "五黑归元包面团 P260305006165603" [ref=e570]:
+                  - generic "五黑归元包面团" [ref=e571]
+                  - generic [ref=e572]: P260305006165603
+                - gridcell "P260305006165603" [ref=e573]
+                - gridcell "上架" [ref=e574]:
+                  - generic [ref=e575]: 上架
+                - gridcell "面团类" [ref=e576]
+                - gridcell "¥0.0" [ref=e577]
+                - gridcell "—" [ref=e578]
+                - gridcell "9999" [ref=e579]:
+                  - spinbutton "商品 五黑归元包面团 库存" [ref=e581]: "9999"
+                - gridcell "编辑" [ref=e582]:
+                  - button "编辑" [ref=e583]
+              - row "亚麻籽核桃吐司切片 6979839930960 6979839930960 上架 面包类 ¥16.8 — 9999 编辑" [ref=e584] [cursor=pointer]:
+                - gridcell [ref=e585]:
+                  - checkbox [ref=e586]
+                - gridcell "亚麻籽核桃吐司切片 6979839930960" [ref=e587]:
+                  - generic "亚麻籽核桃吐司切片" [ref=e588]
+                  - generic [ref=e589]: "6979839930960"
+                - gridcell "6979839930960" [ref=e590]
+                - gridcell "上架" [ref=e591]:
+                  - generic [ref=e592]: 上架
+                - gridcell "面包类" [ref=e593]
+                - gridcell "¥16.8" [ref=e594]
+                - gridcell "—" [ref=e595]
+                - gridcell "9999" [ref=e596]:
+                  - spinbutton "商品 亚麻籽核桃吐司切片 库存" [ref=e598]: "9999"
+                - gridcell "编辑" [ref=e599]:
+                  - button "编辑" [ref=e600]
+              - row "亚麻籽核桃吐司切片面团 P260410080695660 P260410080695660 上架 面团类 ¥0.0 — 9999 编辑" [ref=e601] [cursor=pointer]:
+                - gridcell [ref=e602]:
+                  - checkbox [ref=e603]
+                - gridcell "亚麻籽核桃吐司切片面团 P260410080695660" [ref=e604]:
+                  - generic "亚麻籽核桃吐司切片面团" [ref=e605]
+                  - generic [ref=e606]: P260410080695660
+                - gridcell "P260410080695660" [ref=e607]
+                - gridcell "上架" [ref=e608]:
+                  - generic [ref=e609]: 上架
+                - gridcell "面团类" [ref=e610]
+                - gridcell "¥0.0" [ref=e611]
+                - gridcell "—" [ref=e612]
+                - gridcell "9999" [ref=e613]:
+                  - spinbutton "商品 亚麻籽核桃吐司切片面团 库存" [ref=e615]: "9999"
+                - gridcell "编辑" [ref=e616]:
+                  - button "编辑" [ref=e617]
+          - generic [ref=e618]:
+            - button "上一页" [disabled] [ref=e619]:
+              - img [ref=e620]
+            - button "1" [ref=e622] [cursor=pointer]
+            - button "2" [ref=e623] [cursor=pointer]
+            - generic [ref=e624]: …
+            - button "8" [ref=e625] [cursor=pointer]
+            - button "下一页" [ref=e626] [cursor=pointer]:
+              - img [ref=e627]
+      - generic:
+        - generic:
+          - generic:
+            - heading "对话详情" [level=3]
+            - button:
+              - img
+          - generic:
+            - generic:
+              - generic: 店员备注
+              - textbox "添加备注..."
+            - generic:
+              - generic: 标签
+              - textbox "用逗号分隔"
+            - button "保存"
+  - status
+  - generic:
+    - generic:
+      - generic:
+        - heading "批量修改库存" [level=3]
+        - button:
+          - img
+      - generic:
+        - generic:
+          - generic: 修改方式
+          - generic:
+            - generic:
+              - radio "设为固定值" [checked]
+              - text: 设为固定值
+            - generic:
+              - radio "增减相对值"
+              - text: 增减相对值
+        - generic:
+          - generic: 库存数量（件）
+          - spinbutton
+        - paragraph
+      - generic:
+        - button "取消"
+        - button "确认修改"
+  - generic:
+    - generic:
+      - generic:
+        - heading "编辑商品" [level=3]
+        - button:
+          - img
+      - generic:
+        - generic:
+          - generic: 商品名称
+          - textbox "商品名称"
+        - generic:
+          - generic:
+            - generic: 分类
+            - textbox "如 面包、茶、饼干"
+          - generic:
+            - generic: 价格
+            - spinbutton
+          - generic:
+            - generic: 库存
+            - spinbutton
+        - generic:
+          - generic: 成分
+          - textbox "主要成分"
+        - generic:
+          - generic: 场景标签 AI推荐核心
+          - textbox "如 熬夜加班、考试复习、产后调理"
+          - paragraph: LLM 根据这些标签推荐商品，逗号分隔
+        - generic:
+          - generic: 禁忌标签 AI避让
+          - textbox "如 糖尿病、孕妇、婴幼儿"
+          - paragraph: LLM 根据这些标签避免推荐
+        - generic:
+          - generic:
+            - checkbox "上架状态（启用）"
+            - text: 上架状态（启用）
+      - generic:
+        - button "取消"
+        - button "保存"
+  - generic:
+    - generic:
+      - generic:
+        - heading "导入有赞商品库" [level=3]
+        - button:
+          - img
+      - generic:
+        - generic:
+          - img
+          - paragraph: 点击上传或拖拽 Excel 文件
+          - paragraph: 支持 .xlsx 格式，以商品条码(sku_id)匹配
+      - generic:
+        - button "关闭"
+        - button "开始导入" [disabled]:
+          - img
+          - text: 开始导入
+  - generic:
+    - generic:
+      - generic:
+        - heading "订单详情" [level=2]
+        - button:
+          - img

@@ -12,6 +12,15 @@
       <text class="hero-brand">焙 草 集</text>
     </view>
 
+    <!-- Conversation Summary -->
+    <view class="report-card" wx:if="{{report.summary}}">
+      <view class="card-head">
+        <view class="card-icon icon-summary">📋</view>
+        <text class="card-title">本次沟通总结</text>
+      </view>
+      <text class="card-desc">{{report.summary}}</text>
+    </view>
+
     <!-- Constitution section -->
     <view class="report-card">
       <view class="card-head">

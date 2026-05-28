@@ -1,11 +1,14 @@
 # backend/app/api/chat.py
 import json
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Body
 from pydantic import BaseModel
 from app.services.dialogue_engine import DialogueEngine
 from app.services.product_service import ProductService
 from app.services.recommend_engine import RecommendEngine
 from app.api.deps import get_db
+from app.models.customer import Customer
+from app.models.conversation import Conversation
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 engine = DialogueEngine()
@@ -17,6 +20,7 @@ _session_store: dict[str, dict] = {}
 class SendRequest(BaseModel):
     session_id: str
     message: str = ""
+    channel: str = ""  # QR code channel param
 
 
 class ResetRequest(BaseModel):
@@ -24,24 +28,31 @@ class ResetRequest(BaseModel):
 
 
 def _describe_recommendation(engine: DialogueEngine, state: dict, rec: dict) -> str:
-    """Use LLM to naturally describe the engine's recommendation results."""
+    """Return a short summary pointing to the report for details."""
     constitution = rec.get("constitution", {})
     ctype = constitution.get("constitution_type", "平和质")
     fixed = rec.get("fixed_bundle", [])
     llm_recs = rec.get("llm_recommendations", [])
-    all_products = fixed + llm_recs
-    product_list = "\n".join(
-        f"- 「{p.get('name', '')}」成分：{p.get('ingredients', '')}"
-        for p in all_products
+    total = len(fixed) + len(llm_recs)
+
+    tips = {
+        "气虚质": "平时注意别太累，适当吃点补气的食物",
+        "阳虚质": "注意保暖，少吃生冷的，多晒太阳",
+        "阴虚质": "少熬夜，多吃润燥的食物，多喝水",
+        "痰湿质": "饮食清淡些，多运动出出汗会舒服很多",
+        "湿热质": "少吃辛辣油炸，多喝清热利湿的茶",
+        "气郁质": "多出门走走，心情不好的时候找人聊聊天",
+        "血瘀质": "适当运动促进循环，少吃寒凉的东西",
+        "血虚质": "多吃补血的食物，别太操劳，保证睡眠",
+        "特禀质": "注意避开过敏原，换季时多加小心",
+        "平和质": "保持现在的生活习惯就好，注意均衡饮食",
+    }
+
+    return (
+        f"你是偏{ctype}体质。我为你搭配了{total}款适合的产品～\n\n"
+        f"💡 {tips.get(ctype, '保持健康的生活习惯')}\n\n"
+        f"详细的产品介绍和食养建议都在调理报告里了，点击下方查看吧~"
     )
-    ctx = engine._state_context(state)
-    instruction = (
-        f"顾客偏{ctype}体质。推荐产品：\n\n{product_list}\n\n"
-        "逐款解释为什么适合他（结合成分与体质），不要加品类标签，不要问品类偏好，不要建议到店。"
-        "结尾问'你觉得这几个怎么样？'。不用markdown。"
-    )
-    msg = engine._chat(instruction, ctx)
-    return msg
 
 
 # Layer 1: everyday language → category filter
@@ -135,10 +146,8 @@ def _describe_fallback(engine: DialogueEngine, state: dict, rec: dict) -> str:
     ctype = rec.get("constitution", {}).get("constitution_type", "平和质")
     ctx = engine._state_context(state)
     instruction = (
-        f"顾客偏{ctype}体质，但店里的产品没有完美匹配他当前的情况。"
-        "请温和地告诉他：店里虽然没有专门针对他情况的产品，但已为他生成了一份调理报告，"
-        "里面有详细的食养建议和生活调养指导。"
-        "建议他点击'查看完整调理报告'查看。语气温暖真诚，不要用markdown。"
+        f"顾客偏{ctype}体质。店里的产品不完全匹配他的情况。"
+        "用1-2句话温和告知：已为你生成了一份调理报告，里面有食养建议和生活调养指导，点击下方报告查看。语气温暖。"
     )
     return engine._chat(instruction, ctx)
 
@@ -198,13 +207,13 @@ def send_message(req: SendRequest, db=Depends(get_db)):
             except Exception:
                 pass  # Keep original message if LLM call fails
         elif state.get("recommendation"):
-            # Vague query like "再推荐几个" with no product keywords —
-            # fall back to recommend engine using existing constitution data
             product_svc = ProductService(db)
-            rec_engine = RecommendEngine(product_svc)
+            rec_engine = RecommendEngine(product_svc, screening_result=state.get("screening_result", ""))
+            const_type = state.get("constitution_type")
             recommendation = rec_engine.recommend(
                 state.get("constitution_raw", "{}"),
-                state.get("scene_raw", "")
+                state.get("scene_raw", ""),
+                constitution_type=const_type,
             )
             if recommendation and recommendation.get("bundle"):
                 try:
@@ -214,8 +223,10 @@ def send_message(req: SendRequest, db=Depends(get_db)):
     elif intent == "show_catalog":
         product_svc = ProductService(db)
         hot_products = product_svc.get_hot_products()
+        constitution_catalog = product_svc.get_constitution_catalog()
         catalog = {
             "hot_products": hot_products,
+            "constitution_catalog": constitution_catalog,
             "youzan_url": "https://shop187173170.m.youzan.com/v2/feature/7E6JIPDsLP",
             "youzan_qr": "/static/youzan-qr.jpg",
         }
@@ -223,10 +234,13 @@ def send_message(req: SendRequest, db=Depends(get_db)):
     # Existing stage-based routing
     if result.get("stage") == "recommend" and not recommendation:
         product_svc = ProductService(db)
-        rec_engine = RecommendEngine(product_svc, client=engine.client)
+        rec_engine = RecommendEngine(product_svc, client=engine.client, screening_result=state.get("screening_result", ""))
+        const_type = result.get("constitution_type") or state.get("constitution_type")
+        const_raw = result.get("constitution_raw") or state.get("constitution_raw", "{}")
         recommendation = rec_engine.recommend(
-            state.get("constitution_raw", "{}"),
-            result.get("scene_raw", "")
+            const_raw,
+            result.get("scene_raw", "") or state.get("scene_raw", ""),
+            constitution_type=const_type,
         )
         if recommendation.get("fixed_bundle") or recommendation.get("llm_recommendations"):
             try:
@@ -255,6 +269,89 @@ def send_message(req: SendRequest, db=Depends(get_db)):
         new_state["catalog"] = catalog
     _session_store[state_key] = new_state
 
+    # ── Persist conversation to DB ──────────────────────────────────────────
+    now_iso = datetime.now().isoformat()
+    conv_id = state.get("_conv_id")
+    customer_id = state.get("_customer_id")
+
+    # Build message history entry for this turn
+    turn_entries = []
+    if message:
+        turn_entries.append({"role": "user", "content": message, "timestamp": now_iso})
+    bot_msg = result.get("message", "")
+    if bot_msg:
+        entry = {"role": "assistant", "content": bot_msg, "timestamp": now_iso}
+        qr = result.get("quick_replies")
+        if qr:
+            entry["quick_replies"] = qr
+        turn_entries.append(entry)
+
+    if conv_id:
+        conv = db.query(Conversation).filter(Conversation.id == conv_id).first()
+    else:
+        conv = None
+
+    if conv:
+        # Update existing conversation
+        prev_history = json.loads(conv.messages_history or "[]")
+        new_history = prev_history + turn_entries
+        conv.messages_history = json.dumps(new_history, ensure_ascii=False)
+
+        prev_stages = json.loads(conv.stage_history or "[]")
+        current_stage = new_state.get("stage", "")
+        if current_stage and (not prev_stages or prev_stages[-1] != current_stage):
+            prev_stages.append(current_stage)
+            conv.stage_history = json.dumps(prev_stages, ensure_ascii=False)
+
+        conv.stage = current_stage or conv.stage
+        conv.screening_result = new_state.get("screening_result") or conv.screening_result
+        if new_state.get("constitution_raw"):
+            conv.constitution_raw = new_state["constitution_raw"]
+        if new_state.get("scene_raw"):
+            conv.scene_input = new_state["scene_raw"]
+        # P1: save locked constitution type
+        if new_state.get("constitution_type") and not conv.constitution_type:
+            conv.constitution_type = new_state["constitution_type"]
+            signals = new_state.get("constitution_signals", "{}")
+            try:
+                sigs = json.loads(signals) if isinstance(signals, str) else signals
+                if sigs and conv.constitution_type in sigs:
+                    conv.constitution_confidence = int(sigs[conv.constitution_type] * 100)
+            except (json.JSONDecodeError, TypeError, ValueError):
+                pass
+    else:
+        # Create new conversation
+        if not customer_id:
+            customer = Customer(nickname="匿名顾客")
+            db.add(customer)
+            db.flush()
+            customer_id = customer.id
+            new_state["_customer_id"] = customer_id
+            _session_store[state_key] = new_state
+
+        stage_list = [new_state.get("stage", "greeting")]
+        conv = Conversation(
+            customer_id=customer_id,
+            stage=new_state.get("stage", "greeting"),
+            messages=message[:200] if message else "",
+            messages_history=json.dumps(turn_entries, ensure_ascii=False),
+            stage_history=json.dumps(stage_list, ensure_ascii=False),
+            screening_result=new_state.get("screening_result", ""),
+            constitution_raw=new_state.get("constitution_raw", "{}"),
+            scene_input=new_state.get("scene_raw", ""),
+            channel=req.channel or state.get("_channel", ""),
+        )
+        db.add(conv)
+        db.flush()
+        new_state["_conv_id"] = conv.id
+        _session_store[state_key] = new_state
+
+    # Update channel if provided
+    if req.channel and conv and not conv.channel:
+        conv.channel = req.channel
+
+    db.commit()
+
     return {
         "message": result.get("message", ""),
         "stage": result.get("stage", "greeting"),
@@ -262,6 +359,11 @@ def send_message(req: SendRequest, db=Depends(get_db)):
         "recommendation": recommendation,
         "catalog": catalog,
         "screening_result": new_state.get("screening_result"),
+        "constitution_phase": new_state.get("constitution_phase"),
+        "constitution_type": new_state.get("constitution_type"),
+        "constitution_candidates": new_state.get("constitution_candidates"),
+        "scene_from_constitution": new_state.get("scene_from_constitution"),
+        "intent": result.get("intent"),
     }
 
 

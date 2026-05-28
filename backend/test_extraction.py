@@ -1,6 +1,6 @@
 """Test constitution signal extraction from free-text Chinese descriptions.
 
-Validates whether MiniMax M2.7 can reliably extract structured constitution
+Validates whether DeepSeek can reliably extract structured constitution
 signals from natural language before we commit to the B+C hybrid approach.
 """
 
@@ -20,9 +20,9 @@ load_dotenv()
 
 client = Anthropic(
     api_key=os.getenv("LLM_API_KEY", ""),
-    base_url=os.getenv("LLM_BASE_URL", "https://api.minimaxi.com/anthropic"),
+    base_url=os.getenv("LLM_BASE_URL", "https://api.deepseek.com/anthropic"),
 )
-MODEL = os.getenv("LLM_MODEL", "MiniMax-M2.7")
+MODEL = os.getenv("LLM_MODEL", "deepseek-chat")
 
 EXTRACTION_SYSTEM = """你是一个中医体质信号提取器。从顾客的自然语言中提取5个体质信号字段。
 你必须严格使用下面列出的选项原文，一字不差。"""

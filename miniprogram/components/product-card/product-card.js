@@ -7,6 +7,7 @@ Component({
 
   data: {
     emoji: '',
+    catCls: 'bg-biscuit',
     _qty: 0,
     _sku: ''
   },
@@ -26,8 +27,23 @@ Component({
 
       if (this._cartSub) cart.unsubscribe(this._cartSub);
 
-      const emojiMap = { biscuit: '🍪', bread: '🍞', tea: '🍵', toy: '🎐' };
-      this.setData({ emoji: emojiMap[p.category] || '🌿', _qty: cart.getQuantity(sku) });
+      const catMap = {
+        '面包类': { emoji: '🍞', cls: 'bread' },
+        '茶饮类': { emoji: '🍵', cls: 'tea' },
+        '零食类': { emoji: '🥨', cls: 'snack' },
+        '香囊类': { emoji: '🎐', cls: 'sachet' },
+        '文玩类': { emoji: '🎋', cls: 'play' },
+        '耗材类': { emoji: '📦', cls: 'supply' },
+        '面团类': { emoji: '🥖', cls: 'dough' },
+        '礼盒套餐': { emoji: '🎁', cls: 'gift' },
+        '现场冲泡茶饮': { emoji: '🫖', cls: 'brew' },
+        biscuit: { emoji: '🍪', cls: 'biscuit' },
+        bread: { emoji: '🍞', cls: 'bread' },
+        tea: { emoji: '🍵', cls: 'tea' },
+        toy: { emoji: '🎐', cls: 'toy' },
+      };
+      const cfg = catMap[p.category] || { emoji: '🌿', cls: 'biscuit' };
+      this.setData({ emoji: cfg.emoji, catCls: 'bg-' + cfg.cls, _qty: cart.getQuantity(sku) });
 
       this._cartSub = (state) => {
         const item = state.items.find(i => i.sku_id === sku);
