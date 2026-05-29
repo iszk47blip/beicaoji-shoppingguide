@@ -1,4 +1,5 @@
 import json
+import re
 import time
 from anthropic import Anthropic
 from app.config import settings
@@ -30,8 +31,7 @@ class TagGenerator:
             raise TagGenerationError("LLM 返回为空")
         try:
             text = text.strip()
-            # Strip triple-backtick code fences: ```json ... ```
-            import re
+            # Extract JSON from markdown code fence, or use raw text
             m = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', text, re.DOTALL)
             if m:
                 text = m.group(1)
@@ -42,14 +42,15 @@ class TagGenerator:
                 "scene_tags": data.get("scene_tags", ""),
                 "contraindication_tags": data.get("contraindication_tags", ""),
             }
-        except json.JSONDecodeError:
-            raise TagGenerationError(f"LLM 返回格式错误: {text[:100]}")
+        except json.JSONDecodeError as e:
+            raise TagGenerationError(f"LLM 返回格式错误: {e.msg} — 原始内容: {text[:200]}")
 
     def _call_llm(self, prompt: str) -> str:
         resp = self.client.messages.create(
             model=settings.llm_model,
             max_tokens=1024,
             thinking={"type": "disabled"},
+            timeout_seconds=30,
             system=TAG_GENERATION_SYSTEM,
             messages=[{"role": "user", "content": prompt}],
         )

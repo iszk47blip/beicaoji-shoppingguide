@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Body
 from pydantic import BaseModel
-from app.services.dialogue_engine import DialogueEngine
+from app.services.dialogue_engine import DialogueEngine, Stage
 from app.services.product_service import ProductService
 from app.services.recommend_engine import RecommendEngine
 from app.api.deps import get_db
@@ -232,7 +232,7 @@ def send_message(req: SendRequest, db=Depends(get_db)):
         }
 
     # Existing stage-based routing
-    if result.get("stage") == "recommend" and not recommendation:
+    if result.get("stage") == Stage.RECOMMEND and not recommendation:
         product_svc = ProductService(db)
         rec_engine = RecommendEngine(product_svc, client=engine.client, screening_result=state.get("screening_result", ""))
         const_type = result.get("constitution_type") or state.get("constitution_type")
@@ -250,17 +250,17 @@ def send_message(req: SendRequest, db=Depends(get_db)):
                     result["message"] = _describe_recommendation(engine, state, recommendation)
             except Exception:
                 pass
-    elif result.get("stage") == "catalog" and not catalog:
+    elif result.get("stage") == Stage.CATALOG and not catalog:
         product_svc = ProductService(db)
         catalog = product_svc.get_constitution_catalog()
 
     # Fix quick_replies and stage when recommendation or catalog content is shown
     if recommendation:
         result["quick_replies"] = ["推荐更多产品", "重新了解体质", "看看产品目录"]
-        result["stage"] = "recommend"
+        result["stage"] = Stage.RECOMMEND
     elif catalog:
         result["quick_replies"] = ["继续了解体质", "看看产品目录"]
-        result["stage"] = "catalog"
+        result["stage"] = Stage.CATALOG
 
     new_state = {**state, **result}
     if recommendation:

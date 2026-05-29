@@ -15,6 +15,21 @@ def _fuzzy_match(user_answer: str, expected: str) -> bool:
     return a == b
 
 
+def _get_valid_options() -> dict:
+    """Return the valid option strings for each field, for input validation."""
+    return {
+        "temperature_tendency": ["偏凉，冬天容易手脚冰凉", "偏暖，不怎么怕冷", "说不准，看情况"],
+        "heat_signs": ["经常，动不动就上火", "偶尔，不算频繁", "几乎不"],
+        "qi_deficiency": ["是，经常觉得累、不想说话", "还好，正常范围内", "不会，精力比较充沛"],
+        "damp_heat": ["经常这样", "偶尔", "基本没有"],
+        "sweat_tendency": ["稍微一动就容易出汗", "正常，热了或运动了才出汗", "几乎不出汗，比别人汗少"],
+        "allergy": ["经常过敏", "偶尔", "几乎没有"],
+        "emotion": ["经常情绪波动大", "偶尔", "情绪比较稳定"],
+        "stool_digest": ["大便容易黏滞或不成形", "偶尔", "大便正常"],
+        "blood_combined": ["经常瘀青或眼前发黑（两项都有或一项经常）", "经常瘀青", "经常眼前发黑", "几乎没有"],
+    }
+
+
 CONSTITUTION_RULES = {
     "气虚质": {
         "signals": {"qi_deficiency": ["是，经常觉得累、不想说话"],
@@ -87,11 +102,27 @@ CONSTITUTION_RULES = {
 def analyze(constitution_raw: str) -> dict:
     """分析体质原始回答，返回体质倾向结果"""
     answers = json.loads(constitution_raw) if isinstance(constitution_raw, str) else constitution_raw
+
+    # Bug 2 fix: validate answers against known options, discard unknown values
+    valid_options = _get_valid_options()
+    validated = {}
+    for field, user_answer in answers.items():
+        if not user_answer:
+            continue
+        if field not in valid_options:
+            continue
+        # Strict: answer must be an exact known option (after strip)
+        if user_answer in valid_options[field]:
+            validated[field] = user_answer
+
     scores = {}
     for ctype, rules in CONSTITUTION_RULES.items():
         score = 0
         for field, expected_answers in rules["signals"].items():
-            user_answer = answers.get(field, "")
+            if field not in validated:
+                continue
+            user_answer = validated[field]
+            # Bug 1 fix: count each field at most once, not once per expected answer
             if any(_fuzzy_match(user_answer, ea) for ea in expected_answers):
                 score += 1
         scores[ctype] = score

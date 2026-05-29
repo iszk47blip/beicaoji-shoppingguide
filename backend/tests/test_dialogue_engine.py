@@ -62,27 +62,16 @@ class TestScreening:
     @patch.object(DialogueEngine, '_chat_json', _mock_chat_json)
     def test_screening_cleared(self):
         engine = DialogueEngine()
-        result = engine.process_user_message({"stage": Stage.SCREENING}, "E 都没有")
-        assert result["stage"] == Stage.INFO_COLLECT
+        result = engine.process_user_message({"stage": Stage.SCREENING}, "都没有")
         assert result["screening_result"] == "cleared"
+        assert result["stage"] == Stage.CONSTITUTION
 
     @patch.object(DialogueEngine, '_chat_json', _mock_chat_json)
     def test_screening_blocked(self):
         engine = DialogueEngine()
-        result = engine.process_user_message({"stage": Stage.SCREENING}, "A 怀孕")
+        result = engine.process_user_message({"stage": Stage.SCREENING}, "在备孕或怀孕")
         assert result["screening_result"] == "blocked"
         assert result["stage"] == Stage.DONE
-
-
-class TestInfoCollect:
-    @patch.object(DialogueEngine, '_chat_json', _mock_chat_json)
-    def test_info_collect_transitions_to_constitution(self):
-        engine = DialogueEngine()
-        result = engine.process_user_message({"stage": Stage.INFO_COLLECT}, "小明")
-        assert result["stage"] == Stage.CONSTITUTION
-        # The new engine uses constitution_questions_asked, not constitution_index
-        assert "constitution_raw" in result
-        assert result.get("constitution_extract_done") is not None
 
 
 class TestConstitution:
@@ -97,19 +86,18 @@ class TestConstitution:
         assert len(raw) >= 1
 
     @patch.object(DialogueEngine, '_chat_json', _mock_chat_json)
-    def test_constitution_last_question_transitions_to_scene(self):
+    def test_constitution_last_question_transitions_to_recommend(self):
+        """After adaptive constitution questions, transitions to RECOMMEND (not SCENE)."""
         engine = DialogueEngine()
-        # New engine uses extract_done flag and questions_asked counter
-        # extract_done=True skips _handle_constitution_extract, goes straight to
-        # _handle_constitution_adaptive where transition to SCENE happens.
         state = {
             "stage": Stage.CONSTITUTION,
             "constitution_extract_done": True,
-            "constitution_questions_asked": 1,
+            "constitution_questions_asked": 2,
             "constitution_raw": '{"temperature_tendency":"偏凉","heat_signs":"偶尔"}',
+            "asked_fields": ["temperature_tendency"],
         }
         result = engine.process_user_message(state, "挺好的")
-        assert result["stage"] == Stage.SCENE
+        assert result["stage"] == Stage.RECOMMEND
 
 
 class TestScene:

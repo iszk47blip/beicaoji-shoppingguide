@@ -74,5 +74,28 @@ def test_analyze_tie_uses_first():
     """平分时取字典序第一个体质"""
     raw = '{"temperature_tendency": "偏凉，冬天容易手脚冰凉", "sweat_tendency": "几乎不出汗，比别人汗少"}'
     result = analyze(raw)
-    # 阳虚质(temperature+sweat=2) vs 气虚质(temperature only,=1) → 阳虚质
     assert result["constitution_type"] == "阳虚质"
+
+def test_analyze_blood_combined_single_score():
+    """Bug 1 regression: blood_combined 单信号正确计1分"""
+    raw = '{"blood_combined": "经常瘀青"}'
+    result = analyze(raw)
+    assert result["constitution_type"] == "血瘀质"
+
+def test_analyze_blood_combined_long_option():
+    """Bug 1 regression: 长选项精确匹配只计1分"""
+    raw = '{"blood_combined": "经常瘀青或眼前发黑（两项都有或一项经常）"}'
+    result = analyze(raw)
+    assert result["constitution_type"] == "血瘀质"
+
+def test_analyze_invalid_answer_filtered():
+    """Bug 2 regression: 带"我"字的非精确答案被过滤"""
+    raw = '{"blood_combined": "我经常瘀青"}'
+    result = analyze(raw)
+    assert result["constitution_type"] == "平和质"
+
+def test_analyze_unknown_field_ignored():
+    """Bug 2 regression: 不存在的field被忽略，有效字段正常计分"""
+    raw = '{"unknown_field": "随便填", "blood_combined": "经常瘀青"}'
+    result = analyze(raw)
+    assert result["constitution_type"] == "血瘀质"

@@ -29,6 +29,8 @@ class ProductService:
         return results[:limit]
 
     def get_by_sku(self, sku_id):
+        if sku_id is None:
+            return None
         return self.session.query(Product).filter(Product.sku_id == sku_id).first()
 
     def get_all_active(self, category=None):
@@ -95,7 +97,7 @@ class ProductService:
 
             # ── Layer 3: any products (last resort) ──
             if not bundle:
-                seen_cats = set(p.category for p in bundle)
+                seen_cats = set()
                 for p in all_products:
                     if p.sku_id not in seen_skus and p.category not in seen_cats:
                         bundle.append(p)

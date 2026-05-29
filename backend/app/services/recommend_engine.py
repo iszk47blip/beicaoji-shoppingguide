@@ -79,10 +79,9 @@ class RecommendEngine:
             return []
 
         from app.models.product import Product
-        EDIBLE_CATEGORIES = {"面包类", "茶饮类", "零食类", "面团类", "香囊类", "现场冲泡茶饮"}
         all_products = self.product_service.session.query(Product).filter(
             Product.is_active == True, Product.stock > 0,
-            Product.category.in_(EDIBLE_CATEGORIES)
+            Product.category.in_(ProductService.FOOD_CATEGORIES)
         ).all()
 
         exclude_skus = set(exclude_skus)

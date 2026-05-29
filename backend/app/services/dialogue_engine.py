@@ -186,14 +186,6 @@ class DialogueEngine:
                     "quick_replies": ["帮我看看体质", "你都有什么产品？"]}
         return {"message": "有什么我可以帮你的？", "stage": stage}
 
-    def _recommend_reenter(self, state: dict) -> dict:
-        ctx = self._state_context(state)
-        msg = self._chat(
-            "顾客回到推荐页。自然地问他还想了解什么，要不要重新看体质或换个困扰。",
-            ctx
-        )
-        return {"message": msg, "stage": Stage.RECOMMEND,
-                "quick_replies": ["推荐更多产品", "重新了解体质", "看看产品目录"]}
 
     def _catalog_reenter(self, state: dict) -> dict:
         ctx = self._state_context(state)
@@ -213,8 +205,6 @@ class DialogueEngine:
             return self._handle_greeting(state, user_input)
         elif stage == Stage.SCREENING:
             return self._handle_screening(state, user_input)
-        elif stage == Stage.INFO_COLLECT:
-            return self._handle_info_collect(state, user_input)
         elif stage == Stage.CONSTITUTION:
             return self._handle_constitution(state, user_input)
         elif stage == Stage.SCENE:
@@ -751,20 +741,6 @@ class DialogueEngine:
             result["quick_replies"] = ["推荐更多产品", "重新了解体质", "看看产品目录"]
             return result
 
-        elif not followup_done:
-            combined_scene = f"{scene_raw}；{user_input}"
-            result = self._chat_json(
-                f"顾客补充：「{user_input}」（之前：「{scene_raw}」）\n"
-                "简短共情后告诉顾客马上分析推荐。不要问新问题。意图同上。\n"
-                "JSON: {\"message\":\"...\",\"intent\":\"...\"}",
-                ctx
-            )
-            result["stage"] = Stage.RECOMMEND
-            result["scene_raw"] = combined_scene
-            result["scene_followup_done"] = True
-            result["quick_replies"] = ["推荐更多产品", "重新了解体质", "看看产品目录"]
-            return result
-
         else:
             result = self._chat_json(
                 "告诉顾客马上分析推荐，不超过两句话。JSON: {\"message\":\"...\",\"stage\":\"scene|recommend\"}",
@@ -775,6 +751,10 @@ class DialogueEngine:
                 result["scene_followup_question"] = True
             else:
                 result["stage"] = Stage.RECOMMEND
+            result["scene_raw"] = scene_raw
+            result["scene_followup_done"] = True
+            result["quick_replies"] = ["推荐更多产品", "重新了解体质", "看看产品目录"]
+            return result
             result["quick_replies"] = ["推荐更多产品", "重新了解体质", "看看产品目录"]
             return result
 
