@@ -199,7 +199,7 @@ def send_message(req: SendRequest, db=Depends(get_db)):
 
     # Intent routing: product search or catalog display at any stage
     more_product_phrases = ["推荐更多产品", "推荐其他产品", "再看看其他", "看看其他"]
-    if intent == "search_product" or (not intent and message in more_product_phrases):
+    if intent == "search_product" or (intent is None and message in more_product_phrases):
         intent = "search_product"
         # "推荐更多产品" 等按钮 → 返回热销产品补充包，不是语义搜索
         if message in more_product_phrases:
