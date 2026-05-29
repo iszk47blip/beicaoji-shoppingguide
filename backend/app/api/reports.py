@@ -61,7 +61,6 @@ def overview(
     hi_inclusive = hi + timedelta(days=1)
 
     orders_q = db.query(Order).filter(
-        Order.status == "paid",
         Order.created_at >= lo,
         Order.created_at < hi_inclusive
     )
@@ -96,7 +95,6 @@ def revenue_trend(
     hi_inclusive = hi + timedelta(days=1)
 
     orders = db.query(Order).filter(
-        Order.status == "paid",
         Order.created_at >= lo,
         Order.created_at < hi_inclusive
     ).all()
@@ -139,7 +137,6 @@ def product_ranking(
     hi_inclusive = hi + timedelta(days=1)
 
     orders = db.query(Order).filter(
-        Order.status == "paid",
         Order.created_at >= lo,
         Order.created_at < hi_inclusive
     ).all()
@@ -234,7 +231,6 @@ def category_distribution(
     hi_inclusive = hi + timedelta(days=1)
 
     orders = db.query(Order).filter(
-        Order.status == "paid",
         Order.created_at >= lo,
         Order.created_at < hi_inclusive
     ).all()
