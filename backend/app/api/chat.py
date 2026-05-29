@@ -198,8 +198,9 @@ def send_message(req: SendRequest, db=Depends(get_db)):
     intent = result.get("intent", "continue_flow")
 
     # Intent routing: product search or catalog display at any stage
-    if intent == "search_product" and message:
-        rec = _search_products(db, message, state)
+    if intent == "search_product" or (not intent and message in ["推荐更多产品", "推荐其他产品", "再看看其他", "看看其他"]):
+        intent = "search_product"
+        rec = _search_products(db, message, state) if message else {"bundle": []}
         if rec.get("bundle"):
             recommendation = rec
             try:
@@ -208,19 +209,18 @@ def send_message(req: SendRequest, db=Depends(get_db)):
                 pass  # Keep original message if LLM call fails
         elif state.get("recommendation"):
             product_svc = ProductService(db)
-            rec_engine = RecommendEngine(product_svc, screening_result=state.get("screening_result", ""))
-            const_type = state.get("constitution_type")
-            recommendation = rec_engine.recommend(
-                state.get("constitution_raw", "{}"),
-                state.get("scene_raw", ""),
-                constitution_type=const_type,
-            )
-            if recommendation and recommendation.get("bundle"):
-                try:
-                    result["message"] = _describe_recommendation(engine, state, recommendation)
-                except Exception:
-                    pass
-    elif intent == "show_catalog":
+            hot = product_svc.get_hot_products()
+            existing_skus = {p["sku_id"] for p in state.get("recommendation", {}).get("bundle", [])}
+            supplemented = [p for p in hot if p["sku_id"] not in existing_skus]
+            if supplemented:
+                recommendation = {
+                    "bundle": supplemented[:4],
+                    "products": supplemented[:4],
+                    "constitution": state.get("recommendation", {}).get("constitution", {}),
+                }
+            else:
+                recommendation = state["recommendation"]
+    if intent == "show_catalog" or (not intent and message in ["看看产品目录", "产品目录", "目录", "有什么产品", "都有什么"]):
         product_svc = ProductService(db)
         hot_products = product_svc.get_hot_products()
         constitution_catalog = product_svc.get_constitution_catalog()
