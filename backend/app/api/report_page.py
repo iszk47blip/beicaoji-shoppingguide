@@ -489,6 +489,7 @@ def view_report(session_id: str, db=Depends(get_db)):
   <h1>个人调理报告</h1>
   <div class="subtitle">焙 草 集</div>{f'<div class="name">{name}</div>' if name else ''}
   <div class="date">{today}</div>
+  <button onclick="showOrders()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:white;padding:4px 14px;border-radius:14px;font-size:12px;cursor:pointer">📋 我的订单</button>
 </div>
 
 <div class="section">
@@ -640,7 +641,17 @@ function closeOrder(e) {{
   document.getElementById('order-overlay').classList.remove('show');
 }}
 
+var _orders = [];
+
 function confirmOrder(orderNo) {{
+  var items = Cart._items.map(function(i) {{ return {{sku_id:i.sku_id,name:i.name,price:i.price,quantity:i.quantity,category:i.category||''}}; }});
+  var total = Cart.total(), count = Cart.count();
+  _orders.unshift({{order_no:orderNo,items:items.map(function(i){{return{{name:i.name,price:i.price,quantity:i.quantity}}}}),total:total,count:count,time:new Date().toLocaleString('zh-CN')}});
+  fetch('/api/chat/orders', {{
+    method: 'POST',
+    headers: {{'Content-Type':'application/json'}},
+    body: JSON.stringify({{order_no:orderNo,session_id:window.SESSION_ID||'',items:items,total:total,count:count}})
+  }}).catch(function(){{}});
   Cart.clear();
   document.getElementById('order-overlay').classList.remove('show');
   var sec = document.querySelector('.section:last-of-type');
@@ -653,12 +664,35 @@ function confirmOrder(orderNo) {{
   showToast('下单成功 ✓');
 }}
 
+var _orders = [];
+function showOrders() {{
+  if (!_orders.length) {{ showToast('暂无订单记录'); return; }}
+  var html = '<div style="padding:20px;font-size:14px">';
+  _orders.forEach(function(o) {{
+    html += '<div style="background:#faf7f2;border-radius:12px;padding:14px;margin-bottom:10px">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;color:#999">' +
+      '<span>'+o.time+'</span><span>订单号:'+o.order_no+'</span></div>';
+    o.items.forEach(function(i) {{
+      html += '<div style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0">' +
+        '<span>'+i.name+' ×'+i.quantity+'</span><span style="color:#999">¥'+Math.round(i.price*i.quantity*100)/100+'</span></div>';
+    }});
+    html += '<div style="border-top:1px solid #e0d8cc;margin-top:8px;padding-top:6px;display:flex;justify-content:space-between;font-weight:700">' +
+      '<span>'+o.count+' 件</span><span style="color:#c0392b">¥'+o.total.toFixed(2)+'</span></div></div>';
+  }});
+  html += '</div>';
+  document.getElementById('order-modal').innerHTML = '<div style="padding:20px;text-align:center;font-size:16px;font-weight:700;margin-bottom:10px">我的订单</div>' + html +
+    '<button class="btn-close" onclick="closeOrder()">关闭</button>';
+  document.getElementById('order-overlay').classList.add('show');
+}}
+
 function showToast(msg) {{
   var t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   clearTimeout(t._timer);
   t._timer = setTimeout(function() {{ t.classList.remove('show'); }}, 2000);
 }}
+
+window.SESSION_ID = '{session_id}';
 </script>
 
 </body>
