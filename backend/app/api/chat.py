@@ -199,7 +199,7 @@ def send_message(req: SendRequest, db=Depends(get_db)):
 
     # Intent routing: product search or catalog display at any stage
     more_product_phrases = ["推荐更多产品", "推荐其他产品", "再看看其他", "看看其他"]
-    if intent == "search_product" or (intent is None and message in more_product_phrases):
+    if intent == "search_product" or message in more_product_phrases:
         intent = "search_product"
         # "推荐更多产品" 等按钮 → 返回热销产品补充包，不是语义搜索
         if message in more_product_phrases:
@@ -213,6 +213,7 @@ def send_message(req: SendRequest, db=Depends(get_db)):
                     "products": supplemented[:4],
                     "constitution": state.get("recommendation", {}).get("constitution", {}),
                 }
+                result["message"] = "这里还有一些热门产品推荐给你～有感兴趣的吗？"
             elif state.get("recommendation"):
                 recommendation = state["recommendation"]
         else:
@@ -236,7 +237,7 @@ def send_message(req: SendRequest, db=Depends(get_db)):
                     }
                 else:
                     recommendation = state["recommendation"]
-    if intent == "show_catalog" or (not intent and message in ["看看产品目录", "产品目录", "目录", "有什么产品", "都有什么"]):
+    if intent == "show_catalog" or message in ["看看产品目录", "产品目录", "目录", "有什么产品", "都有什么"]:
         product_svc = ProductService(db)
         hot_products = product_svc.get_hot_products()
         constitution_catalog = product_svc.get_constitution_catalog()
