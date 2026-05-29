@@ -247,8 +247,8 @@ def send_message(req: SendRequest, db=Depends(get_db)):
             "youzan_qr": "/static/youzan-qr.jpg",
         }
 
-    # Existing stage-based routing
-    if result.get("stage") == Stage.RECOMMEND and not recommendation:
+    # Existing stage-based routing — only run if we haven't already prepared recommendation or catalog
+    if result.get("stage") == Stage.RECOMMEND and not recommendation and not catalog:
         product_svc = ProductService(db)
         rec_engine = RecommendEngine(product_svc, client=engine.client, screening_result=state.get("screening_result", ""))
         const_type = result.get("constitution_type") or state.get("constitution_type")
