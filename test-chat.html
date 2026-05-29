@@ -1346,10 +1346,23 @@ function closeOrder(e) {
   renderCart();
 }
 
-function confirmOrder(orderNo) {
+async function confirmOrder(orderNo) {
   const items = CartStore.getAll();
   const total = CartStore.total();
   const count = CartStore.count();
+  try {
+    await fetch(BASE + '/chat/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        order_no: orderNo,
+        session_id: sessionId,
+        items: items.map(i => ({ sku_id: i.sku_id, name: i.name, price: i.price, quantity: i.quantity, category: i.category })),
+        total,
+        count
+      })
+    });
+  } catch(e) { /* non-blocking */ }
   OrderStore.add(orderNo, items, total, count);
   CartStore.clear();
   document.getElementById('order-overlay').classList.remove('show');

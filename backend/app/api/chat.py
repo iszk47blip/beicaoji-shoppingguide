@@ -9,6 +9,7 @@ from app.services.recommend_engine import RecommendEngine
 from app.api.deps import get_db
 from app.models.customer import Customer
 from app.models.conversation import Conversation
+from app.models.order import Order
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 engine = DialogueEngine()
@@ -389,3 +390,45 @@ def reset_session(req: ResetRequest):
     state_key = f"chat:{req.session_id}"
     _session_store.pop(state_key, None)
     return {"status": "ok"}
+
+
+class OrderItem(BaseModel):
+    sku_id: str
+    name: str
+    price: float
+    quantity: int
+    category: str = ""
+
+
+class OrderRequest(BaseModel):
+    order_no: str
+    session_id: str
+    items: list[OrderItem]
+    total: float
+    count: int
+
+
+@router.post("/orders")
+def create_order(req: OrderRequest, db=Depends(get_db)):
+    """Create an order from test-chat.html checkout. No auth required."""
+    existing = db.query(Order).filter(Order.order_no == req.order_no).first()
+    if existing:
+        return {"status": "exists", "order_no": req.order_no}
+
+    conv_id = None
+    state_key = f"chat:{req.session_id}"
+    state = _session_store.get(state_key, {})
+    if state:
+        conv_id = state.get("_conv_id")
+
+    order = Order(
+        order_no=req.order_no,
+        total_amount=req.total,
+        items_json=json.dumps([i.model_dump() for i in req.items], ensure_ascii=False),
+        conversation_id=conv_id,
+        status="pending",
+    )
+    db.add(order)
+    db.commit()
+    db.refresh(order)
+    return {"status": "ok", "order_no": req.order_no}
