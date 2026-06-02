@@ -1,13 +1,66 @@
-__pycache__/
-*.py[cod]
-*.so
-.Python
-*.egg-info/
-dist/
-build/
-.env
-.venv/
-venv/
-*.db
-.DS_Store
+# GStack
 .gstack/
+.gstack-checkpoints/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# WeChat miniprogram
+miniprogram/project.private.config.json
+miniprogram/node_modules/
+miniprogram/tests/
+miniprogram/jest.config.js
+
+# Node
+node_modules/
+
+# Deploy & server
+deploy/
+*.key
+private.key
+
+# Test & debug
+*_result.json
+debug_*.json
+*_output.txt
+test-problem.md
+beicaoji-产品目录/
+
+# Claude Code personal settings
+.claude/settings.local.json
+.claude/browse-state/
+.claude/commands/
+.playwright-mcp/
+browse-tmp/
+
+# Screenshots & debug images
+*.png
+!miniprogram/components/**/*.png
+
+# Database
+*.db
+*.db-journal
+
+# Server files
+server-test-chat.html
+staff-admin.html
+backend/login.html
+
+# Logs
+*.log
+_debug_put_hot_products.log
+
+# Debug & temp
+*_snapshot.md
+*_after*.md
+*-initial.yml
+page-*.yml
+*.xlsx
+test_*.py
+debug_cdp.py
+backend/backend/

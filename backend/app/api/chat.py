@@ -415,17 +415,25 @@ def create_order(req: OrderRequest, db=Depends(get_db)):
     if existing:
         return {"status": "exists", "order_no": req.order_no}
 
-    conv_id = None
     state_key = f"chat:{req.session_id}"
     state = _session_store.get(state_key, {})
-    if state:
-        conv_id = state.get("_conv_id")
+    conv_id = state.get("_conv_id")
+
+    # Pull conversation history from DB
+    conv_history = []
+    if conv_id:
+        conv = db.query(Conversation).filter(Conversation.id == conv_id).first()
+        if conv:
+            conv_history = json.loads(conv.messages_history or "[]")
 
     order = Order(
         order_no=req.order_no,
         total_amount=req.total,
         items_json=json.dumps([i.model_dump() for i in req.items], ensure_ascii=False),
         conversation_id=conv_id,
+        conversation_snapshot=json.dumps(conv_history, ensure_ascii=False) if conv_history else None,
+        recommendation_snapshot=json.dumps(state.get("recommendation"), ensure_ascii=False) if state.get("recommendation") else None,
+        constitution_snapshot=json.dumps({"constitution_type": state.get("constitution_type"), "constitution_raw": state.get("constitution_raw")}, ensure_ascii=False) if state.get("constitution_type") else None,
         status="pending",
     )
     db.add(order)
