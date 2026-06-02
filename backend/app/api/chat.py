@@ -406,6 +406,11 @@ class OrderRequest(BaseModel):
     items: list[OrderItem]
     total: float
     count: int
+    # Optional snapshots — preferred over _session_store lookup
+    constitution_type: str | None = None
+    constitution_raw: str | None = None
+    recommendation: dict | None = None
+    conversation_snapshot: list | None = None  # pre-serialized message history
 
 
 @router.post("/orders")
@@ -419,12 +424,16 @@ def create_order(req: OrderRequest, db=Depends(get_db)):
     state = _session_store.get(state_key, {})
     conv_id = state.get("_conv_id")
 
-    # Pull conversation history from DB
-    conv_history = []
-    if conv_id:
+    # Prefer request-body snapshots (sent by H5), fall back to _session_store
+    conv_history = req.conversation_snapshot
+    if conv_history is None and conv_id:
         conv = db.query(Conversation).filter(Conversation.id == conv_id).first()
         if conv:
             conv_history = json.loads(conv.messages_history or "[]")
+
+    recommendation = req.recommendation if req.recommendation is not None else state.get("recommendation")
+    constitution_type = req.constitution_type if req.constitution_type else state.get("constitution_type")
+    constitution_raw = req.constitution_raw if req.constitution_raw else state.get("constitution_raw")
 
     order = Order(
         order_no=req.order_no,
@@ -432,8 +441,8 @@ def create_order(req: OrderRequest, db=Depends(get_db)):
         items_json=json.dumps([i.model_dump() for i in req.items], ensure_ascii=False),
         conversation_id=conv_id,
         conversation_snapshot=json.dumps(conv_history, ensure_ascii=False) if conv_history else None,
-        recommendation_snapshot=json.dumps(state.get("recommendation"), ensure_ascii=False) if state.get("recommendation") else None,
-        constitution_snapshot=json.dumps({"constitution_type": state.get("constitution_type"), "constitution_raw": state.get("constitution_raw")}, ensure_ascii=False) if state.get("constitution_type") else None,
+        recommendation_snapshot=json.dumps(recommendation, ensure_ascii=False) if recommendation else None,
+        constitution_snapshot=json.dumps({"constitution_type": constitution_type, "constitution_raw": constitution_raw}, ensure_ascii=False) if constitution_type else None,
         status="pending",
     )
     db.add(order)

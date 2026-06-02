@@ -918,14 +918,26 @@ function setQuickReplies(replies) {
   });
 }
 
-// ---- Chat ----
-function addMsg(role, text) {
+// ---- Global conversation state (sent with order checkout) ----
+let conversationHistory = [];   // [{role, content, timestamp}]
+let constitutionType = null;     // '气虚质'
+let constitutionRaw = null;      // raw screening result string
+let recommendation = null;       // {bundle: [...], constitution: {...}}
+
+// Track bot messages so we can build conversationHistory for the order
+function addMsg(role, text, extra) {
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
   div.className = 'msg ' + role;
   div.textContent = text;
   chat.appendChild(div);
   scrollToBottom();
+  if (role === 'bot' && typeof extra === 'object' && extra !== null) {
+    // Pass constitution / recommendation up to global
+    if (extra.constitution_type) constitutionType = extra.constitution_type;
+    if (extra.constitution_raw !== undefined) constitutionRaw = extra.constitution_raw;
+    if (extra.recommendation) recommendation = extra.recommendation;
+  }
 }
 
 function showLoading() {
@@ -1065,8 +1077,15 @@ async function sendMessage(message) {
     });
     const data = await resp.json();
     hideLoading();
-    addMsg('bot', data.message);
-    if (data.recommendation) showRecommendation(data.recommendation);
+    if (data.message) {
+      const ts = new Date().toISOString();
+      conversationHistory.push({ role: 'assistant', content: data.message, timestamp: ts });
+      addMsg('bot', data.message, {
+        constitution_type: data.constitution_type,
+        constitution_raw: data.screening_result,
+        recommendation: data.recommendation,
+      });
+    }
     // catalog can be an array (stage-based) or object with .constitution_catalog (show_catalog intent)
     if (data.catalog) {
       const catData = Array.isArray(data.catalog) ? data.catalog : data.catalog.constitution_catalog;
@@ -1084,6 +1103,8 @@ function send() {
   const input = document.getElementById('msg-input');
   const text = input.value.trim();
   if (!text) return;
+  const ts = new Date().toISOString();
+  conversationHistory.push({ role: 'user', content: text, timestamp: ts });
   addMsg('user', text);
   input.value = '';
   document.getElementById('quick-replies').innerHTML = '';
@@ -1360,7 +1381,11 @@ async function confirmOrder(orderNo) {
         session_id: sessionId,
         items: items.map(i => ({ sku_id: i.sku_id, name: i.name, price: i.price, quantity: i.quantity, category: i.category })),
         total,
-        count
+        count,
+        constitution_type: constitutionType,
+        constitution_raw: constitutionRaw,
+        recommendation: recommendation,
+        conversation_snapshot: conversationHistory,
       })
     });
   } catch(e) { /* non-blocking */ }
@@ -1440,7 +1465,14 @@ fetch(BASE + '/chat/send', {
   body: JSON.stringify({ session_id: sessionId, message: '' })
 }).then(r => r.json()).then(data => {
   document.getElementById('chat').innerHTML = '';
-  addMsg('bot', data.message);
+  if (data.message) {
+    conversationHistory.push({ role: 'assistant', content: data.message, timestamp: new Date().toISOString() });
+    addMsg('bot', data.message, {
+      constitution_type: data.constitution_type,
+      constitution_raw: data.screening_result,
+      recommendation: data.recommendation,
+    });
+  }
   setQuickReplies(data.quick_replies);
 });
 </script>
