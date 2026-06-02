@@ -680,7 +680,7 @@
     <div class="panel-footer">
       <button class="btn-clear" onclick="clearCart()">清空</button>
       <button class="btn-copy" onclick="copyOrderText()">📋 复制</button>
-      <button class="btn-checkout" onclick="checkout()" id="btn-checkout-text">去结算</button>
+      <button class="btn-checkout" onclick="checkout()" id="btn-checkout-text">保存意向清单</button>
     </div>
   </div>
 
@@ -1133,7 +1133,7 @@ function renderCart() {
   // Update checkout button with total
   var checkoutBtn = document.getElementById('btn-checkout-text');
   if (checkoutBtn) {
-    checkoutBtn.textContent = count > 0 ? '去结算 ¥' + total.toFixed(2).replace(/\.?0+$/, '') : '去结算';
+    checkoutBtn.textContent = count > 0 ? '保存意向清单 ¥' + total.toFixed(2).replace(/\.?0+$/, '') : '保存意向清单';
   }
 
   if (count > 0 && !bar.classList.contains('panel-open')) {
@@ -1329,11 +1329,12 @@ function checkout() {
     '<div class="order-section" style="font-size:13px;color:#999">' +
     '<p>📍 取货方式：到店自取</p>' +
     '<p>🏪 门店地址：焙草集门店</p>' +
-    '<p style="margin-top:4px;font-size:11px;color:#bbb">此为模拟订单，实际支付将对接有赞</p>' +
+    '<p style="margin-top:6px;color:#5B8C5A;font-weight:500">✓ 已选好商品，无需立即支付</p>' +
+    '<p style="margin-top:4px;font-size:12px;color:#999">到店后报订单号取货，商品准备好后支付即可</p>' +
     '</div>' +
     '<div class="order-actions">' +
     '<button class="btn-order-close" onclick="closeOrder()">继续选购</button>' +
-    '<button class="btn-order-confirm" onclick="confirmOrder(\'' + orderNo + '\')">确认下单</button>' +
+    '<button class="btn-order-confirm" onclick="confirmOrder(\'' + orderNo + '\')">确认保存</button>' +
     '</div>';
 
   document.getElementById('order-modal').innerHTML = html;
@@ -1370,11 +1371,11 @@ async function confirmOrder(orderNo) {
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
   div.className = 'msg system';
-  div.innerHTML = '✅ 下单成功！<br>订单号: ' + escapeHtml(orderNo) + '<br><span style="font-size:11px;color:#999">请到店出示订单号取货</span>';
+  div.innerHTML = '✅ 清单已保存！<br>订单号: ' + escapeHtml(orderNo) + '<br><span style="font-size:12px;color:#5B8C5A">到店后出示此订单号，店员会为您准备商品<br>本次无需支付，商品准备好后到店支付即可</span>';
   chat.appendChild(div);
   scrollToBottom();
 
-  showToast('下单成功 ✓');
+  showToast('清单已保存 ✓');
 }
 
 // ---- Init ----
