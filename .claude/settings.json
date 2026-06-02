@@ -1,0 +1,10 @@
+{
+  "hooks": [
+    {
+      "match": "backend/app/**/*.py",
+      "tool": "Bash",
+      "command": "python -m py_compile {path} 2>&1",
+      "description": "Python syntax check on edit"
+    }
+  ]
+}
