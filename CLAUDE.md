@@ -19,7 +19,7 @@ beicaoji/
 ## 技术栈
 
 - Python 3.11+, FastAPI, SQLAlchemy, Redis
-- 微信小程序原生框架
+- H5 移动端（test-chat.html）
 - 有赞承载订单/支付（后续接入）
 
 ## 开发原则（来自 Karpathy 指南）
